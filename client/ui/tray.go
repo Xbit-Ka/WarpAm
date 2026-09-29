@@ -1,0 +1,454 @@
+/* SPDX-License-Identifier: MIT
+ *
+ * Copyright (C) 2019-2022 WireGuard LLC. All Rights Reserved.
+ */
+
+package ui
+
+import (
+	"sort"
+	"strings"
+	"time"
+
+	"github.com/amnezia-vpn/amneziawg-windows-client/l18n"
+	"github.com/amnezia-vpn/amneziawg-windows-client/manager"
+	"github.com/amnezia-vpn/amneziawg-windows/v3/conf"
+
+	"github.com/lxn/walk"
+)
+
+// Status + active CIDRs + separator
+const trayTunnelActionsOffset = 3
+
+type Tray struct {
+	*walk.NotifyIcon
+
+	// Current known tunnels by name
+	tunnels                  map[string]*walk.Action
+	tunnelsAreInBreakoutMenu bool
+
+	mtw *ManageTunnelsWindow
+
+	tunnelChangedCB  *manager.TunnelChangeCallback
+	tunnelsChangedCB *manager.TunnelsChangeCallback
+
+	clicked func()
+}
+
+func NewTray(mtw *ManageTunnelsWindow) (*Tray, error) {
+	var err error
+
+	tray := &Tray{
+		mtw:     mtw,
+		tunnels: make(map[string]*walk.Action),
+	}
+
+	tray.NotifyIcon, err = walk.NewNotifyIcon(mtw)
+	if err != nil {
+		return nil, err
+	}
+
+	return tray, tray.setup()
+}
+
+func (tray *Tray) setup() error {
+	tray.clicked = tray.onManageTunnels
+	// Pack 81: from now on the marks follow the manager instead of waiting
+	// for a tunnel to change state.
+	tray.chainWatchMarks()
+
+	tray.SetToolTip(l18n.Sprintf("Warpam: Deactivated"))
+	tray.SetVisible(true)
+	if icon, err := loadLogoIcon(16); err == nil {
+		tray.SetIcon(icon)
+	}
+
+	tray.MouseDown().Attach(func(x, y int, button walk.MouseButton) {
+		if button == walk.LeftButton {
+			tray.clicked()
+		}
+	})
+	tray.MessageClicked().Attach(func() {
+		tray.clicked()
+	})
+
+	for _, item := range [...]struct {
+		label     string
+		handler   walk.EventHandler
+		enabled   bool
+		hidden    bool
+		separator bool
+		defawlt   bool
+	}{
+		{label: l18n.Sprintf("Status: Unknown")},
+		{label: l18n.Sprintf("Addresses: None"), hidden: true},
+		{separator: true},
+		{separator: true},
+		{label: l18n.Sprintf("&Manage tunnels…"), handler: tray.onManageTunnels, enabled: true, defawlt: true},
+		{label: l18n.Sprintf("&Import tunnel(s) from file…"), handler: tray.onImport, enabled: true, hidden: !IsAdmin},
+		{separator: true},
+		{label: l18n.Sprintf("&About Warpam…"), handler: tray.onAbout, enabled: true},
+		{label: l18n.Sprintf("E&xit"), handler: onQuit, enabled: true, hidden: !IsAdmin},
+	} {
+		var action *walk.Action
+		if item.separator {
+			action = walk.NewSeparatorAction()
+		} else {
+			action = walk.NewAction()
+			action.SetText(item.label)
+			action.SetEnabled(item.enabled)
+			action.SetVisible(!item.hidden)
+			action.SetDefault(item.defawlt)
+			if item.handler != nil {
+				action.Triggered().Attach(item.handler)
+			}
+		}
+
+		tray.ContextMenu().Actions().Add(action)
+	}
+	tray.tunnelChangedCB = manager.IPCClientRegisterTunnelChange(tray.onTunnelChange)
+	tray.tunnelsChangedCB = manager.IPCClientRegisterTunnelsChange(tray.onTunnelsChange)
+	tray.onTunnelsChange()
+	globalState, _ := manager.IPCClientGlobalState()
+	tray.updateGlobalState(globalState)
+
+	return nil
+}
+
+func (tray *Tray) Dispose() error {
+	if tray.tunnelChangedCB != nil {
+		tray.tunnelChangedCB.Unregister()
+		tray.tunnelChangedCB = nil
+	}
+	if tray.tunnelsChangedCB != nil {
+		tray.tunnelsChangedCB.Unregister()
+		tray.tunnelsChangedCB = nil
+	}
+	return tray.NotifyIcon.Dispose()
+}
+
+func (tray *Tray) onTunnelsChange() {
+	tunnels, err := manager.IPCClientTunnels()
+	if err != nil {
+		return
+	}
+	tray.mtw.Synchronize(func() {
+		tunnelSet := make(map[string]bool, len(tunnels))
+		for _, tunnel := range tunnels {
+			if conf.ChainIsHiddenHopName(tunnel.Name) {
+				continue
+			}
+			tunnelSet[tunnel.Name] = true
+			if tray.tunnels[tunnel.Name] == nil {
+				tray.addTunnelAction(&tunnel)
+			}
+		}
+		for trayTunnel := range tray.tunnels {
+			if !tunnelSet[trayTunnel] {
+				tray.removeTunnelAction(trayTunnel)
+			}
+		}
+	})
+}
+
+func (tray *Tray) sortedTunnels() []string {
+	var names []string
+	for name := range tray.tunnels {
+		names = append(names, name)
+	}
+	sort.SliceStable(names, func(i, j int) bool {
+		return conf.TunnelNameIsLess(names[i], names[j])
+	})
+	return names
+}
+
+// chainWatchMarks asks to be told when the marks move, and draws them
+// again when they do. Pack 81: this is the signal that was missing. The
+// marks used to be written only from updateGlobalState, that is only when
+// a tunnel changed state, so the first answer of the manager and every
+// change made on the "Proxy" tab went unnoticed. There is no timer of our
+// own here: the call comes from the poll that was already running.
+func (tray *Tray) chainWatchMarks() {
+	chainMarksSubscribe(func() {
+		if tray == nil || tray.mtw == nil {
+			return
+		}
+		tray.mtw.Synchronize(func() {
+			tray.chainRefreshMarks()
+			if tray.mtw.tunnelsPage != nil && tray.mtw.tunnelsPage.listView != nil {
+				// The rows of the list carry the same marks.
+				tray.mtw.tunnelsPage.listView.chainRefreshMarks()
+			}
+		})
+	})
+}
+
+// chainRefreshMarks writes the mark of every tunnel line again.
+func (tray *Tray) chainRefreshMarks() {
+	for name, action := range tray.tunnels {
+		if action == nil {
+			continue
+		}
+		if text := chainNameWithMark(name); action.Text() != text {
+			action.SetText(text)
+		}
+	}
+}
+
+func (tray *Tray) addTunnelAction(tunnel *manager.Tunnel) {
+	tunnelAction := walk.NewAction()
+	// Pack 80: the line carries the same mark as the row in the list,
+	// so the menu says which of the tunnels that are ticked is the
+	// ordinary one and which only carry their proxies.
+	tunnelAction.SetText(chainNameWithMark(tunnel.Name))
+	tunnelAction.SetEnabled(true)
+	tunnelAction.SetCheckable(true)
+	tclosure := *tunnel
+	tunnelAction.Triggered().Attach(func() {
+		tunnelAction.SetChecked(!tunnelAction.Checked())
+		go func() {
+			oldState, err := tclosure.Toggle()
+			if err != nil {
+				// AwgChain pack 83: the tick was flipped before the
+				// tunnel was asked, so a refusal left the menu telling
+				// a story that never happened. The real state is asked
+				// and the tick is put back where it belongs.
+				state, stateErr := tclosure.State()
+				tray.mtw.Synchronize(func() {
+					if stateErr == nil {
+						tunnelAction.SetChecked(state == manager.TunnelStarted || state == manager.TunnelStarting)
+					}
+					raise(tray.mtw.Handle())
+					tray.mtw.tunnelsPage.listView.selectTunnel(tclosure.Name)
+					tray.mtw.tabs.SetCurrentIndex(0)
+					// Pack 84: the branches live in chaintoggle.go now.
+					chainToggleFailed(tray.mtw, oldState, err)
+				})
+			}
+		}()
+	})
+	tray.tunnels[tunnel.Name] = tunnelAction
+
+	var (
+		idx  int
+		name string
+	)
+	for idx, name = range tray.sortedTunnels() {
+		if name == tunnel.Name {
+			break
+		}
+	}
+
+	if tray.tunnelsAreInBreakoutMenu {
+		tray.ContextMenu().Actions().At(trayTunnelActionsOffset).Menu().Actions().Insert(idx, tunnelAction)
+	} else {
+		tray.ContextMenu().Actions().Insert(trayTunnelActionsOffset+idx, tunnelAction)
+	}
+	tray.rebalanceTunnelsMenu()
+
+	go func() {
+		state, err := tclosure.State()
+		if err != nil {
+			return
+		}
+		tray.mtw.Synchronize(func() {
+			tray.setTunnelState(&tclosure, state)
+		})
+	}()
+}
+
+func (tray *Tray) removeTunnelAction(tunnelName string) {
+	if tray.tunnelsAreInBreakoutMenu {
+		tray.ContextMenu().Actions().At(trayTunnelActionsOffset).Menu().Actions().Remove(tray.tunnels[tunnelName])
+	} else {
+		tray.ContextMenu().Actions().Remove(tray.tunnels[tunnelName])
+	}
+	delete(tray.tunnels, tunnelName)
+	tray.rebalanceTunnelsMenu()
+}
+
+func (tray *Tray) rebalanceTunnelsMenu() {
+	if tray.tunnelsAreInBreakoutMenu && len(tray.tunnels) <= 10 {
+		menuAction := tray.ContextMenu().Actions().At(trayTunnelActionsOffset)
+		idx := 1
+		for _, name := range tray.sortedTunnels() {
+			tray.ContextMenu().Actions().Insert(trayTunnelActionsOffset+idx, tray.tunnels[name])
+			idx++
+		}
+		tray.ContextMenu().Actions().Remove(menuAction)
+		menuAction.Menu().Dispose()
+		tray.tunnelsAreInBreakoutMenu = false
+	} else if !tray.tunnelsAreInBreakoutMenu && len(tray.tunnels) > 10 {
+		menu, err := walk.NewMenu()
+		if err != nil {
+			return
+		}
+		for _, name := range tray.sortedTunnels() {
+			action := tray.tunnels[name]
+			menu.Actions().Add(action)
+			tray.ContextMenu().Actions().Remove(action)
+		}
+		menuAction, err := tray.ContextMenu().Actions().InsertMenu(trayTunnelActionsOffset, menu)
+		if err != nil {
+			return
+		}
+		menuAction.SetText(l18n.Sprintf("&Tunnels"))
+		tray.tunnelsAreInBreakoutMenu = true
+	}
+}
+
+func (tray *Tray) onTunnelChange(tunnel *manager.Tunnel, state, globalState manager.TunnelState, err error) {
+	tray.mtw.Synchronize(func() {
+		tray.updateGlobalState(globalState)
+		if err == nil {
+			tunnelAction := tray.tunnels[tunnel.Name]
+			if tunnelAction != nil {
+				wasChecked := tunnelAction.Checked()
+				switch state {
+				case manager.TunnelStarted:
+					if !wasChecked {
+						icon, _ := iconWithOverlayForState(state, 128)
+						tray.ShowCustom(l18n.Sprintf("Warpam Activated"), l18n.Sprintf("The %s tunnel has been activated.", tunnel.Name), icon)
+					}
+
+				case manager.TunnelStopped:
+					if wasChecked {
+						icon, _ := loadSystemIcon("imageres", -31, 128) // TODO: this icon isn't very good...
+						tray.ShowCustom(l18n.Sprintf("Warpam Deactivated"), l18n.Sprintf("The %s tunnel has been deactivated.", tunnel.Name), icon)
+					}
+				}
+			}
+		} else if !tray.mtw.Visible() {
+			// Pack 85: the balloon goes through the same hub as the windows.
+			// While the chain was rebuilding itself every 46 seconds, this
+			// line fired on every round with the same text; the repeats are
+			// counted in the log instead now.
+			trayErrorTitle := l18n.Sprintf("Warpam Tunnel Error")
+			if chainNoticeBalloon(trayErrorTitle, err.Error()) {
+				tray.ShowError(trayErrorTitle, err.Error())
+			}
+		}
+		tray.setTunnelState(tunnel, state)
+	})
+}
+
+func (tray *Tray) updateGlobalState(globalState manager.TunnelState) {
+	if icon, err := iconWithOverlayForState(globalState, 16); err == nil {
+		tray.SetIcon(icon)
+	}
+
+	// Pack 80: the marks are drawn again here. The first answer of the
+	// background poll arrives a couple of seconds after the window is
+	// built, and the proxy of a tunnel can be switched on at any time on
+	// the "Proxy" tab; neither of those is a tunnel event, so without
+	// this the menu would keep the mark it was born with.
+	tray.chainRefreshMarks()
+
+	actions := tray.ContextMenu().Actions()
+	statusAction := actions.At(0)
+
+	tray.SetToolTip(l18n.Sprintf("Warpam: %s", textForState(globalState, true)))
+	stateText := textForState(globalState, false)
+	stateIcon, err := iconForState(globalState, 16)
+	if err == nil {
+		statusAction.SetImage(stateIcon)
+	}
+	statusAction.SetText(l18n.Sprintf("Status: %s", stateText))
+
+	go func() {
+		var addrs []string
+		tunnels, err := manager.IPCClientTunnels()
+		if err == nil {
+			for i := range tunnels {
+				if conf.ChainIsHiddenHopName(tunnels[i].Name) {
+					continue
+				}
+				state, err := tunnels[i].State()
+				if err == nil && state == manager.TunnelStarted {
+					config, err := tunnels[i].RuntimeConfig()
+					if err == nil {
+						for _, addr := range config.Interface.Addresses {
+							addrs = append(addrs, addr.String())
+						}
+					}
+				}
+			}
+		}
+		tray.mtw.Synchronize(func() {
+			activeCIDRsAction := tray.ContextMenu().Actions().At(1)
+			activeCIDRsAction.SetText(l18n.Sprintf("Addresses: %s", strings.Join(addrs, l18n.EnumerationSeparator())))
+			activeCIDRsAction.SetVisible(len(addrs) > 0)
+		})
+	}()
+
+	for _, action := range tray.tunnels {
+		action.SetEnabled(globalState == manager.TunnelStarted || globalState == manager.TunnelStopped)
+	}
+}
+
+func (tray *Tray) setTunnelState(tunnel *manager.Tunnel, state manager.TunnelState) {
+	tunnelAction := tray.tunnels[tunnel.Name]
+	if tunnelAction == nil {
+		return
+	}
+
+	switch state {
+	case manager.TunnelStarted:
+		tunnelAction.SetEnabled(true)
+		tunnelAction.SetChecked(true)
+
+	case manager.TunnelStopped:
+		tunnelAction.SetChecked(false)
+	}
+}
+
+func (tray *Tray) UpdateFound() {
+	action := walk.NewAction()
+	action.SetText(l18n.Sprintf("An Update is Available!"))
+	menuIcon, _ := loadShieldIcon(16)
+	action.SetImage(menuIcon)
+	action.SetDefault(true)
+	showUpdateTab := func() {
+		if !tray.mtw.Visible() {
+			tray.mtw.tunnelsPage.listView.SelectFirstActiveTunnel()
+		}
+		tray.mtw.tabs.SetCurrentIndex(2)
+		raise(tray.mtw.Handle())
+	}
+	action.Triggered().Attach(showUpdateTab)
+	tray.clicked = showUpdateTab
+	tray.ContextMenu().Actions().Insert(tray.ContextMenu().Actions().Len()-2, action)
+
+	showUpdateBalloon := func() {
+		icon, _ := loadShieldIcon(128)
+		tray.ShowCustom(l18n.Sprintf("Warpam Update Available"), l18n.Sprintf("An update to Warpam is now available. You are advised to update as soon as possible."), icon)
+	}
+
+	timeSinceStart := time.Now().Sub(startTime)
+	if timeSinceStart < time.Second*3 {
+		time.AfterFunc(time.Second*3-timeSinceStart, func() {
+			tray.mtw.Synchronize(showUpdateBalloon)
+		})
+	} else {
+		showUpdateBalloon()
+	}
+}
+
+func (tray *Tray) onManageTunnels() {
+	tray.mtw.tunnelsPage.listView.SelectFirstActiveTunnel()
+	tray.mtw.tabs.SetCurrentIndex(0)
+	raise(tray.mtw.Handle())
+}
+
+func (tray *Tray) onAbout() {
+	if tray.mtw.Visible() {
+		onAbout(tray.mtw)
+	} else {
+		onAbout(nil)
+	}
+}
+
+func (tray *Tray) onImport() {
+	raise(tray.mtw.Handle())
+	tray.mtw.tunnelsPage.onImport()
+}

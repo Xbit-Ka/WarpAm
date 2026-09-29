@@ -1,0 +1,872 @@
+/* SPDX-License-Identifier: MIT
+ *
+ * Copyright (C) 2019-2022 WireGuard LLC. All Rights Reserved.
+ */
+
+package ui
+
+import (
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/lxn/walk"
+	"github.com/lxn/win"
+
+	"github.com/amnezia-vpn/amneziawg-windows-client/l18n"
+	"github.com/amnezia-vpn/amneziawg-windows-client/manager"
+	"github.com/amnezia-vpn/amneziawg-windows/v3/conf"
+)
+
+type widgetsLine interface {
+	widgets() (walk.Widget, walk.Widget)
+}
+
+type widgetsLinesView interface {
+	widgetsLines() []widgetsLine
+}
+
+type labelStatusLine struct {
+	label           *walk.TextLabel
+	statusComposite *walk.Composite
+	statusImage     *walk.ImageView
+	statusLabel     *walk.LineEdit
+}
+
+type labelTextLine struct {
+	label *walk.TextLabel
+	text  *walk.TextEdit
+}
+
+type toggleActiveLine struct {
+	composite *walk.Composite
+	button    *walk.PushButton
+	// state is the state the button was last painted for. Pack 85: the
+	// click handler needs it, because while a chain is coming up the same
+	// button stops the raise instead of toggling.
+	state manager.TunnelState
+}
+
+// chainToggleGreyTime is how long the button stays grey after a click.
+//
+// Pack 85: it used to stay grey until the state of a tunnel really moved, and
+// a chain that never handshakes never moves it, so the only way out of an
+// endless raise was the tray or the service manager.
+const chainToggleGreyTime = 3 * time.Second
+
+type interfaceView struct {
+	status                 *labelStatusLine
+	publicKey              *labelTextLine
+	listenPort             *labelTextLine
+	mtu                    *labelTextLine
+	addresses              *labelTextLine
+	dns                    *labelTextLine
+	scripts                *labelTextLine
+	table                  *labelTextLine
+	headerProtectionKey    *labelTextLine
+	contentPaddingAddition *labelTextLine
+	rekeyAfterTime         *labelTextLine
+	rekeyTimeout           *labelTextLine
+	rejectAfterTime        *labelTextLine
+	keepaliveTimeout       *labelTextLine
+	maxHandshakeAttempts   *labelTextLine
+	randomTrailers         *labelTextLine
+	disableCookies         *labelTextLine
+	chainProtection        *labelTextLine
+	toggleActive           *toggleActiveLine
+	lines                  []widgetsLine
+}
+
+type peerView struct {
+	publicKey           *labelTextLine
+	presharedKey        *labelTextLine
+	allowedIPs          *labelTextLine
+	endpoint            *labelTextLine
+	persistentKeepalive *labelTextLine
+	latestHandshake     *labelTextLine
+	transfer            *labelTextLine
+	lines               []widgetsLine
+}
+
+type ConfView struct {
+	*walk.ScrollView
+	name            *walk.GroupBox
+	interfaze       *interfaceView
+	peers           map[conf.Key]*peerView
+	tunnelChangedCB *manager.TunnelChangeCallback
+	tunnel          *manager.Tunnel
+	updateTicker    *time.Ticker
+}
+
+func (lsl *labelStatusLine) widgets() (walk.Widget, walk.Widget) {
+	return lsl.label, lsl.statusComposite
+}
+
+func (lsl *labelStatusLine) update(state manager.TunnelState) {
+	icon, err := iconForState(state, 14)
+	if err == nil {
+		lsl.statusImage.SetImage(icon)
+	} else {
+		lsl.statusImage.SetImage(nil)
+	}
+
+	s, e := lsl.statusLabel.TextSelection()
+	lsl.statusLabel.SetText(textForState(state, false))
+	lsl.statusLabel.SetTextSelection(s, e)
+}
+
+func (lsl *labelStatusLine) Dispose() {
+	lsl.label.Dispose()
+	lsl.statusComposite.Dispose()
+}
+
+func newLabelStatusLine(parent walk.Container) (*labelStatusLine, error) {
+	var err error
+	var disposables walk.Disposables
+	defer disposables.Treat()
+
+	lsl := new(labelStatusLine)
+
+	if lsl.label, err = walk.NewTextLabel(parent); err != nil {
+		return nil, err
+	}
+	disposables.Add(lsl.label)
+	lsl.label.SetText(l18n.Sprintf("Status:"))
+	lsl.label.SetTextAlignment(walk.AlignHFarVNear)
+
+	if lsl.statusComposite, err = walk.NewComposite(parent); err != nil {
+		return nil, err
+	}
+	disposables.Add(lsl.statusComposite)
+	layout := walk.NewHBoxLayout()
+	layout.SetMargins(walk.Margins{})
+	layout.SetAlignment(walk.AlignHNearVNear)
+	layout.SetSpacing(0)
+	lsl.statusComposite.SetLayout(layout)
+
+	if lsl.statusImage, err = walk.NewImageView(lsl.statusComposite); err != nil {
+		return nil, err
+	}
+	disposables.Add(lsl.statusImage)
+	lsl.statusImage.SetMargin(2)
+	lsl.statusImage.SetMode(walk.ImageViewModeIdeal)
+
+	if lsl.statusLabel, err = walk.NewLineEdit(lsl.statusComposite); err != nil {
+		return nil, err
+	}
+	disposables.Add(lsl.statusLabel)
+	win.SetWindowLong(lsl.statusLabel.Handle(), win.GWL_EXSTYLE, win.GetWindowLong(lsl.statusLabel.Handle(), win.GWL_EXSTYLE)&^win.WS_EX_CLIENTEDGE)
+	lsl.statusLabel.SetReadOnly(true)
+	lsl.statusLabel.SetBackground(walk.NullBrush())
+	lsl.statusLabel.FocusedChanged().Attach(func() {
+		lsl.statusLabel.SetTextSelection(0, 0)
+	})
+	lsl.update(manager.TunnelUnknown)
+	lsl.statusLabel.Accessibility().SetRole(walk.AccRoleStatictext)
+
+	disposables.Spare()
+
+	return lsl, nil
+}
+
+func (lt *labelTextLine) widgets() (walk.Widget, walk.Widget) {
+	return lt.label, lt.text
+}
+
+func (lt *labelTextLine) show(text string) {
+	s, e := lt.text.TextSelection()
+	lt.text.SetText(text)
+	lt.label.SetVisible(true)
+	lt.text.SetVisible(true)
+	lt.text.SetTextSelection(s, e)
+}
+
+func (lt *labelTextLine) hide() {
+	lt.text.SetText("")
+	lt.label.SetVisible(false)
+	lt.text.SetVisible(false)
+}
+
+func (lt *labelTextLine) Dispose() {
+	lt.label.Dispose()
+	lt.text.Dispose()
+}
+
+func newLabelTextLine(fieldName string, parent walk.Container) (*labelTextLine, error) {
+	var err error
+	var disposables walk.Disposables
+	defer disposables.Treat()
+
+	lt := new(labelTextLine)
+
+	if lt.label, err = walk.NewTextLabel(parent); err != nil {
+		return nil, err
+	}
+	disposables.Add(lt.label)
+	lt.label.SetText(fieldName)
+	lt.label.SetTextAlignment(walk.AlignHFarVNear)
+	lt.label.SetVisible(false)
+
+	if lt.text, err = walk.NewTextEdit(parent); err != nil {
+		return nil, err
+	}
+	disposables.Add(lt.text)
+	win.SetWindowLong(lt.text.Handle(), win.GWL_EXSTYLE, win.GetWindowLong(lt.text.Handle(), win.GWL_EXSTYLE)&^win.WS_EX_CLIENTEDGE)
+	lt.text.SetCompactHeight(true)
+	lt.text.SetReadOnly(true)
+	lt.text.SetBackground(walk.NullBrush())
+	lt.text.SetVisible(false)
+	lt.text.FocusedChanged().Attach(func() {
+		lt.text.SetTextSelection(0, 0)
+	})
+	lt.text.Accessibility().SetRole(walk.AccRoleStatictext)
+
+	disposables.Spare()
+
+	return lt, nil
+}
+
+func (tal *toggleActiveLine) widgets() (walk.Widget, walk.Widget) {
+	return nil, tal.composite
+}
+
+func (tal *toggleActiveLine) updateGlobal(globalState manager.TunnelState) {
+	// Pack 85: TunnelStarting keeps the button alive too, because that is
+	// exactly the state a chain can be stuck in for hours.
+	tal.button.SetEnabled(globalState == manager.TunnelStarted ||
+		globalState == manager.TunnelStopped ||
+		globalState == manager.TunnelStarting)
+}
+
+func (tal *toggleActiveLine) update(state manager.TunnelState) {
+	var text string
+
+	tal.state = state
+
+	switch state {
+	case manager.TunnelStarted:
+		text = l18n.Sprintf("&Deactivate")
+	case manager.TunnelStopped:
+		text = l18n.Sprintf("&Activate")
+	case manager.TunnelStarting:
+		// Pack 85: the raise can be called off from here.
+		text = chainStopRaiseButton
+	case manager.TunnelStopping:
+		text = textForState(state, true)
+	default:
+		text = ""
+	}
+
+	tal.button.SetText(text)
+	tal.button.SetVisible(state != manager.TunnelUnknown)
+}
+
+func (tal *toggleActiveLine) Dispose() {
+	tal.composite.Dispose()
+}
+
+func newToggleActiveLine(parent walk.Container) (*toggleActiveLine, error) {
+	var err error
+	var disposables walk.Disposables
+	defer disposables.Treat()
+
+	tal := new(toggleActiveLine)
+
+	if tal.composite, err = walk.NewComposite(parent); err != nil {
+		return nil, err
+	}
+	disposables.Add(tal.composite)
+	layout := walk.NewHBoxLayout()
+	layout.SetMargins(walk.Margins{0, 0, 0, 6})
+	tal.composite.SetLayout(layout)
+
+	if tal.button, err = walk.NewPushButton(tal.composite); err != nil {
+		return nil, err
+	}
+	disposables.Add(tal.button)
+	walk.NewHSpacer(tal.composite)
+	tal.update(manager.TunnelStopped)
+
+	disposables.Spare()
+
+	return tal, nil
+}
+
+type labelTextLineItem struct {
+	label string
+	ptr   **labelTextLine
+}
+
+func createLabelTextLines(items []labelTextLineItem, parent walk.Container, disposables *walk.Disposables) ([]widgetsLine, error) {
+	var err error
+	var disps walk.Disposables
+	defer disps.Treat()
+
+	wls := make([]widgetsLine, len(items))
+	for i, item := range items {
+		if *item.ptr, err = newLabelTextLine(item.label, parent); err != nil {
+			return nil, err
+		}
+		disps.Add(*item.ptr)
+		if disposables != nil {
+			disposables.Add(*item.ptr)
+		}
+		wls[i] = *item.ptr
+	}
+
+	disps.Spare()
+
+	return wls, nil
+}
+
+func newInterfaceView(parent walk.Container) (*interfaceView, error) {
+	var err error
+	var disposables walk.Disposables
+	defer disposables.Treat()
+
+	iv := new(interfaceView)
+
+	if iv.status, err = newLabelStatusLine(parent); err != nil {
+		return nil, err
+	}
+	disposables.Add(iv.status)
+
+	items := []labelTextLineItem{
+		{l18n.Sprintf("Public key:"), &iv.publicKey},
+		{l18n.Sprintf("Listen port:"), &iv.listenPort},
+		{l18n.Sprintf("MTU:"), &iv.mtu},
+		{l18n.Sprintf("Addresses:"), &iv.addresses},
+		{l18n.Sprintf("DNS servers:"), &iv.dns},
+		{chainProtectLabel, &iv.chainProtection},
+		{l18n.Sprintf("Scripts:"), &iv.scripts},
+		{l18n.Sprintf("Table:"), &iv.table},
+		{l18n.Sprintf("Header protection key:"), &iv.headerProtectionKey},
+		{l18n.Sprintf("Content padding addition:"), &iv.contentPaddingAddition},
+		{l18n.Sprintf("Rekey after time:"), &iv.rekeyAfterTime},
+		{l18n.Sprintf("Rekey timeout:"), &iv.rekeyTimeout},
+		{l18n.Sprintf("Reject after time:"), &iv.rejectAfterTime},
+		{l18n.Sprintf("Keepalive timeout:"), &iv.keepaliveTimeout},
+		{l18n.Sprintf("Max handshake attempts:"), &iv.maxHandshakeAttempts},
+		{l18n.Sprintf("Random trailers:"), &iv.randomTrailers},
+		{l18n.Sprintf("Disable cookies:"), &iv.disableCookies},
+	}
+	if iv.lines, err = createLabelTextLines(items, parent, &disposables); err != nil {
+		return nil, err
+	}
+
+	if iv.toggleActive, err = newToggleActiveLine(parent); err != nil {
+		return nil, err
+	}
+	disposables.Add(iv.toggleActive)
+
+	iv.lines = append([]widgetsLine{iv.status}, append(iv.lines, iv.toggleActive)...)
+
+	layoutInGrid(iv, parent.Layout().(*walk.GridLayout))
+
+	disposables.Spare()
+
+	return iv, nil
+}
+
+func newPeerView(parent walk.Container) (*peerView, error) {
+	pv := new(peerView)
+
+	items := []labelTextLineItem{
+		{l18n.Sprintf("Public key:"), &pv.publicKey},
+		{l18n.Sprintf("Preshared key:"), &pv.presharedKey},
+		{l18n.Sprintf("Allowed IPs:"), &pv.allowedIPs},
+		{l18n.Sprintf("Endpoint:"), &pv.endpoint},
+		{l18n.Sprintf("Persistent keepalive:"), &pv.persistentKeepalive},
+		{l18n.Sprintf("Latest handshake:"), &pv.latestHandshake},
+		{l18n.Sprintf("Transfer:"), &pv.transfer},
+	}
+	var err error
+	if pv.lines, err = createLabelTextLines(items, parent, nil); err != nil {
+		return nil, err
+	}
+
+	layoutInGrid(pv, parent.Layout().(*walk.GridLayout))
+
+	return pv, nil
+}
+
+func layoutInGrid(view widgetsLinesView, layout *walk.GridLayout) {
+	for i, l := range view.widgetsLines() {
+		w1, w2 := l.widgets()
+
+		if w1 != nil {
+			layout.SetRange(w1, walk.Rectangle{0, i, 1, 1})
+		}
+		if w2 != nil {
+			layout.SetRange(w2, walk.Rectangle{2, i, 1, 1})
+		}
+	}
+}
+
+func (iv *interfaceView) widgetsLines() []widgetsLine {
+	return iv.lines
+}
+
+func (iv *interfaceView) apply(c *conf.Interface) {
+	if IsAdmin {
+		iv.publicKey.show(c.PrivateKey.Public().String())
+	} else {
+		iv.publicKey.hide()
+	}
+
+	if c.ListenPort > 0 {
+		iv.listenPort.show(strconv.Itoa(int(c.ListenPort)))
+	} else {
+		iv.listenPort.hide()
+	}
+
+	if c.MTU > 0 {
+		iv.mtu.show(strconv.Itoa(int(c.MTU)))
+	} else {
+		iv.mtu.hide()
+	}
+
+	if len(c.Addresses) > 0 {
+		addrStrings := make([]string, len(c.Addresses))
+		for i, address := range c.Addresses {
+			addrStrings[i] = address.String()
+		}
+		iv.addresses.show(strings.Join(addrStrings[:], l18n.EnumerationSeparator()))
+	} else {
+		iv.addresses.hide()
+	}
+
+	if len(c.DNS)+len(c.DNSSearch) > 0 {
+		addrStrings := make([]string, 0, len(c.DNS)+len(c.DNSSearch))
+		for _, address := range c.DNS {
+			addrStrings = append(addrStrings, address.String())
+		}
+		addrStrings = append(addrStrings, c.DNSSearch...)
+		iv.dns.show(strings.Join(addrStrings[:], l18n.EnumerationSeparator()))
+	} else {
+		iv.dns.hide()
+	}
+
+	var scriptsInUse []string
+	if len(c.PreUp) > 0 {
+		scriptsInUse = append(scriptsInUse, l18n.Sprintf("pre-up"))
+	}
+	if len(c.PostUp) > 0 {
+		scriptsInUse = append(scriptsInUse, l18n.Sprintf("post-up"))
+	}
+	if len(c.PreDown) > 0 {
+		scriptsInUse = append(scriptsInUse, l18n.Sprintf("pre-down"))
+	}
+	if len(c.PostDown) > 0 {
+		scriptsInUse = append(scriptsInUse, l18n.Sprintf("post-down"))
+	}
+	if len(scriptsInUse) > 0 {
+		if conf.AdminBool("DangerousScriptExecution") {
+			iv.scripts.show(strings.Join(scriptsInUse, l18n.EnumerationSeparator()))
+		} else {
+			iv.scripts.show(l18n.Sprintf("disabled, per policy"))
+		}
+	} else {
+		iv.scripts.hide()
+	}
+
+	if c.TableOff {
+		iv.table.show(l18n.Sprintf("off"))
+	} else {
+		iv.table.hide()
+	}
+
+	if !c.HeaderProtectionKey.IsZero() {
+		if IsAdmin {
+			iv.headerProtectionKey.show(c.HeaderProtectionKey.String())
+		} else {
+			iv.headerProtectionKey.show(l18n.Sprintf("enabled"))
+		}
+	} else {
+		iv.headerProtectionKey.hide()
+	}
+
+	if len(c.ContentPaddingAddition) > 0 {
+		iv.contentPaddingAddition.show(c.ContentPaddingAddition)
+	} else {
+		iv.contentPaddingAddition.hide()
+	}
+
+	if len(c.RekeyAfterTime) > 0 {
+		iv.rekeyAfterTime.show(c.RekeyAfterTime)
+	} else {
+		iv.rekeyAfterTime.hide()
+	}
+
+	if len(c.RekeyTimeout) > 0 {
+		iv.rekeyTimeout.show(c.RekeyTimeout)
+	} else {
+		iv.rekeyTimeout.hide()
+	}
+
+	if len(c.RejectAfterTime) > 0 {
+		iv.rejectAfterTime.show(c.RejectAfterTime)
+	} else {
+		iv.rejectAfterTime.hide()
+	}
+
+	if len(c.KeepaliveTimeout) > 0 {
+		iv.keepaliveTimeout.show(c.KeepaliveTimeout)
+	} else {
+		iv.keepaliveTimeout.hide()
+	}
+
+	if len(c.MaxHandshakeAttempts) > 0 {
+		iv.maxHandshakeAttempts.show(c.MaxHandshakeAttempts)
+	} else {
+		iv.maxHandshakeAttempts.hide()
+	}
+
+	if len(c.RandomTrailers) > 0 {
+		iv.randomTrailers.show(c.RandomTrailers)
+	} else {
+		iv.randomTrailers.hide()
+	}
+
+	if len(c.DisableCookies) > 0 {
+		iv.disableCookies.show(c.DisableCookies)
+	} else {
+		iv.disableCookies.hide()
+	}
+}
+
+func (pv *peerView) widgetsLines() []widgetsLine {
+	return pv.lines
+}
+
+func (pv *peerView) apply(c *conf.Peer) {
+	if IsAdmin {
+		pv.publicKey.show(c.PublicKey.String())
+	} else {
+		pv.publicKey.hide()
+	}
+
+	if !c.PresharedKey.IsZero() && IsAdmin {
+		pv.presharedKey.show(l18n.Sprintf("enabled"))
+	} else {
+		pv.presharedKey.hide()
+	}
+
+	if len(c.AllowedIPs) > 0 {
+		addrStrings := make([]string, len(c.AllowedIPs))
+		for i, address := range c.AllowedIPs {
+			addrStrings[i] = address.String()
+		}
+		pv.allowedIPs.show(strings.Join(addrStrings[:], l18n.EnumerationSeparator()))
+	} else {
+		pv.allowedIPs.hide()
+	}
+
+	if !c.Endpoint.IsEmpty() {
+		pv.endpoint.show(c.Endpoint.String())
+	} else {
+		pv.endpoint.hide()
+	}
+
+	if len(c.PersistentKeepalive) > 0 && c.PersistentKeepalive != "0" && c.PersistentKeepalive != "off" {
+		pv.persistentKeepalive.show(c.PersistentKeepalive)
+	} else {
+		pv.persistentKeepalive.hide()
+	}
+
+	if !c.LastHandshakeTime.IsEmpty() {
+		pv.latestHandshake.show(c.LastHandshakeTime.String())
+	} else {
+		pv.latestHandshake.hide()
+	}
+
+	if c.RxBytes > 0 || c.TxBytes > 0 {
+		pv.transfer.show(l18n.Sprintf("%s received, %s sent", c.RxBytes.String(), c.TxBytes.String()))
+	} else {
+		pv.transfer.hide()
+	}
+}
+
+func newPaddedGroupGrid(parent walk.Container) (group *walk.GroupBox, err error) {
+	group, err = walk.NewGroupBox(parent)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			group.Dispose()
+		}
+	}()
+	layout := walk.NewGridLayout()
+	layout.SetMargins(walk.Margins{10, 5, 10, 5})
+	layout.SetSpacing(0)
+	err = group.SetLayout(layout)
+	if err != nil {
+		return nil, err
+	}
+	spacer, err := walk.NewSpacerWithCfg(group, &walk.SpacerCfg{walk.GrowableHorz | walk.GreedyHorz, walk.Size{10, 0}, false})
+	if err != nil {
+		return nil, err
+	}
+	layout.SetRange(spacer, walk.Rectangle{1, 0, 1, 1})
+	return group, nil
+}
+
+func NewConfView(parent walk.Container) (*ConfView, error) {
+	var err error
+	var disposables walk.Disposables
+	defer disposables.Treat()
+
+	cv := new(ConfView)
+	if cv.ScrollView, err = walk.NewScrollView(parent); err != nil {
+		return nil, err
+	}
+	disposables.Add(cv)
+	vlayout := walk.NewVBoxLayout()
+	vlayout.SetMargins(walk.Margins{5, 0, 5, 0})
+	cv.SetLayout(vlayout)
+	if cv.name, err = newPaddedGroupGrid(cv); err != nil {
+		return nil, err
+	}
+	if cv.interfaze, err = newInterfaceView(cv.name); err != nil {
+		return nil, err
+	}
+	cv.interfaze.toggleActive.button.Clicked().Attach(cv.onToggleActiveClicked)
+	cv.peers = make(map[conf.Key]*peerView)
+	cv.tunnelChangedCB = manager.IPCClientRegisterTunnelChange(cv.onTunnelChanged)
+	cv.SetTunnel(nil)
+	globalState, err := manager.IPCClientGlobalState()
+	if err != nil {
+		return nil, err
+	}
+	cv.interfaze.toggleActive.updateGlobal(globalState)
+
+	if err := walk.InitWrapperWindow(cv); err != nil {
+		return nil, err
+	}
+	cv.SetDoubleBuffering(true)
+	cv.updateTicker = time.NewTicker(time.Second)
+	go func() {
+		for range cv.updateTicker.C {
+			if !cv.Visible() || !cv.Form().Visible() || win.IsIconic(cv.Form().Handle()) {
+				continue
+			}
+			if cv.tunnel != nil {
+				tunnel := cv.tunnel
+				var state manager.TunnelState
+				var config conf.Config
+				if state, _ = tunnel.State(); state == manager.TunnelStarted {
+					config, _ = tunnel.RuntimeConfig()
+				}
+				if config.Name == "" {
+					config, _ = tunnel.StoredConfig()
+				}
+				cv.Synchronize(func() {
+					cv.setTunnel(tunnel, &config, state)
+				})
+			}
+		}
+	}()
+
+	disposables.Spare()
+
+	return cv, nil
+}
+
+func (cv *ConfView) Dispose() {
+	if cv.tunnelChangedCB != nil {
+		cv.tunnelChangedCB.Unregister()
+		cv.tunnelChangedCB = nil
+	}
+	if cv.updateTicker != nil {
+		cv.updateTicker.Stop()
+		cv.updateTicker = nil
+	}
+	cv.ScrollView.Dispose()
+}
+
+// AwgChain pack 83: the button comes back to life after a refusal.
+//
+// The button is greyed out the moment it is clicked and is painted again
+// only by onTunnelChanged, when the state of a tunnel really moves. Every
+// refusal that arrives before anything is raised leaves the state exactly
+// where it was: the port of the proxy is taken (pack 80), the address or
+// the key is held by a tunnel that is up (pack 81), another tunnel is
+// still coming up (ipc_server.go). No state moved, no notification came,
+// and the button stayed grey until the tunnel was picked again in the
+// list. So the state of the machine is asked once more here and the
+// button is painted from the answer.
+func (cv *ConfView) onToggleActiveClicked() {
+	button := cv.interfaze.toggleActive.button
+
+	// Pack 85: while the tunnel is coming up this button stops the raise.
+	// Stop tears the chain down and takes the watch with it (chainBeforeStop),
+	// so the attempts really end instead of starting over in five seconds.
+	if cv.interfaze.toggleActive.state == manager.TunnelStarting {
+		button.SetEnabled(false)
+		tunnel := cv.tunnel
+		go func() {
+			var err error
+			if tunnel != nil {
+				err = tunnel.Stop()
+			}
+			cv.Synchronize(func() {
+				button.SetEnabled(true)
+				if err != nil {
+					showErrorCustom(cv.Form(), chainTitle, chainStopRaiseError+err.Error())
+				}
+			})
+		}()
+		return
+	}
+
+	button.SetEnabled(false)
+	// Pack 85: grey for a few seconds only, so that a raise which never
+	// finishes can still be called off by hand.
+	go func() {
+		time.Sleep(chainToggleGreyTime)
+		cv.Synchronize(func() {
+			switch cv.interfaze.toggleActive.state {
+			case manager.TunnelStarting, manager.TunnelStarted, manager.TunnelStopped:
+				button.SetEnabled(true)
+			}
+		})
+	}()
+	go func() {
+		oldState, err := cv.tunnel.Toggle()
+		if err != nil {
+			globalState, stateErr := manager.IPCClientGlobalState()
+			cv.Synchronize(func() {
+				if stateErr != nil {
+					// The service did not answer. A live button is
+					// better than a dead one: the next click asks again.
+					cv.interfaze.toggleActive.button.SetEnabled(true)
+				} else {
+					cv.interfaze.toggleActive.updateGlobal(globalState)
+				}
+				// Pack 84: the branches live in chaintoggle.go now.
+				chainToggleFailed(cv.Form(), oldState, err)
+			})
+		}
+	}()
+}
+
+func (cv *ConfView) onTunnelChanged(tunnel *manager.Tunnel, state, globalState manager.TunnelState, err error) {
+	cv.Synchronize(func() {
+		cv.interfaze.toggleActive.updateGlobal(globalState)
+		if cv.tunnel != nil && cv.tunnel.Name == tunnel.Name {
+			cv.interfaze.status.update(state)
+			cv.interfaze.toggleActive.update(state)
+		}
+	})
+	if cv.tunnel != nil && cv.tunnel.Name == tunnel.Name {
+		var config conf.Config
+		if state == manager.TunnelStarted {
+			config, _ = tunnel.RuntimeConfig()
+		}
+		if config.Name == "" {
+			config, _ = tunnel.StoredConfig()
+		}
+		cv.Synchronize(func() {
+			cv.setTunnel(tunnel, &config, state)
+		})
+	}
+}
+
+func (cv *ConfView) SetTunnel(tunnel *manager.Tunnel) {
+	cv.tunnel = tunnel // XXX: This races with the read in the updateTicker, but it's pointer-sized!
+
+	var config conf.Config
+	var state manager.TunnelState
+	if tunnel != nil {
+		go func() {
+			if state, _ = tunnel.State(); state == manager.TunnelStarted {
+				config, _ = tunnel.RuntimeConfig()
+			}
+			if config.Name == "" {
+				config, _ = tunnel.StoredConfig()
+			}
+			cv.Synchronize(func() {
+				cv.setTunnel(tunnel, &config, state)
+			})
+		}()
+	} else {
+		cv.setTunnel(tunnel, &config, state)
+	}
+}
+
+func (cv *ConfView) setTunnel(tunnel *manager.Tunnel, config *conf.Config, state manager.TunnelState) {
+	if !(cv.tunnel == nil || tunnel == nil || tunnel.Name == cv.tunnel.Name) {
+		return
+	}
+
+	title := l18n.Sprintf("Interface: %s", config.Name)
+	if cv.name.Title() != title {
+		cv.SetSuspended(true)
+		defer cv.SetSuspended(false)
+		cv.name.SetTitle(title)
+	}
+	cv.name.SetVisible(tunnel != nil)
+
+	cv.interfaze.apply(&config.Interface)
+	cv.interfaze.status.update(state)
+	cv.chainApplyProtection(config.Name)
+	cv.interfaze.toggleActive.update(state)
+	inverse := make(map[*peerView]bool, len(cv.peers))
+	all := make([]*peerView, 0, len(cv.peers))
+	for _, pv := range cv.peers {
+		inverse[pv] = true
+		all = append(all, pv)
+	}
+	someMatch := false
+	for _, peer := range config.Peers {
+		_, ok := cv.peers[peer.PublicKey]
+		if ok {
+			someMatch = true
+			break
+		}
+	}
+	for _, peer := range config.Peers {
+		if pv := cv.peers[peer.PublicKey]; (!someMatch && len(all) > 0) || pv != nil {
+			if pv == nil {
+				pv = all[0]
+				all = all[1:]
+				k, e := conf.NewPrivateKeyFromString(pv.publicKey.text.Text())
+				if e != nil {
+					continue
+				}
+				delete(cv.peers, *k)
+				cv.peers[peer.PublicKey] = pv
+			}
+			pv.apply(&peer)
+			inverse[pv] = false
+		} else {
+			group, err := newPaddedGroupGrid(cv)
+			if err != nil {
+				continue
+			}
+			group.SetTitle(l18n.Sprintf("Peer"))
+			pv, err := newPeerView(group)
+			if err != nil {
+				group.Dispose()
+				continue
+			}
+			pv.apply(&peer)
+			cv.peers[peer.PublicKey] = pv
+		}
+	}
+	for pv, remove := range inverse {
+		if !remove {
+			continue
+		}
+		k, e := conf.NewPrivateKeyFromString(pv.publicKey.text.Text())
+		if e != nil {
+			continue
+		}
+		delete(cv.peers, *k)
+		groupBox := pv.publicKey.label.Parent().AsContainerBase().Parent().(*walk.GroupBox)
+		groupBox.SetVisible(false)
+		groupBox.Parent().Children().Remove(groupBox)
+		groupBox.Dispose()
+	}
+}
