@@ -4,8 +4,7 @@
 
 **Цепочка WARP + AmneziaWG для Windows, которая работает как один туннель**
 
-Клиент AmneziaWG для Windows с двойным VPN, kill switch, локальным прокси SOCKS5/HTTP
-и самовосстановлением. Интерфейс на русском.
+Клиент AmneziaWG для Windows с двойным VPN, локальным прокси SOCKS5/HTTP
 
 [![Release](https://img.shields.io/github/v/release/Xbit-Ka/WarpAm?label=%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%8F)](https://github.com/Xbit-Ka/WarpAm/releases)
 [![Downloads](https://img.shields.io/github/downloads/Xbit-Ka/WarpAm/total?label=%D1%81%D0%BA%D0%B0%D1%87%D0%B8%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F)](https://github.com/Xbit-Ka/WarpAm/releases)
