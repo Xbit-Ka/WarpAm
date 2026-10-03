@@ -17,6 +17,7 @@ import (
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/mgr"
 
+	"github.com/amnezia-vpn/amneziawg-windows/v3/brand"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/conf"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/services"
 )
@@ -49,7 +50,7 @@ func InstallManager() error {
 
 	// TODO: Do we want to bail if executable isn't being run from the right location?
 
-	serviceName := "AwgChainManager"
+	serviceName := brand.ManagerService
 	service, err := m.OpenService(serviceName)
 	if err == nil {
 		status, err := service.Query()
@@ -89,13 +90,12 @@ func InstallManager() error {
 		// AwgChain pack 67: the manager raises tunnels at boot itself now, so
 		// it waits for the network stack the same way a tunnel service does.
 		Dependencies: []string{"Nsi", "TcpIp"},
-		// AwgChain pack 86: the name the list of services shows. Only the
-		// display name changes, the service is still registered as
-		// AwgChainManager: the internal name is what every other part of
-		// the program opens the service by, and renaming it would leave
-		// the old service of every machine standing with nobody to stop
-		// it.
-		DisplayName:  "WarpAm Manager",
+		// WarpAm pack 94: the service is registered as WarpAmManager now.
+		// Pack 86 kept the old internal name because nobody would have
+		// stopped the old service; from this pack the installer and the
+		// manager clear the AwgChain services away themselves
+		// (chainlegacy94.go), so the internal name can follow the program.
+		DisplayName:  brand.ManagerServiceDisplayName,
 	}
 
 	// AwgChain pack 86: the data folder is handed to the service in writing.
@@ -119,7 +119,7 @@ func InstallManager() error {
 		{Type: mgr.ServiceRestart, Delay: 15 * time.Second},
 		{Type: mgr.ServiceRestart, Delay: 60 * time.Second},
 	}, 86400); err != nil {
-		log.Printf("[AwgChain] The manager service was created, but Windows would not take the restart-on-failure settings (%v)", err)
+		log.Printf("[WarpAm] The manager service was created, but Windows would not take the restart-on-failure settings (%v)", err)
 	}
 	// AwgChain pack 67: a freshly created service is always automatic. If the
 	// user switched the "start with Windows" box off, that wish lives in
@@ -134,7 +134,7 @@ func UninstallManager() error {
 	if err != nil {
 		return err
 	}
-	serviceName := "AwgChainManager"
+	serviceName := brand.ManagerService
 	service, err := m.OpenService(serviceName)
 	if err != nil {
 		return err
@@ -234,7 +234,7 @@ func InstallTunnel(configPath string) error {
 		// Pack 86: same here, the display name only. The service keeps its
 		// name AwgChainTunnel$<tunnel>, which is what the tracker, the pin
 		// wait and the rename below look for.
-		DisplayName:  "WarpAm Tunnel: " + name,
+		DisplayName:  brand.TunnelServiceDisplayPrefix + name,
 		SidType:      windows.SERVICE_SID_TYPE_UNRESTRICTED,
 	}
 	// AwgChain pack 86: same as the manager service, the tunnel service is

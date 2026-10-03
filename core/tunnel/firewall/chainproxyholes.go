@@ -101,7 +101,7 @@ func chainPermitProxyTunnels(session uintptr, baseObjects *baseObjects, tunnels 
 		}
 		name := strings.TrimSpace(tunnel.Name)
 		if tunnel.Endpoint != nil && tunnel.Endpoint.To4() != nil && tunnel.Port != 0 {
-			err = permitEndpoint(session, baseObjects, 15, appIDs, tunnel.Endpoint, tunnel.Port, 0, "AwgChain proxy tunnel "+name)
+			err = permitEndpoint(session, baseObjects, 15, appIDs, tunnel.Endpoint, tunnel.Port, 0, "WarpAm proxy tunnel "+name)
 			if err != nil {
 				return wrapErr(err)
 			}

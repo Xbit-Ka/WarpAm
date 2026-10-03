@@ -69,29 +69,32 @@ func (s *ManagerService) chainRearmLockAfterRepair(leaf string) {
 			break
 		}
 		if try == chainRelockTries {
-			log.Printf("[AwgChain] Repair: the new adapters never showed up, so the kill switch keeps the old rule set and the machine stays closed")
+			log.Printf("[WarpAm] Repair: the new adapters never showed up, so the kill switch keeps the old rule set and the machine stays closed")
 			return
 		}
 		waited++
 		time.Sleep(chainRelockGap)
 	}
 	if waited > 0 {
-		log.Printf("[AwgChain] Repair: the new adapters are here after %d ms, the old rule set held the machine closed meanwhile", waited*int(chainRelockGap/time.Millisecond))
+		log.Printf("[WarpAm] Repair: the new adapters are here after %d ms, the old rule set held the machine closed meanwhile", waited*int(chainRelockGap/time.Millisecond))
 	}
 
-	// Both adapters are up: swap the rule sets back to back. One dynamic WFP
-	// session means the old set has to go first, so this is the only gap and
-	// it is measured in milliseconds.
+	// Both adapters are up: swap the rule sets. WarpAm pack 94: the new set
+	// is put up in a second session while the old one still stands, and the
+	// old one goes only after that, so there is no gap at all any more.
 	started := time.Now()
-	chainDisarmLockInProc()
 
 	for try := 1; try <= chainRelockTries; try++ {
-		if chainArmLockInProc(leaf) {
-			log.Printf("[AwgChain] Repair: kill switch re-armed on the new interfaces on try %d, the machine was open for %d ms", try, int(time.Since(started).Milliseconds()))
+		if chainRearmLockInProc(leaf) {
+			log.Printf("[WarpAm] Repair: kill switch re-armed on the new interfaces on try %d after %d ms, the old rule set stood until the new one was up", try, int(time.Since(started).Milliseconds()))
 			return
 		}
 		time.Sleep(chainRelockGap)
 	}
 
-	log.Printf("[AwgChain] Repair: the kill switch could NOT be re-armed after %d tries, so the machine is open right now. The watch keeps trying.", chainRelockTries)
+	if chainLockIsOn() {
+		log.Printf("[WarpAm] Repair: the kill switch could NOT be rebuilt after %d tries, so the old rule set still stands and the machine stays closed. The watch keeps trying.", chainRelockTries)
+		return
+	}
+	log.Printf("[WarpAm] Repair: the kill switch could NOT be re-armed after %d tries, so the machine is open right now. The watch keeps trying.", chainRelockTries)
 }

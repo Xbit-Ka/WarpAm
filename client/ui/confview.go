@@ -359,7 +359,25 @@ func newInterfaceView(parent walk.Container) (*interfaceView, error) {
 	}
 	disposables.Add(iv.toggleActive)
 
-	iv.lines = append([]widgetsLine{iv.status}, append(iv.lines, iv.toggleActive)...)
+	// Pack 96: the button stands right under the line about leak
+	// protection. As the last row of the grid it came after every advanced
+	// field of the config, and with a long config it was pushed past the
+	// edge of the window, so the one control everybody needs was the one
+	// that had to be scrolled to. The rows are found by pointer and not by
+	// number, so a line added to the list later does not move the button.
+	split := len(iv.lines)
+	for i := range items {
+		if items[i].ptr == &iv.chainProtection {
+			split = i + 1
+			break
+		}
+	}
+	lines := make([]widgetsLine, 0, len(iv.lines)+2)
+	lines = append(lines, iv.status)
+	lines = append(lines, iv.lines[:split]...)
+	lines = append(lines, iv.toggleActive)
+	lines = append(lines, iv.lines[split:]...)
+	iv.lines = lines
 
 	layoutInGrid(iv, parent.Layout().(*walk.GridLayout))
 

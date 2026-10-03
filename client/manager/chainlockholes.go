@@ -66,16 +66,16 @@ func chainLockProxyTunnels(leaf string) []firewall.ChainProxyTunnel {
 		}
 		text, err := chainEndpointOf(name)
 		if err != nil {
-			log.Printf("[AwgChain] The kill switch cannot read the endpoint of the proxy tunnel %s (%v), so that tunnel gets no way out while the lock is armed", name, err)
+			log.Printf("[WarpAm] The kill switch cannot read the endpoint of the proxy tunnel %s (%v), so that tunnel gets no way out while the lock is armed", name, err)
 			continue
 		}
 		ip, port, ok := chainParseEndpoint(text)
 		if !ok {
-			log.Printf("[AwgChain] The kill switch does not understand the endpoint %q of the proxy tunnel %s", text, name)
+			log.Printf("[WarpAm] The kill switch does not understand the endpoint %q of the proxy tunnel %s", text, name)
 			continue
 		}
 		if ip.To4() == nil {
-			log.Printf("[AwgChain] The proxy tunnel %s reaches its server over IPv6, which the kill switch cannot let through yet", name)
+			log.Printf("[WarpAm] The proxy tunnel %s reaches its server over IPv6, which the kill switch cannot let through yet", name)
 			continue
 		}
 		// Pack 84: the third permission. Port 53 stays shut for the whole
@@ -86,7 +86,7 @@ func chainLockProxyTunnels(leaf string) []firewall.ChainProxyTunnel {
 		// adapter, are let through too.
 		dns := chainProxyDNSServers(name)
 		if len(dns) == 0 {
-			log.Printf("[AwgChain] The proxy tunnel %s has no IPv4 DNS server of its own, so its proxy will only be able to open addresses, not names", name)
+			log.Printf("[WarpAm] The proxy tunnel %s has no IPv4 DNS server of its own, so its proxy will only be able to open addresses, not names", name)
 		}
 		out = append(out, firewall.ChainProxyTunnel{
 			Name:       name,

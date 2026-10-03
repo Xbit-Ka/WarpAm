@@ -49,7 +49,7 @@ func runAboutDialog(owner walk.Form) error {
 		showingAboutDialog = nil
 	}()
 	disposables.Add(showingAboutDialog)
-	showingAboutDialog.SetTitle(l18n.Sprintf("About Warpam"))
+	showingAboutDialog.SetTitle(l18n.Sprintf("About WarpAm"))
 	showingAboutDialog.SetLayout(vbl)
 	if icon, err := loadLogoIcon(32); err == nil {
 		showingAboutDialog.SetIcon(icon)
@@ -81,7 +81,7 @@ func runAboutDialog(owner walk.Form) error {
 	if logo, err := loadLogoIcon(128); err == nil {
 		iv.SetImage(logo)
 	}
-	iv.Accessibility().SetName(l18n.Sprintf("Warpam logo image"))
+	iv.Accessibility().SetName(l18n.Sprintf("WarpAm logo image"))
 
 	wgLbl, err := walk.NewTextLabel(showingAboutDialog)
 	if err != nil {
@@ -90,7 +90,7 @@ func runAboutDialog(owner walk.Form) error {
 	wgFont, _ := walk.NewFont("Segoe UI", 16, walk.FontBold)
 	wgLbl.SetFont(wgFont)
 	wgLbl.SetTextAlignment(walk.AlignHCenterVNear)
-	wgLbl.SetText("Warpam")
+	wgLbl.SetText("WarpAm")
 
 	detailsLbl, err := walk.NewTextLabel(showingAboutDialog)
 	if err != nil {
@@ -106,7 +106,7 @@ func runAboutDialog(owner walk.Form) error {
 	copyrightFont, _ := walk.NewFont("Segoe UI", 7, 0)
 	copyrightLbl.SetFont(copyrightFont)
 	copyrightLbl.SetTextAlignment(walk.AlignHCenterVNear)
-	copyrightLbl.SetText("Copyright © 2015-2022 Jason A. Donenfeld.\nCopyright © 2024 AmneziaVPN. Warpam is based on WireGuard,\nchanges and modifications made by AmneziaVPN. All Rights Reserved.")
+	copyrightLbl.SetText("Copyright © 2015-2022 Jason A. Donenfeld.\nCopyright © 2024 AmneziaVPN. WarpAm is based on WireGuard,\nchanges and modifications made by AmneziaVPN. All Rights Reserved.")
 
 	buttonCP, err := walk.NewComposite(showingAboutDialog)
 	if err != nil {

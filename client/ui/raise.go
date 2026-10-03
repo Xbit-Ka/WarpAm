@@ -67,7 +67,7 @@ func WaitForRaiseUIThenQuit() {
 		return 0
 	}, 0, 0, win.WINEVENT_SKIPOWNPROCESS|win.WINEVENT_OUTOFCONTEXT)
 	if err != nil {
-                showErrorCustom(nil, l18n.Sprintf("Warpam Detection Error"), l18n.Sprintf("Unable to wait for Warpam window to appear: %v", err))
+                showErrorCustom(nil, l18n.Sprintf("WarpAm Detection Error"), l18n.Sprintf("Unable to wait for WarpAm window to appear: %v", err))
 	}
 	for {
 		var msg win.MSG

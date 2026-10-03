@@ -68,6 +68,36 @@ func (config *Config) ChainObfuscation() string {
 	return strings.Join(parts, " ")
 }
 
+// ChainSizeOverlaps lists the handshake messages whose size can also be the
+// size of a transport packet of this configuration.
+//
+// WarpAm pack 94. A transport packet is S4+32+16k bytes long. When S1+148,
+// S2+92 or S3+64 is one of those numbers, the engine has to tell the two
+// kinds apart by their headers, and before this pack it sometimes could not:
+// that is what cut TCP through Elena for minutes at a time. The engine copes
+// now, but a configuration without the overlap is the cleaner one, so the
+// log names it.
+func (config *Config) ChainSizeOverlaps() []string {
+	i := &config.Interface
+	transport := int(i.TransportPacketJunkSize) + 32
+	kinds := []struct {
+		name string
+		size int
+		expr string
+	}{
+		{"initiation", int(i.InitPacketJunkSize) + 148, "S1+148"},
+		{"response", int(i.ResponsePacketJunkSize) + 92, "S2+92"},
+		{"cookie reply", int(i.CookieReplyPacketJunkSize) + 64, "S3+64"},
+	}
+	var lines []string
+	for _, kind := range kinds {
+		if kind.size >= transport && (kind.size-transport)%16 == 0 {
+			lines = append(lines, fmt.Sprintf("a handshake %s of %d bytes (%s) has the size of a transport packet (S4+32+16k with S4=%d)", kind.name, kind.size, kind.expr, i.TransportPacketJunkSize))
+		}
+	}
+	return lines
+}
+
 // ChainFingerprint is a short digest of everything that has to match the
 // server. It is safe to write into a log.
 func (config *Config) ChainFingerprint() string {

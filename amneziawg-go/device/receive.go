@@ -611,6 +611,9 @@ func (device *Device) DeterminePacketTypeAndPadding(packet []byte, typeHash []by
 	size := len(packet)
 	randomTrailers := device.randomTrailers.Load()
 
+	// WarpAm pack 94: the handshake types are still tried first, but a
+	// packet that also reads as a transport packet of a live session is
+	// handed to the transport path. See transportCollides below.
 	padding = device.paddings.init.Load()
 	header = device.headers.init.Load()
 	expectedSize = int(padding) + MessageInitiationSize
@@ -618,6 +621,9 @@ func (device *Device) DeterminePacketTypeAndPadding(packet []byte, typeHash []by
 	if size == expectedSize || randomTrailers && size > expectedSize {
 		applyHash(headerBytes[:], packet[padding:padding+4], typeHash)
 		if header.Contains(binary.LittleEndian.Uint32(headerBytes[:])) {
+			if tpadding, ok := device.transportCollides(packet, "initiation"); ok {
+				return MessageTransportSize, MessageTransportType, tpadding
+			}
 			return MessageInitiationSize, MessageInitiationType, padding
 		}
 	}
@@ -629,6 +635,9 @@ func (device *Device) DeterminePacketTypeAndPadding(packet []byte, typeHash []by
 	if size == expectedSize || randomTrailers && size > expectedSize {
 		applyHash(headerBytes[:], packet[padding:padding+4], typeHash)
 		if header.Contains(binary.LittleEndian.Uint32(headerBytes[:])) {
+			if tpadding, ok := device.transportCollides(packet, "response"); ok {
+				return MessageTransportSize, MessageTransportType, tpadding
+			}
 			return MessageResponseSize, MessageResponseType, padding
 		}
 	}
@@ -640,6 +649,9 @@ func (device *Device) DeterminePacketTypeAndPadding(packet []byte, typeHash []by
 	if size == expectedSize || randomTrailers && size > expectedSize {
 		applyHash(headerBytes[:], packet[padding:padding+4], typeHash)
 		if header.Contains(binary.LittleEndian.Uint32(headerBytes[:])) {
+			if tpadding, ok := device.transportCollides(packet, "cookie reply"); ok {
+				return MessageTransportSize, MessageTransportType, tpadding
+			}
 			return MessageCookieReplySize, MessageCookieReplyType, padding
 		}
 	}
@@ -656,4 +668,53 @@ func (device *Device) DeterminePacketTypeAndPadding(packet []byte, typeHash []by
 	}
 
 	return 0, MessageUnknownType, 0
+}
+
+// transportCollides answers whether a packet that has just matched a
+// handshake type by size and header is in fact a transport packet of a live
+// session.
+//
+// WarpAm pack 94. A transport packet is S4+32+16k bytes long, so with some
+// S1..S3 its size equals a handshake message: with S2=19 and S4=15 a
+// response is 19+92 = 111 bytes, and so is every transport packet whose inner
+// packet is 49 to 64 bytes, a TCP SYN ACK among them. The handshake check
+// reads four bytes at offset S2, which in a transport packet is the receiver
+// index, random for every session. When that index happened to fall into the
+// H2 range, every such packet of the session was taken for a response,
+// failed mac1 and was dropped: TCP could not connect for up to two minutes
+// while DNS and keepalives, which have other sizes, kept the tunnel looking
+// alive. The night log of 30 September shows 19 such outages in 10 hours,
+// each one ending exactly at the next handshake.
+//
+// A transport reading wins only when the header at offset S4 is in the H4
+// range and the receiver index names a keypair that exists right now, which
+// a real handshake message practically never does. The header cipher, when
+// there is one, is replayed from the same salt exactly as the transport path
+// replays it.
+func (device *Device) transportCollides(packet []byte, kind string) (uint32, bool) {
+	padding := device.paddings.transport.Load()
+	if len(packet) < int(padding)+MessageTransportSize || len(packet) < HeaderCipherNonceSize {
+		return 0, false
+	}
+	var stream [8]byte
+	cip, err := device.HeaderProtectionCipher(packet[:HeaderCipherNonceSize])
+	if err != nil {
+		return 0, false
+	}
+	if cip != nil {
+		cip.XORKeyStream(stream[:], stream[:])
+	}
+	var field [4]byte
+	applyHash(field[:], packet[padding:padding+4], stream[:4])
+	if !device.headers.transport.Load().Contains(binary.LittleEndian.Uint32(field[:])) {
+		return 0, false
+	}
+	applyHash(field[:], packet[padding+4:padding+8], stream[4:8])
+	if device.indexTable.Lookup(binary.LittleEndian.Uint32(field[:])).keypair == nil {
+		return 0, false
+	}
+	if device.sizeCollisionLogged.CompareAndSwap(false, true) {
+		device.log.Errorf("A packet of %d bytes fits both a handshake %s and a live transport session; it is taken as transport. The S1..S4 of this tunnel make these sizes overlap, this is logged once", len(packet), kind)
+	}
+	return padding, true
 }

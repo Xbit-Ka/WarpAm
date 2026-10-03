@@ -30,6 +30,7 @@ import (
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc/mgr"
 
+	"github.com/amnezia-vpn/amneziawg-windows/v3/brand"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/conf"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/tunnel/firewall"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/tunnel/winipcfg"
@@ -274,6 +275,16 @@ type ChainGlobalSettings struct {
 	// unknown keys, they are read by nobody and disappear with the next
 	// save: every tunnel is set up once, by hand, and no combination is
 	// inherited from a setting that used to be shared.
+
+	// SizeDodgeOff is the hidden switch of pack 95. The engine gives a
+	// transport packet 16 more bytes of padding when its length equals a
+	// handshake message, and this switches that off for every tunnel.
+	// There is no box for it in the window: it is written by hand into
+	// settings.json, Global, "SizeDodgeOff": true. It is kept here so
+	// that the next save of the manager does not throw it away, and it
+	// is stored inverted so that a file without the key means on. The
+	// tunnel service reads it in core/tunnel/sizecheck.go at start.
+	SizeDodgeOff bool
 }
 
 // The values of the proxy settings, as they are written in the file.
@@ -426,7 +437,7 @@ func chainSettingsLoadLocked() *chainSettingsBook {
 	case os.IsNotExist(err):
 		// A fresh install. The defaults above are the answer.
 	case err != nil:
-		log.Printf("[AwgChain] The settings could not be read (%v), the defaults are used for now", err)
+		log.Printf("[WarpAm] The settings could not be read (%v), the defaults are used for now", err)
 	default:
 		stored := &chainSettingsBook{}
 		if parseErr := json.Unmarshal(data, stored); parseErr != nil {
@@ -469,13 +480,13 @@ func chainSettingsStoreLocked() error {
 	temp := path + ".new"
 	err = os.WriteFile(temp, data, 0600)
 	if err != nil {
-		log.Printf("[AwgChain] The settings could not be written (%v)", err)
+		log.Printf("[WarpAm] The settings could not be written (%v)", err)
 		os.Remove(temp)
 		return err
 	}
 	err = os.Rename(temp, path)
 	if err != nil {
-		log.Printf("[AwgChain] The settings could not be put in place (%v)", err)
+		log.Printf("[WarpAm] The settings could not be put in place (%v)", err)
 		os.Remove(temp)
 		return err
 	}
@@ -606,16 +617,16 @@ func ChainNoteLastTunnel(name string) {
 	// the whole list back.
 	if cleaned, dropped := chainUpTunnelsPrune(book.Global.UpTunnels); len(dropped) != 0 {
 		book.Global.UpTunnels = cleaned
-		log.Printf("[AwgChain] These names are no longer meant to be up and were dropped from the set: %v", dropped)
+		log.Printf("[WarpAm] These names are no longer meant to be up and were dropped from the set: %v", dropped)
 	}
 	// Pack 68 (G10): this write used to be the one place where a failure
 	// was dropped on the floor, so "raise the last tunnel" could quietly
 	// keep pointing at a tunnel from last week.
 	if err := chainSettingsStoreLocked(); err != nil {
-		log.Printf("[AwgChain] The last raised tunnel (%s) could not be remembered: %v", name, err)
+		log.Printf("[WarpAm] The last raised tunnel (%s) could not be remembered: %v", name, err)
 		return
 	}
-	log.Printf("[AwgChain] The last raised tunnel is now %s", name)
+	log.Printf("[WarpAm] The last raised tunnel is now %s", name)
 }
 
 // chainUpTunnelsHave says whether this name is already in the set.
@@ -779,7 +790,7 @@ func chainDisarmLockRespectingMode() bool {
 	chainLockMu.Unlock()
 
 	if on && len(leaf) > 0 && chainLockSurvivesStop(leaf) {
-		log.Printf("[AwgChain] The kill switch stays closed: %s is in %s mode, lift it with the button in the window or awgchain.bat ks off", leaf, ChainLockModeOf(leaf))
+		log.Printf("[WarpAm] The kill switch stays closed: %s is in %s mode, lift it with the button in the window or awgchain.bat ks off", leaf, ChainLockModeOf(leaf))
 		return false
 	}
 
@@ -790,7 +801,7 @@ func chainDisarmLockRespectingMode() bool {
 		if len(target) == 0 {
 			target = "the whole program"
 		}
-		log.Printf("[AwgChain] The lock stays closed: the paranoid mode is in force for %s, lift it with the button in the window or awgchain.bat ks off", target)
+		log.Printf("[WarpAm] The lock stays closed: the paranoid mode is in force for %s, lift it with the button in the window or awgchain.bat ks off", target)
 		return false
 	}
 
@@ -870,7 +881,7 @@ func chainBootLockConfig(leaf string) (*firewall.BootLockConfig, string) {
 		// still be started by hand from behind the lock.
 		chains = append(chains, names...)
 	} else {
-		log.Printf("[AwgChain] The lock before the start cannot read the list of tunnels (%v)", err)
+		log.Printf("[WarpAm] The lock before the start cannot read the list of tunnels (%v)", err)
 	}
 
 	seenEndpoint := make(map[string]bool, 8)
@@ -951,7 +962,7 @@ func chainBootLockConfig(leaf string) (*firewall.BootLockConfig, string) {
 // changed, which is how the second hop is let out once the first one is up.
 func chainArmBootLock(leaf string) {
 	if chainLockSuppressedNow() {
-		chainLogChanged("boot-lock-suppressed", "[AwgChain] The lock of the paranoid start is not put up: it was lifted by hand and no tunnel has been raised on purpose since")
+		chainLogChanged("boot-lock-suppressed", "[WarpAm] The lock of the paranoid start is not put up: it was lifted by hand and no tunnel has been raised on purpose since")
 		return
 	}
 
@@ -969,7 +980,7 @@ func chainArmBootLock(leaf string) {
 	}
 
 	if err := firewall.EnableBootLock(cfg); err != nil {
-		log.Printf("[AwgChain] Paranoid mode: the machine could NOT be closed before the chain came up (%v)", err)
+		log.Printf("[WarpAm] Paranoid mode: the machine could NOT be closed before the chain came up (%v)", err)
 		return
 	}
 
@@ -978,10 +989,10 @@ func chainArmBootLock(leaf string) {
 	chainBootLockMu.Unlock()
 
 	if len(cfg.Endpoints) == 0 {
-		log.Printf("[AwgChain] Paranoid mode: the machine is closed before any tunnel is up. No endpoint is known yet, so the lock is rebuilt as soon as one can be read")
+		log.Printf("[WarpAm] Paranoid mode: the machine is closed before any tunnel is up. No endpoint is known yet, so the lock is rebuilt as soon as one can be read")
 		return
 	}
-	log.Printf("[AwgChain] Paranoid mode: the machine is closed before any tunnel is up, reachable: %s (open adapters: %d)", reachable, len(cfg.TunnelLUIDs))
+	log.Printf("[WarpAm] Paranoid mode: the machine is closed before any tunnel is up, reachable: %s (open adapters: %d)", reachable, len(cfg.TunnelLUIDs))
 }
 
 // chainDropBootLock opens the machine again. It is called once the real kill
@@ -995,7 +1006,7 @@ func chainDropBootLock(why string) {
 	chainBootLockSig = ""
 	chainBootLockMu.Unlock()
 	chainLogForget("boot-lock-suppressed")
-	log.Printf("[AwgChain] The lock of the paranoid start is taken down: %s", why)
+	log.Printf("[WarpAm] The lock of the paranoid start is taken down: %s", why)
 }
 
 // chainParanoidArmOnStart closes the machine before any tunnel is up, so a
@@ -1012,11 +1023,11 @@ func (s *ManagerService) chainParanoidArmOnStart() {
 
 	err := firewall.EnableIPv6Block()
 	if err == nil {
-		log.Printf("[AwgChain] Paranoid mode: IPv6 is blocked before any tunnel is up")
+		log.Printf("[WarpAm] Paranoid mode: IPv6 is blocked before any tunnel is up")
 	} else {
 		// Pack 70: this failure used to be dropped, and the next line
 		// still promised a closed machine.
-		log.Printf("[AwgChain] Paranoid mode: IPv6 could NOT be blocked before the chain came up (%v)", err)
+		log.Printf("[WarpAm] Paranoid mode: IPv6 could NOT be blocked before the chain came up (%v)", err)
 	}
 
 	// Pack 71: IPv4 is closed here as well. Until this pack only IPv6 was
@@ -1025,10 +1036,10 @@ func (s *ManagerService) chainParanoidArmOnStart() {
 	// the mode exists to close.
 	chainArmBootLock(target)
 	if len(target) == 0 {
-		log.Printf("[AwgChain] Paranoid mode: no tunnel is chosen, so the machine stays closed until one is raised by hand")
+		log.Printf("[WarpAm] Paranoid mode: no tunnel is chosen, so the machine stays closed until one is raised by hand")
 		return
 	}
-	log.Printf("[AwgChain] Paranoid mode for %s: the machine is closed from boot and stays closed until the chain is up", target)
+	log.Printf("[WarpAm] Paranoid mode for %s: the machine is closed from boot and stays closed until the chain is up", target)
 }
 
 //
@@ -1040,7 +1051,7 @@ func chainManagerStartsAutomatically() bool {
 	if err != nil {
 		return true
 	}
-	service, err := m.OpenService("AwgChainManager")
+	service, err := m.OpenService(brand.ManagerService)
 	if err != nil {
 		return false
 	}
@@ -1058,9 +1069,9 @@ func chainSetManagerStartType(automatic bool) {
 	if err != nil {
 		return
 	}
-	service, err := m.OpenService("AwgChainManager")
+	service, err := m.OpenService(brand.ManagerService)
 	if err != nil {
-		log.Printf("[AwgChain] The start type cannot be changed: the service is not installed (%v)", err)
+		log.Printf("[WarpAm] The start type cannot be changed: the service is not installed (%v)", err)
 		return
 	}
 	defer service.Close()
@@ -1079,14 +1090,14 @@ func chainSetManagerStartType(automatic bool) {
 	config.StartType = want
 	err = service.UpdateConfig(config)
 	if err != nil {
-		log.Printf("[AwgChain] The start type could not be changed (%v)", err)
+		log.Printf("[WarpAm] The start type could not be changed (%v)", err)
 		return
 	}
 	if automatic {
-		log.Printf("[AwgChain] The program starts with Windows from now on")
+		log.Printf("[WarpAm] The program starts with Windows from now on")
 		return
 	}
-	log.Printf("[AwgChain] The program no longer starts with Windows")
+	log.Printf("[WarpAm] The program no longer starts with Windows")
 }
 
 //
@@ -1098,7 +1109,7 @@ func chainSetManagerStartType(automatic bool) {
 // the check box.
 func chainSettingsLANs(root, leaf string) []net.IPNet {
 	if !ChainSettingsFor(leaf).AllowLAN {
-		log.Printf("[AwgChain] The local network stays closed for %s", leaf)
+		log.Printf("[WarpAm] The local network stays closed for %s", leaf)
 		return nil
 	}
 	return chainLockLANs(root)
@@ -1113,10 +1124,10 @@ func chainApplyIPv6For(leaf string) {
 
 	err := firewall.EnableIPv6Block()
 	if err != nil {
-		log.Printf("[AwgChain] IPv6 could not be blocked by the filter (%v)", err)
+		log.Printf("[WarpAm] IPv6 could not be blocked by the filter (%v)", err)
 		return
 	}
-	chainLogChanged("ipv6-block", "[AwgChain] IPv6 is blocked by the filter while %s is up", leaf)
+	chainLogChanged("ipv6-block", "[WarpAm] IPv6 is blocked by the filter while %s is up", leaf)
 	chainWarnIPv6Left()
 }
 
@@ -1156,7 +1167,7 @@ func chainWarnIPv6Left() {
 		chainLogForget("ipv6-left")
 		return
 	}
-	chainLogChanged("ipv6-left", "[AwgChain] IPv6 is blocked by the filter, but the machine still holds a routable IPv6 address (%s). The packets are dropped rather than refused, so a program that prefers IPv6 will wait for a timeout before it tries IPv4. Turn IPv6 off on that adapter if pages open slowly", strings.Join(found, ", "))
+	chainLogChanged("ipv6-left", "[WarpAm] IPv6 is blocked by the filter, but the machine still holds a routable IPv6 address (%s). The packets are dropped rather than refused, so a program that prefers IPv6 will wait for a timeout before it tries IPv4. Turn IPv6 off on that adapter if pages open slowly", strings.Join(found, ", "))
 }
 
 // chainParanoidBootBlock says that the IPv6 filter standing right now was
@@ -1179,7 +1190,7 @@ func chainDropIPv6Block() {
 	}
 	chainParanoidBootMu.Unlock()
 	if held {
-		chainLogChanged("ipv6-boot-block", "[AwgChain] The IPv6 filter of the paranoid start stays until the start-up raise is done")
+		chainLogChanged("ipv6-boot-block", "[WarpAm] The IPv6 filter of the paranoid start stays until the start-up raise is done")
 		return
 	}
 
@@ -1190,7 +1201,7 @@ func chainDropIPv6Block() {
 		return
 	}
 	firewall.DisableIPv6Block()
-	log.Printf("[AwgChain] The IPv6 filter is removed")
+	log.Printf("[WarpAm] The IPv6 filter is removed")
 }
 
 // chainSettingsApplyNow is called right after the boxes are saved. Only the
@@ -1216,7 +1227,7 @@ func (s *ManagerService) chainSettingsApplyNow(name string) {
 	if !strings.EqualFold(leaf, name) && !chainInOwnBranch(chainOwnBranch(leaf), name) {
 		return
 	}
-	log.Printf("[AwgChain] The settings of %s changed while the kill switch was up, so the filters are rebuilt", name)
+	log.Printf("[WarpAm] The settings of %s changed while the kill switch was up, so the filters are rebuilt", name)
 	chainDisarmLockInProc()
 	s.chainArmGuard(leaf)
 }

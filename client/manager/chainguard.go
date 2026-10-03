@@ -45,12 +45,13 @@ import (
 
 	"golang.org/x/sys/windows"
 
+	"github.com/amnezia-vpn/amneziawg-windows/v3/brand"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/conf"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/tunnel/winipcfg"
 )
 
 const (
-	chainGuardStopEventName = `Global\AwgChainGuardStop`
+	chainGuardStopEventName = brand.LegacyGuardStopEvent
 	chainGuardExeName       = "awgchain-guard.exe"
 	chainWatchInterval      = 5 * time.Second
 	chainHandshakeMaxAge    = 180 * time.Second
@@ -95,6 +96,10 @@ var (
 	chainGuardArmedBy string
 	chainGuardProcess *os.Process
 	chainWatchCancel  chan struct{}
+	// chainWatchLeaf is the leaf of the chain the watch follows, or "".
+	// Pack 95: the proxy watch of pack 89 leaves the hops of that chain to
+	// this guard.
+	chainWatchLeaf string
 )
 
 // Pack 85: two small books. The first remembers since when a hop has been
@@ -156,7 +161,7 @@ func ChainNoteShuttingDown() {
 	if chainShutdownFlag.Swap(true) {
 		return
 	}
-	log.Printf("[AwgChain] Windows is shutting down: the watch and the repair stand down, the kill switch is left as it is")
+	log.Printf("[WarpAm] Windows is shutting down: the watch and the repair stand down, the kill switch is left as it is")
 }
 
 func chainShuttingDown() bool {
@@ -319,7 +324,7 @@ func (s *ManagerService) chainArmGuard(leaf string) {
 	// rebuild after a repair. The IPv6 filter is skipped for the same
 	// reason - it cuts a machine that the chain does not carry.
 	if chainLeafIsSeparate(leaf) {
-		chainLogChanged("lock-separate", "[AwgChain] %s carries the local proxy only, so the machine stays open and the proxy answers for itself", leaf)
+		chainLogChanged("lock-separate", "[WarpAm] %s carries the local proxy only, so the machine stays open and the proxy answers for itself", leaf)
 		return
 	}
 	// Pack 71: a tunnel that is not a chain of at least two hops has no
@@ -327,16 +332,16 @@ func (s *ManagerService) chainArmGuard(leaf string) {
 	// ending at X is not up yet, so the kill switch waits for it", which
 	// promised something that was never going to happen.
 	if len(chainHopOrder(leaf)) < 2 {
-		chainLogChanged("lock-plain", "[AwgChain] %s is a plain tunnel, so no kill switch is installed for it: only the IPv6 filter applies", leaf)
+		chainLogChanged("lock-plain", "[WarpAm] %s is a plain tunnel, so no kill switch is installed for it: only the IPv6 filter applies", leaf)
 		chainApplyIPv6For(leaf)
 		return
 	}
 	if chainLockSuppressedNow() {
-		chainLogChanged("lock-suppressed", "[AwgChain] The lock stays down: it was lifted by hand and no tunnel has been raised on purpose since")
+		chainLogChanged("lock-suppressed", "[WarpAm] The lock stays down: it was lifted by hand and no tunnel has been raised on purpose since")
 		return
 	}
 	if chainLockEngineOff() {
-		chainLogChanged("lock-engine-off", "[AwgChain] The lock engine is off in the settings, so no kill switch is installed for %s", leaf)
+		chainLogChanged("lock-engine-off", "[WarpAm] The lock engine is off in the settings, so no kill switch is installed for %s", leaf)
 		// The IPv6 box is a separate wish and is still obeyed.
 		chainApplyIPv6For(leaf)
 		return
@@ -372,7 +377,7 @@ func (s *ManagerService) chainArmGuard(leaf string) {
 	if chainBootLockIsOn() {
 		chainArmBootLock(leaf)
 	}
-	chainLogChanged("lock-not-up-yet", "[AwgChain] The chain ending at %s is not up yet, so the kill switch waits for it", leaf)
+	chainLogChanged("lock-not-up-yet", "[WarpAm] The chain ending at %s is not up yet, so the kill switch waits for it", leaf)
 }
 
 // chainArmLockOnDemand is the lock button pressed towards "closed". Pack 71.
@@ -444,16 +449,16 @@ func chainDisarmGuard() {
 	}
 	err := chainSignalGuardStop()
 	if err != nil {
-		log.Printf("[AwgChain] Could not ask the kill switch to stand down: %v", err)
+		log.Printf("[WarpAm] Could not ask the kill switch to stand down: %v", err)
 	}
 	for i := 0; i < 50; i++ {
 		time.Sleep(100 * time.Millisecond)
 		if !chainProcessAlive(process.Pid) {
-			log.Printf("[AwgChain] Kill switch disarmed")
+			log.Printf("[WarpAm] Kill switch disarmed")
 			return
 		}
 	}
-	log.Printf("[AwgChain] The kill switch did not stand down in time, ending it")
+	log.Printf("[WarpAm] The kill switch did not stand down in time, ending it")
 	process.Kill()
 }
 
@@ -562,6 +567,11 @@ func (s *ManagerService) chainTroubleHop(leaf string) (string, string) {
 		if reason := chainRxTrouble(name, runtime); len(reason) != 0 {
 			return reason, name
 		}
+		// Pack 95: a hop that sends and hears almost nothing, see
+		// chainzombie.go.
+		if reason := chainZombieTrouble(name, runtime); len(reason) != 0 {
+			return reason, name
+		}
 	}
 	return "", ""
 }
@@ -587,7 +597,7 @@ func (s *ManagerService) chainRepair(leaf string) {
 // single round of the loop.
 func (s *ManagerService) chainRepairFrom(leaf, broken string) {
 	if chainShuttingDown() {
-		log.Printf("[AwgChain] Repair: Windows is shutting down, so nothing is touched")
+		log.Printf("[WarpAm] Repair: Windows is shutting down, so nothing is touched")
 		return
 	}
 	started := time.Now()
@@ -603,7 +613,7 @@ func (s *ManagerService) chainRepairFrom(leaf, broken string) {
 	}
 	hops = hops[from:]
 	if from > 0 {
-		log.Printf("[AwgChain] Repair: %s is the broken level, so only it and what rides on it are rebuilt", hops[0])
+		log.Printf("[WarpAm] Repair: %s is the broken level, so only it and what rides on it are rebuilt", hops[0])
 	}
 	s.chainTearDown(hops)
 
@@ -616,14 +626,14 @@ func (s *ManagerService) chainRepairFrom(leaf, broken string) {
 			// had never handshaken. The kill switch is only moved onto
 			// the new interfaces once the chain really carries traffic.
 			if waitErr := s.chainWaitForHopTimeout(leaf, chainRepairHandshakeWait); waitErr != nil {
-				log.Printf("[AwgChain] Repair: the hops came up but the chain is not whole yet (%v), so the kill switch stays where it is and the watch keeps trying", waitErr)
+				log.Printf("[WarpAm] Repair: the hops came up but the chain is not whole yet (%v), so the kill switch stays where it is and the watch keeps trying", waitErr)
 				return
 			}
-			log.Printf("[AwgChain] Repair: the chain is back up after %d seconds, re-arming the kill switch on the new interfaces", int(time.Since(started).Seconds()))
+			log.Printf("[WarpAm] Repair: the chain is back up after %d seconds, re-arming the kill switch on the new interfaces", int(time.Since(started).Seconds()))
 			s.chainRearmLockAfterRepair(leaf)
 			return
 		}
-		log.Printf("[AwgChain] Repair: try %d of %d did not take: %v", attempt, chainStartRetries, err)
+		log.Printf("[WarpAm] Repair: try %d of %d did not take: %v", attempt, chainStartRetries, err)
 		if attempt == chainStartRetries {
 			break
 		}
@@ -631,7 +641,7 @@ func (s *ManagerService) chainRepairFrom(leaf, broken string) {
 		// A half-raised hop has to be cleared away before the next try.
 		s.chainTearDown(hops)
 	}
-	log.Printf("[AwgChain] Repair: gave up this round after %d seconds, the watch will try again", int(time.Since(started).Seconds()))
+	log.Printf("[WarpAm] Repair: gave up this round after %d seconds, the watch will try again", int(time.Since(started).Seconds()))
 }
 
 // chainTearDown stops every hop from the top down and waits until each one
@@ -640,7 +650,7 @@ func (s *ManagerService) chainTearDown(hops []string) {
 	for i := len(hops) - 1; i >= 0; i-- {
 		err := UninstallTunnel(hops[i])
 		if err != nil && err != windows.ERROR_SERVICE_DOES_NOT_EXIST {
-			log.Printf("[AwgChain] Repair: could not stop %s: %v", hops[i], err)
+			log.Printf("[WarpAm] Repair: could not stop %s: %v", hops[i], err)
 		}
 	}
 	for _, name := range hops {
@@ -657,7 +667,7 @@ func (s *ManagerService) chainWaitStopped(name string) {
 		}
 		time.Sleep(chainStopPoll)
 	}
-	log.Printf("[AwgChain] Repair: %s is taking its time to stop, carrying on anyway", name)
+	log.Printf("[WarpAm] Repair: %s is taking its time to stop, carrying on anyway", name)
 }
 
 func (s *ManagerService) chainWatch(leaf string, stop chan struct{}) {
@@ -666,14 +676,14 @@ func (s *ManagerService) chainWatch(leaf string, stop chan struct{}) {
 	// repairs spread over days pushed the watch into its five minute mode for
 	// good. A chain that went down after that waited minutes for help even
 	// though each repair was finishing in seven seconds.
-	log.Printf("[AwgChain] Watching the chain that ends at %s", leaf)
+	log.Printf("[WarpAm] Watching the chain that ends at %s", leaf)
 	failures := 0
 	slow := false
 	var lastRepair time.Time
 	for {
 		select {
 		case <-stop:
-			log.Printf("[AwgChain] No longer watching the chain")
+			log.Printf("[WarpAm] No longer watching the chain")
 			return
 		case <-time.After(chainWatchInterval):
 		}
@@ -682,7 +692,7 @@ func (s *ManagerService) chainWatch(leaf string, stop chan struct{}) {
 			// Pack 71: during a shutdown every Stop and Start is refused
 			// with "A system shutdown is in progress", and the log filled
 			// up with repairs that could not possibly work.
-			log.Printf("[AwgChain] Windows is shutting down, so the chain is left alone")
+			log.Printf("[WarpAm] Windows is shutting down, so the chain is left alone")
 			return
 		}
 
@@ -691,7 +701,7 @@ func (s *ManagerService) chainWatch(leaf string, stop chan struct{}) {
 		// the user raised afterwards off the machine, which is exactly
 		// what happened three times on 25 September.
 		if why := chainWatchGiveUp(leaf); len(why) != 0 {
-			log.Printf("[AwgChain] The chain that ends at %s is not watched any more: %s", leaf, why)
+			log.Printf("[WarpAm] The chain that ends at %s is not watched any more: %s", leaf, why)
 			return
 		}
 
@@ -701,7 +711,7 @@ func (s *ManagerService) chainWatch(leaf string, stop chan struct{}) {
 			// not up yet, for instance because the first try ran before the
 			// interfaces existed. Arming twice is harmless.
 			if failures > 0 {
-				log.Printf("[AwgChain] The chain is healthy again, the repair counter goes back to zero")
+				log.Printf("[WarpAm] The chain is healthy again, the repair counter goes back to zero")
 			}
 			failures = 0
 			slow = false
@@ -715,6 +725,13 @@ func (s *ManagerService) chainWatch(leaf string, stop chan struct{}) {
 			chainProxyFollow(leaf)
 			continue
 		}
+		// Pack 95: a dead hop first gets a new handshake, which is not a
+		// repair and is not counted; see chainzombie.go.
+		next, wait := s.chainZombieStep(leaf, broken)
+		if wait {
+			continue
+		}
+		broken = next
 		// Pack 85: the gap grows with every failed round, 5, 10, 20, 40, 80
 		// seconds and then two minutes, instead of a fixed 25 seconds. A
 		// fault that no rebuild can cure no longer costs a rebuild every
@@ -724,7 +741,7 @@ func (s *ManagerService) chainWatch(leaf string, stop chan struct{}) {
 			continue
 		}
 		failures++
-		log.Printf("[AwgChain] The chain needs repair: %s (round %d of %d, next gap %v)", reason, failures, chainFastRepairs+chainSlowRepairs, chainBackoff(failures))
+		log.Printf("[WarpAm] The chain needs repair: %s (round %d of %d, next gap %v)", reason, failures, chainFastRepairs+chainSlowRepairs, chainBackoff(failures))
 		s.chainRepairFrom(leaf, broken)
 		lastRepair = time.Now()
 		if failures >= chainFastRepairs+chainSlowRepairs {
@@ -734,13 +751,13 @@ func (s *ManagerService) chainWatch(leaf string, stop chan struct{}) {
 			// nothing leaks while the chain is down, and stops. Raising the
 			// tunnel by hand clears the mark and starts over.
 			chainNoteGiveUp(leaf, reason)
-			log.Printf("[AwgChain] %d rounds did not fix the chain that ends at %s: %s. No more attempts are made. The way out stays closed by the boot lock; raise the tunnel again by hand once the cause is gone", failures, leaf, reason)
+			log.Printf("[WarpAm] %d rounds did not fix the chain that ends at %s: %s. No more attempts are made. The way out stays closed by the boot lock; raise the tunnel again by hand once the cause is gone", failures, leaf, reason)
 			chainArmBootLock(leaf)
 			return
 		}
 		if failures >= chainFastRepairs && !slow {
 			slow = true
-			log.Printf("[AwgChain] %d rounds in a row did not help (%s), so the gap is at its longest now and only %d more rounds are tried", failures, reason, chainSlowRepairs)
+			log.Printf("[WarpAm] %d rounds in a row did not help (%s), so the gap is at its longest now and only %d more rounds are tried", failures, reason, chainSlowRepairs)
 		}
 	}
 }
@@ -749,7 +766,7 @@ func (s *ManagerService) chainStartWatch(leaf string) {
 	// Pack 85: a chain the watch has given up on is not picked up again by
 	// some other path; only a deliberate raise clears that mark.
 	if why, gaveUp := ChainGaveUp(leaf); gaveUp {
-		log.Printf("[AwgChain] No watch for the chain that ends at %s: it was given up on (%s)", leaf, why)
+		log.Printf("[WarpAm] No watch for the chain that ends at %s: it was given up on (%s)", leaf, why)
 		return
 	}
 	chainGuardLock.Lock()
@@ -759,6 +776,7 @@ func (s *ManagerService) chainStartWatch(leaf string) {
 	}
 	stop := make(chan struct{})
 	chainWatchCancel = stop
+	chainWatchLeaf = leaf
 	chainGuardLock.Unlock()
 	go s.chainWatch(leaf, stop)
 }
@@ -767,10 +785,28 @@ func chainStopWatch() {
 	chainGuardLock.Lock()
 	stop := chainWatchCancel
 	chainWatchCancel = nil
+	chainWatchLeaf = ""
 	chainGuardLock.Unlock()
 	if stop != nil {
 		close(stop)
 	}
+}
+
+// chainWatchedHop answers whether a tunnel is a hop of the chain the guard
+// is watching right now. Pack 95.
+func chainWatchedHop(name string) bool {
+	chainGuardLock.Lock()
+	leaf := chainWatchLeaf
+	chainGuardLock.Unlock()
+	if len(leaf) == 0 {
+		return false
+	}
+	for _, hop := range chainHopOrder(leaf) {
+		if strings.EqualFold(hop, name) {
+			return true
+		}
+	}
+	return false
 }
 
 // chainLeafIsSeparate answers whether the tunnel at the end of a chain
@@ -817,14 +853,14 @@ func (s *ManagerService) chainArmWhenReady(leaf string) {
 	// Pack 85: this runs after a deliberate raise, which is exactly the
 	// moment the watch is allowed to start hoping again.
 	if why, gaveUp := ChainGaveUp(leaf); gaveUp {
-		log.Printf("[AwgChain] The chain that ends at %s had been given up on (%s); this raise starts the count over", leaf, why)
+		log.Printf("[WarpAm] The chain that ends at %s had been given up on (%s); this raise starts the count over", leaf, why)
 		ChainClearGiveUp(leaf)
 	}
 	err := s.chainWaitForHop(leaf)
 	if err != nil {
 		// A chain that did not come up cleanly still gets a watch, because
 		// the watch is the thing that repairs it.
-		log.Printf("[AwgChain] %s did not come up cleanly (%v), so the watch takes over", leaf, err)
+		log.Printf("[WarpAm] %s did not come up cleanly (%v), so the watch takes over", leaf, err)
 	} else {
 		// Pack 78: the refusal for a proxy-only chain moved inside
 		// chainArmGuard, so that the watch and the lock button obey it too.
@@ -835,7 +871,7 @@ func (s *ManagerService) chainArmWhenReady(leaf string) {
 	// during exactly this wait, and the watch that started here spent the
 	// next minute throwing it off the machine.
 	if why := chainWatchGiveUp(leaf); len(why) != 0 {
-		log.Printf("[AwgChain] No watch is started for the chain that ends at %s: %s", leaf, why)
+		log.Printf("[WarpAm] No watch is started for the chain that ends at %s: %s", leaf, why)
 		return
 	}
 	s.chainStartWatch(leaf)
@@ -878,7 +914,7 @@ func (s *ManagerService) chainBeforeStop(tunnelName string) {
 	if !involved {
 		return
 	}
-	log.Printf("[AwgChain] %s was asked to stop, so the watch and the kill switch stand down", tunnelName)
+	log.Printf("[WarpAm] %s was asked to stop, so the watch and the kill switch stand down", tunnelName)
 
 	chainStopWatch()
 	chainGuardResetDeaths()

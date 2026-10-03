@@ -33,7 +33,7 @@ func (s *ManagerService) ChainClearLog() error {
 	if err != nil {
 		return err
 	}
-	log.Printf("[AwgChain] The log was cleared from the window")
+	log.Printf("[WarpAm] The log was cleared from the window")
 	return nil
 }
 

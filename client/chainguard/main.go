@@ -139,7 +139,7 @@ func main() {
 		if err != nil {
 			fail("cannot determine my own path: %v", err)
 		}
-		apps = []string{filepath.Join(filepath.Dir(self), "awgchain.exe")}
+		apps = []string{filepath.Join(filepath.Dir(self), "WarpAm.exe")}
 	}
 	for _, app := range apps {
 		_, statErr := os.Stat(app)

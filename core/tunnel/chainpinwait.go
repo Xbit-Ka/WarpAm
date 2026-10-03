@@ -27,6 +27,7 @@ import (
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/mgr"
 
+	"github.com/amnezia-vpn/amneziawg-windows/v3/brand"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/conf"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/tunnel/winipcfg"
 )
@@ -35,7 +36,7 @@ const (
 	chainPinRetryGap   = 2 * time.Second
 	chainPinRetryTries = 45
 	chainPinStartEvery = 5
-	chainServicePrefix = "AwgChainTunnel$"
+	chainServicePrefix = brand.TunnelServicePrefix
 )
 
 // chainPinNotReadyError marks a pin failure that time alone can cure.

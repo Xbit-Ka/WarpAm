@@ -36,7 +36,7 @@ func (s *ManagerService) chainMayChange(what string) bool {
 	if s.elevatedToken != 0 {
 		return true
 	}
-	log.Printf("[AwgChain] %s was refused: the caller of the pipe is not the elevated interface", what)
+	log.Printf("[WarpAm] %s was refused: the caller of the pipe is not the elevated interface", what)
 	return false
 }
 
@@ -96,7 +96,7 @@ func (s *ManagerService) chainServeSettingsSet(decoder *gob.Decoder, encoder *go
 	saveErr := ChainSettingsSave(name, settings)
 	if saveErr == nil {
 		s.chainSettingsApplyNow(name)
-		log.Printf("[AwgChain] The settings of %s are saved: kill switch %v (%s mode), IPv6 blocked %v, local network %v", name, settings.KillSwitch, settings.Mode(), settings.BlockIPv6, settings.AllowLAN)
+		log.Printf("[WarpAm] The settings of %s are saved: kill switch %v (%s mode), IPv6 blocked %v, local network %v", name, settings.KillSwitch, settings.Mode(), settings.BlockIPv6, settings.AllowLAN)
 	}
 
 	return encoder.Encode(errToString(saveErr))
@@ -160,7 +160,7 @@ func (s *ManagerService) chainServeGlobalSet(decoder *gob.Decoder, encoder *gob.
 		if len(mode) == 0 {
 			mode = "per tunnel"
 		}
-		log.Printf("[AwgChain] The program settings are saved: raise %s (%s), start with Windows %v, lift the lock on quit %v, lock mode %s", global.Mode(), global.Target(), global.AutoStart, global.LiftLockOnQuit, mode)
+		log.Printf("[WarpAm] The program settings are saved: raise %s (%s), start with Windows %v, lift the lock on quit %v, lock mode %s", global.Mode(), global.Target(), global.AutoStart, global.LiftLockOnQuit, mode)
 	}
 
 	return encoder.Encode(errToString(saveErr))
@@ -171,7 +171,7 @@ func (s *ManagerService) chainServeLiftLock(encoder *gob.Encoder) error {
 		return encoder.Encode(errToString(windows.ERROR_ACCESS_DENIED))
 	}
 	ChainLiftLockNow()
-	log.Printf("[AwgChain] The lock is lifted on request from the window")
+	log.Printf("[WarpAm] The lock is lifted on request from the window")
 
 	return encoder.Encode(errToString(nil))
 }
@@ -197,9 +197,9 @@ func (s *ManagerService) chainServeArmLock(encoder *gob.Encoder) error {
 	}
 	armErr := s.chainArmLockOnDemand()
 	if armErr == nil {
-		log.Printf("[AwgChain] The lock is put up on request from the window")
+		log.Printf("[WarpAm] The lock is put up on request from the window")
 	} else {
-		log.Printf("[AwgChain] The lock could not be put up on request from the window: %v", armErr)
+		log.Printf("[WarpAm] The lock could not be put up on request from the window: %v", armErr)
 	}
 
 	return encoder.Encode(errToString(armErr))

@@ -57,7 +57,7 @@ func (tray *Tray) setup() error {
 	// for a tunnel to change state.
 	tray.chainWatchMarks()
 
-	tray.SetToolTip(l18n.Sprintf("Warpam: Deactivated"))
+	tray.SetToolTip(l18n.Sprintf("WarpAm: Deactivated"))
 	tray.SetVisible(true)
 	if icon, err := loadLogoIcon(16); err == nil {
 		tray.SetIcon(icon)
@@ -87,7 +87,7 @@ func (tray *Tray) setup() error {
 		{label: l18n.Sprintf("&Manage tunnels…"), handler: tray.onManageTunnels, enabled: true, defawlt: true},
 		{label: l18n.Sprintf("&Import tunnel(s) from file…"), handler: tray.onImport, enabled: true, hidden: !IsAdmin},
 		{separator: true},
-		{label: l18n.Sprintf("&About Warpam…"), handler: tray.onAbout, enabled: true},
+		{label: l18n.Sprintf("&About WarpAm…"), handler: tray.onAbout, enabled: true},
 		{label: l18n.Sprintf("E&xit"), handler: onQuit, enabled: true, hidden: !IsAdmin},
 	} {
 		var action *walk.Action
@@ -308,13 +308,13 @@ func (tray *Tray) onTunnelChange(tunnel *manager.Tunnel, state, globalState mana
 				case manager.TunnelStarted:
 					if !wasChecked {
 						icon, _ := iconWithOverlayForState(state, 128)
-						tray.ShowCustom(l18n.Sprintf("Warpam Activated"), l18n.Sprintf("The %s tunnel has been activated.", tunnel.Name), icon)
+						tray.ShowCustom(l18n.Sprintf("WarpAm Activated"), l18n.Sprintf("The %s tunnel has been activated.", tunnel.Name), icon)
 					}
 
 				case manager.TunnelStopped:
 					if wasChecked {
 						icon, _ := loadSystemIcon("imageres", -31, 128) // TODO: this icon isn't very good...
-						tray.ShowCustom(l18n.Sprintf("Warpam Deactivated"), l18n.Sprintf("The %s tunnel has been deactivated.", tunnel.Name), icon)
+						tray.ShowCustom(l18n.Sprintf("WarpAm Deactivated"), l18n.Sprintf("The %s tunnel has been deactivated.", tunnel.Name), icon)
 					}
 				}
 			}
@@ -323,7 +323,7 @@ func (tray *Tray) onTunnelChange(tunnel *manager.Tunnel, state, globalState mana
 			// While the chain was rebuilding itself every 46 seconds, this
 			// line fired on every round with the same text; the repeats are
 			// counted in the log instead now.
-			trayErrorTitle := l18n.Sprintf("Warpam Tunnel Error")
+			trayErrorTitle := l18n.Sprintf("WarpAm Tunnel Error")
 			if chainNoticeBalloon(trayErrorTitle, err.Error()) {
 				tray.ShowError(trayErrorTitle, err.Error())
 			}
@@ -347,7 +347,7 @@ func (tray *Tray) updateGlobalState(globalState manager.TunnelState) {
 	actions := tray.ContextMenu().Actions()
 	statusAction := actions.At(0)
 
-	tray.SetToolTip(l18n.Sprintf("Warpam: %s", textForState(globalState, true)))
+	tray.SetToolTip(l18n.Sprintf("WarpAm: %s", textForState(globalState, true)))
 	stateText := textForState(globalState, false)
 	stateIcon, err := iconForState(globalState, 16)
 	if err == nil {
@@ -421,7 +421,7 @@ func (tray *Tray) UpdateFound() {
 
 	showUpdateBalloon := func() {
 		icon, _ := loadShieldIcon(128)
-		tray.ShowCustom(l18n.Sprintf("Warpam Update Available"), l18n.Sprintf("An update to Warpam is now available. You are advised to update as soon as possible."), icon)
+		tray.ShowCustom(l18n.Sprintf("WarpAm Update Available"), l18n.Sprintf("An update to WarpAm is now available. You are advised to update as soon as possible."), icon)
 	}
 
 	timeSinceStart := time.Now().Sub(startTime)

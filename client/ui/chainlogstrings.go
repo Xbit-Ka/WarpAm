@@ -20,7 +20,7 @@ const (
 	// Pack 85: the error window hub. A repeated error is not shown again
 	// while the same window is still open, and the line below tells how many
 	// times it came back, so that nothing is quietly lost.
-	chainNoticeTitle     = "AwgChain"
+	chainNoticeTitle     = "WarpAm"
 	chainNoticeRepeatOne = "Эта ошибка повторилась ещё один раз, пока окно было открыто."
 	chainNoticeRepeatMan = "Эта ошибка повторилась ещё %d раз, пока окно было открыто. Подробности в журнале."
 

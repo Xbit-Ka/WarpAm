@@ -69,7 +69,7 @@ func chainNoticeAllow(title, message string, holdsWindow bool) (bool, int) {
 	defer chainNoticeMu.Unlock()
 
 	if chainNoticeQuitting {
-		log.Printf("[AwgChain] Notice while quitting, log only: %s: %s", title, message)
+		log.Printf("[WarpAm] Notice while quitting, log only: %s: %s", title, message)
 		return false, 0
 	}
 
@@ -83,7 +83,7 @@ func chainNoticeAllow(title, message string, holdsWindow bool) (bool, int) {
 		quiet := chainNoticeOpen || now.Sub(state.shownAt) < chainNoticeQuiet
 		if quiet {
 			state.repeats++
-			log.Printf("[AwgChain] Notice repeated %d time(s), log only: %s: %s", state.repeats, title, message)
+			log.Printf("[WarpAm] Notice repeated %d time(s), log only: %s: %s", state.repeats, title, message)
 			return false, 0
 		}
 	}

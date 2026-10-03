@@ -121,7 +121,7 @@ func (s *ManagerService) Start(tunnelName string) error {
 	// raised. A tunnel that comes up without the port it was promised
 	// looks active and works for nobody.
 	if err := ChainProxyPortConflict(tunnelName); err != nil {
-		log.Printf("[AwgChain] %s is not raised: %v", tunnelName, err)
+		log.Printf("[WarpAm] %s is not raised: %v", tunnelName, err)
 		return err
 	}
 
@@ -189,7 +189,7 @@ func (s *ManagerService) Start(tunnelName string) error {
 		// Pack 68 (F1): the refusal is written down. It used to leave no
 		// trace at all, so "the tunnel does not come up and the log says
 		// nothing" was exactly what happened.
-		log.Printf("[AwgChain] %s is not raised: %s is still changing state", tunnelName, inTransition)
+		log.Printf("[WarpAm] %s is not raised: %s is still changing state", tunnelName, inTransition)
 		// Pack 82: shown in a window, so Russian. The log stays English.
 		return fmt.Errorf("\u0422\u0443\u043d\u043d\u0435\u043b\u044c %s \u0435\u0449\u0451 \u043f\u043e\u0434\u043d\u0438\u043c\u0430\u0435\u0442\u0441\u044f, \u043f\u043e\u0434\u043e\u0436\u0434\u0438\u0442\u0435 \u043d\u0435\u043c\u043d\u043e\u0433\u043e", inTransition)
 	}
@@ -200,7 +200,7 @@ func (s *ManagerService) Start(tunnelName string) error {
 	// answer comes now, while nothing has been raised or stopped yet. The
 	// tunnels in tt are about to go down and are not in the way.
 	if err := ChainDuplicateConflict(c, running, tt, own); err != nil {
-		log.Printf("[AwgChain] %s is not raised: %v", tunnelName, err)
+		log.Printf("[WarpAm] %s is not raised: %v", tunnelName, err)
 		return err
 	}
 

@@ -176,7 +176,7 @@ func configureInterface(family winipcfg.AddressFamily, conf *conf.Config, tun *t
 		if keep {
 			deduplicatedRoutes = append(deduplicatedRoutes, &single)
 		}
-		log.Printf("AwgChain: %s carries the local proxy only, so it gets one default route with metric %d and no system DNS", conf.Name, separateRouteMetric)
+		log.Printf("WarpAm: %s carries the local proxy only, so it gets one default route with metric %d and no system DNS", conf.Name, separateRouteMetric)
 	}
 
 	if !conf.Interface.TableOff {
@@ -264,7 +264,7 @@ func enableFirewall(conf *conf.Config, tun *tun.NativeTun) error {
 		// tunnel, because WFP forbids it, and not through the tunnel, because
 		// nothing is routed there. The proxy does not need the rule either,
 		// its sockets are nailed to this interface by hand.
-		log.Printf("AwgChain: %s carries the local proxy only, so the traffic of the machine is left alone", conf.Name)
+		log.Printf("WarpAm: %s carries the local proxy only, so the traffic of the machine is left alone", conf.Name)
 		return firewall.EnableFirewall(tun.LUID(), true, nil, nil)
 	}
 	if conf.Interface.PinEndpointVia != "" {

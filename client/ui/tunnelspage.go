@@ -411,7 +411,7 @@ func (tp *TunnelsPage) importFiles(paths []string) {
 
 				for _, f := range r.File {
 					// AwgChain pack 66: the manifest carries the pair and the boxes.
-					if strings.EqualFold(filepath.Base(f.Name), chainExportManifestName) {
+					if strings.EqualFold(filepath.Base(f.Name), chainExportManifestName) || strings.EqualFold(filepath.Base(f.Name), chainExportLegacyManifestName) {
 						chainPlan = append(chainPlan, chainExportRead(f)...)
 						continue
 					}

@@ -104,7 +104,7 @@ func checkForWow64() {
 		fatalf("Unable to determine whether the process is running under WOW64: %v", err)
 	}
 	if b {
-                fatalf("You must use the native version of Warpam on this computer.")
+                fatalf("You must use the native version of WarpAm on this computer.")
 	}
 }
 
@@ -117,14 +117,14 @@ func checkForAdminGroup() {
 	}
 	defer processToken.Close()
 	if !elevate.TokenIsElevatedOrElevatable(processToken) {
-                fatalf("Warpam may only be used by users who are a member of the Builtin %s group.", elevate.AdminGroupName())
+                fatalf("WarpAm may only be used by users who are a member of the Builtin %s group.", elevate.AdminGroupName())
 	}
 }
 
 func checkForAdminDesktop() {
 	adminDesktop, err := elevate.IsAdminDesktop()
 	if !adminDesktop && err == nil {
-                fatalf("Warpam is running, but the UI is only accessible from desktops of the Builtin %s group.", elevate.AdminGroupName())
+                fatalf("WarpAm is running, but the UI is only accessible from desktops of the Builtin %s group.", elevate.AdminGroupName())
 	}
 }
 
@@ -195,7 +195,7 @@ func main() {
 		}
 		checkForAdminDesktop()
 		time.Sleep(30 * time.Second)
-                fatalf("Warpam system tray icon did not appear after 30 seconds.")
+                fatalf("WarpAm system tray icon did not appear after 30 seconds.")
 		return
 	case "/uninstallmanagerservice":
 		if len(os.Args) != 2 {

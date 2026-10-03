@@ -12,6 +12,6 @@ const (
 	updateServerUseHttps   = true
 	latestVersionPath      = "/amneziawg/windows-client/latest.sig"
 	msiPath                = "/amneziawg/windows-client/%s"
-	msiArchPrefix          = "amneziawg-%s-"
+	msiArchPrefix          = "warpam-%s-"
 	msiSuffix              = ".msi"
 )

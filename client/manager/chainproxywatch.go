@@ -100,6 +100,14 @@ func ChainProxyWatchFollow(name string) {
 		if err != nil || state != TunnelStarted {
 			return
 		}
+		// WarpAm pack 95: a proxy tunnel that is a hop of the chain the
+		// guard watches is the guard's, which asks for a handshake before
+		// it rebuilds anything. Two watches restarting one tunnel would
+		// fight. The counting starts over when the guard lets go.
+		if chainWatchedHop(name) {
+			lastRx, markTx, rxMoved, said = 0, 0, time.Time{}, false
+			continue
+		}
 		runtime, err := s.RuntimeConfig(name)
 		if err != nil || runtime == nil {
 			continue
@@ -109,7 +117,7 @@ func ChainProxyWatchFollow(name string) {
 
 		if rxMoved.IsZero() || rx > lastRx {
 			if said {
-				log.Printf("[AwgChain] %s receives again after %d seconds of one way silence", name, int(time.Since(rxMoved).Seconds()))
+				log.Printf("[WarpAm] %s receives again after %d seconds of one way silence", name, int(time.Since(rxMoved).Seconds()))
 			}
 			lastRx, markTx, rxMoved, said = rx, tx, time.Now(), false
 			continue
@@ -129,22 +137,22 @@ func ChainProxyWatchFollow(name string) {
 			if a, ok := chainHandshakeAge(runtime); ok {
 				age = fmt.Sprintf("%d seconds old", int(a.Seconds()))
 			}
-			log.Printf("[AwgChain] %s has received nothing for %d seconds while it sent %d bytes, and its handshake is %s. The agreement with the server holds and the packets are being dropped on the way back, so every connection of the proxy on this tunnel will time out", name, int(deaf.Seconds()), asked, age)
+			log.Printf("[WarpAm] %s has received nothing for %d seconds while it sent %d bytes, and its handshake is %s. The agreement with the server holds and the packets are being dropped on the way back, so every connection of the proxy on this tunnel will time out", name, int(deaf.Seconds()), asked, age)
 		}
 
 		if deaf >= chainProxyWatchFix && (fixed.IsZero() || time.Since(fixed) >= chainProxyWatchGap) {
 			fixed = time.Now()
-			log.Printf("[AwgChain] %s carries only its proxy and has been deaf for %d seconds, so it is stopped and raised again, which is what putting it right by hand does", name, int(deaf.Seconds()))
+			log.Printf("[WarpAm] %s carries only its proxy and has been deaf for %d seconds, so it is stopped and raised again, which is what putting it right by hand does", name, int(deaf.Seconds()))
 			if err := s.Stop(name); err != nil {
-				log.Printf("[AwgChain] %s could not be stopped for the repair: %v", name, err)
+				log.Printf("[WarpAm] %s could not be stopped for the repair: %v", name, err)
 				continue
 			}
 			time.Sleep(2 * time.Second)
 			if err := s.Start(name); err != nil {
-				log.Printf("[AwgChain] %s could not be raised again after the repair: %v. It stays down until it is raised by hand", name, err)
+				log.Printf("[WarpAm] %s could not be raised again after the repair: %v. It stays down until it is raised by hand", name, err)
 				return
 			}
-			log.Printf("[AwgChain] %s is up again after the repair", name)
+			log.Printf("[WarpAm] %s is up again after the repair", name)
 			lastRx, markTx, rxMoved, said = 0, 0, time.Time{}, false
 		}
 	}
@@ -185,7 +193,7 @@ func ChainProxyDialFailed(leaf, address string, port uint16, why string) {
 	if !seen || now.Sub(run.last) > chainProxyFailApart {
 		chainProxyFails[leaf] = &chainProxyFailRun{first: now, last: now, told: now, count: 1}
 		chainProxyFailMu.Unlock()
-		log.Printf("[AwgChain] The proxy of %s could not reach %s:%d through the tunnel: %s", leaf, address, port, why)
+		log.Printf("[WarpAm] The proxy of %s could not reach %s:%d through the tunnel: %s", leaf, address, port, why)
 		return
 	}
 	run.last = now
@@ -198,7 +206,7 @@ func ChainProxyDialFailed(leaf, address string, port uint16, why string) {
 	count := run.count
 	run.told = now
 	chainProxyFailMu.Unlock()
-	log.Printf("[AwgChain] The proxy of %s could not reach %d addresses in the last %d seconds, the last of them %s:%d: %s", leaf, count, since, address, port, why)
+	log.Printf("[WarpAm] The proxy of %s could not reach %d addresses in the last %d seconds, the last of them %s:%d: %s", leaf, count, since, address, port, why)
 }
 
 // ChainProxyDialWorked ends a run of failures.
@@ -211,5 +219,5 @@ func ChainProxyDialWorked(leaf string) {
 	}
 	delete(chainProxyFails, leaf)
 	chainProxyFailMu.Unlock()
-	log.Printf("[AwgChain] The proxy of %s reaches its addresses again after %d failures over %d seconds", leaf, run.count, int(time.Since(run.first).Seconds()))
+	log.Printf("[WarpAm] The proxy of %s reaches its addresses again after %d failures over %d seconds", leaf, run.count, int(time.Since(run.first).Seconds()))
 }

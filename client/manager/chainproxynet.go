@@ -28,6 +28,7 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 	"unsafe"
@@ -46,6 +47,23 @@ const (
 	chainProxyDialTimeout = 10 * time.Second
 	// chainProxyDNSTimeout is the same for a single DNS query.
 	chainProxyDNSTimeout = 5 * time.Second
+
+	// WarpAm pack 94: one round of name resolution asks every resolver of
+	// the tunnel at once and waits this long for the first answer. The old
+	// way gave each resolver five seconds in turn, so one lost UDP packet to
+	// the first of two resolvers ate the whole ten seconds of the dial and
+	// the program got SOCKS reply 4 while the tunnel was fine. Six such
+	// failures are in the night log of 30 September, each one on a single
+	// lost DNS packet.
+	chainProxyDNSRoundTimeout = 1500 * time.Millisecond
+	// chainProxyDNSRounds is how many such rounds are tried before giving up.
+	chainProxyDNSRounds = 3
+	// chainProxyDNSFresh is how long an answer is used without asking again.
+	chainProxyDNSFresh = 60 * time.Second
+	// chainProxyDNSStale is how long an old answer may still stand in when
+	// every resolver is silent. An address that was right ten minutes ago
+	// is a better bet than an error.
+	chainProxyDNSStale = 10 * time.Minute
 
 	// chainProxyErrAccess is WSAEACCES. Windows answers with it when the
 	// packet filter refuses the socket, which is what a missing door in
@@ -211,35 +229,33 @@ func chainProxyResolve(ctx context.Context, index uint32, servers []net.IP, host
 		return nil, fmt.Errorf("the tunnel has no DNS server, so %q cannot be resolved without leaking the name", host)
 	}
 
+	// WarpAm pack 94: a fresh answer is taken from the cache, otherwise up
+	// to three short rounds ask all resolvers in parallel, and when every
+	// round fails an answer that is not too old still stands in.
+	key := strconv.FormatUint(uint64(index), 10) + "|" + strings.ToLower(host)
+	cached, age, found := chainProxyDNSCacheGet(key)
+	if found && age < chainProxyDNSFresh {
+		return cached, nil
+	}
+
 	dialer := chainProxyDialer(index)
 	var lastErr error
-	for _, server := range servers {
-		resolver := &net.Resolver{
-			PreferGo: true,
-			Dial: func(ctx context.Context, network, _ string) (net.Conn, error) {
-				// The network the resolver asks for is honoured, so a
-				// truncated answer is retried over TCP through the same
-				// tunnel.
-				use := "udp4"
-				if network == "tcp" || network == "tcp4" || network == "tcp6" {
-					use = "tcp4"
-				}
-				return dialer.DialContext(ctx, use, net.JoinHostPort(server.String(), "53"))
-			},
+	for round := 0; round < chainProxyDNSRounds && ctx.Err() == nil; round++ {
+		address, err := chainProxyResolveRound(ctx, dialer, servers, host)
+		if err == nil {
+			chainProxyDNSCachePut(key, address)
+			return address, nil
 		}
-		lookupCtx, cancel := context.WithTimeout(ctx, chainProxyDNSTimeout)
-		addresses, err := resolver.LookupIP(lookupCtx, "ip4", host)
-		cancel()
-		if err != nil {
-			lastErr = err
-			continue
+		lastErr = err
+		var dnsErr *net.DNSError
+		if errors.As(err, &dnsErr) && dnsErr.IsNotFound {
+			// The name does not exist: asking again changes nothing.
+			break
 		}
-		for _, address := range addresses {
-			if four := address.To4(); four != nil {
-				return four, nil
-			}
-		}
-		lastErr = fmt.Errorf("%q has no IPv4 address", host)
+	}
+	if found && age < chainProxyDNSStale {
+		chainLogChanged("proxy-dns-stale-"+key, "[WarpAm] The resolvers did not answer for %q (%s), so the address from %d seconds ago is used", host, chainProxyWhy(lastErr), int(age.Seconds()))
+		return cached, nil
 	}
 	if lastErr == nil {
 		return nil, fmt.Errorf("%q could not be resolved through the tunnel", host)
@@ -247,6 +263,105 @@ func chainProxyResolve(ctx context.Context, index uint32, servers []net.IP, host
 	// Pack 84: the caller writes this line into the log, so it says which
 	// resolvers were asked and what came back instead of an answer.
 	return nil, fmt.Errorf("%q could not be resolved through the tunnel (asked %s): %s", host, chainProxyDNSLine(servers), chainProxyWhy(lastErr))
+}
+
+// chainProxyResolveRound asks every resolver at the same time and returns the
+// first IPv4 address that comes back. WarpAm pack 94.
+func chainProxyResolveRound(ctx context.Context, dialer *net.Dialer, servers []net.IP, host string) (net.IP, error) {
+	roundCtx, cancel := context.WithTimeout(ctx, chainProxyDNSRoundTimeout)
+	defer cancel()
+
+	type answer struct {
+		address net.IP
+		err     error
+	}
+	answers := make(chan answer, len(servers))
+	asked := 0
+	for _, server := range servers {
+		if server == nil {
+			continue
+		}
+		asked++
+		go func(server net.IP) {
+			resolver := &net.Resolver{
+				PreferGo: true,
+				Dial: func(ctx context.Context, network, _ string) (net.Conn, error) {
+					// The network the resolver asks for is honoured, so a
+					// truncated answer is retried over TCP through the same
+					// tunnel.
+					use := "udp4"
+					if network == "tcp" || network == "tcp4" || network == "tcp6" {
+						use = "tcp4"
+					}
+					return dialer.DialContext(ctx, use, net.JoinHostPort(server.String(), "53"))
+				},
+			}
+			addresses, err := resolver.LookupIP(roundCtx, "ip4", host)
+			if err != nil {
+				answers <- answer{err: err}
+				return
+			}
+			for _, address := range addresses {
+				if four := address.To4(); four != nil {
+					answers <- answer{address: four}
+					return
+				}
+			}
+			answers <- answer{err: fmt.Errorf("%q has no IPv4 address", host)}
+		}(server)
+	}
+	if asked == 0 {
+		return nil, fmt.Errorf("the tunnel has no DNS server, so %q cannot be resolved without leaking the name", host)
+	}
+	var lastErr error
+	for i := 0; i < asked; i++ {
+		got := <-answers
+		if got.err == nil {
+			return got.address, nil
+		}
+		lastErr = got.err
+	}
+	return nil, lastErr
+}
+
+// chainProxyDNSCache keeps the last answer for every tunnel and name.
+var chainProxyDNSCache = struct {
+	sync.Mutex
+	entries map[string]chainProxyDNSEntry
+}{entries: make(map[string]chainProxyDNSEntry)}
+
+type chainProxyDNSEntry struct {
+	address net.IP
+	when    time.Time
+}
+
+// chainProxyDNSCacheLimit keeps the cache from growing without end.
+const chainProxyDNSCacheLimit = 4096
+
+func chainProxyDNSCacheGet(key string) (net.IP, time.Duration, bool) {
+	chainProxyDNSCache.Lock()
+	defer chainProxyDNSCache.Unlock()
+	entry, ok := chainProxyDNSCache.entries[key]
+	if !ok {
+		return nil, 0, false
+	}
+	return entry.address, time.Since(entry.when), true
+}
+
+func chainProxyDNSCachePut(key string, address net.IP) {
+	chainProxyDNSCache.Lock()
+	defer chainProxyDNSCache.Unlock()
+	if len(chainProxyDNSCache.entries) >= chainProxyDNSCacheLimit {
+		for old, entry := range chainProxyDNSCache.entries {
+			if time.Since(entry.when) > chainProxyDNSStale {
+				delete(chainProxyDNSCache.entries, old)
+			}
+		}
+		if len(chainProxyDNSCache.entries) >= chainProxyDNSCacheLimit {
+			chainProxyDNSCache.entries = make(map[string]chainProxyDNSEntry)
+		}
+	}
+	chainProxyDNSCache.entries[key] = chainProxyDNSEntry{address: address, when: time.Now()}
 }
 
 // chainProxyDNSLine writes the resolvers that were asked, for the log.

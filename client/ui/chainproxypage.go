@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/lxn/walk"
+	"github.com/lxn/win"
 
 	"github.com/amnezia-vpn/amneziawg-windows-client/manager"
 )
@@ -76,6 +77,14 @@ type ProxyPage struct {
 
 	hintLabel  *walk.TextLabel
 	stateLabel *walk.TextLabel
+	// Pack 97: the address the other machines should type.
+	addrLabel *walk.TextLabel
+
+	// placeholder is true while the password box holds the asterisks put
+	// there by reload and nobody has touched them. savedUser is the login
+	// the saved hash belongs to.
+	placeholder bool
+	savedUser   string
 
 	// hash is the password hash that is already saved for this tunnel.
 	// The box on screen is always empty, so an empty box means "keep the
@@ -197,8 +206,15 @@ func NewProxyPage() (*ProxyPage, error) {
 	pp.bindCombo.SetCurrentIndex(0)
 	pp.bindCombo.SetToolTipText(chainProxyBindHint)
 	pp.bindCombo.CurrentIndexChanged().Attach(func() {
+		// Pack 97: browsers cannot send a SOCKS5 login, so the local
+		// network mode starts with both protocols on one port.
+		if !pp.loading && chainProxyPicked(pp.bindCombo, chainProxyBindValues, manager.ChainProxyBindLoopback) == manager.ChainProxyBindLAN &&
+			chainProxyPicked(pp.protoCombo, chainProxyProtoValues, manager.ChainProxyProtoSocks5) == manager.ChainProxyProtoSocks5 {
+			chainProxyPick(pp.protoCombo, chainProxyProtoValues, manager.ChainProxyProtoBoth)
+		}
 		pp.follow()
 		pp.queueSave()
+		pp.showState()
 	})
 	if _, err = walk.NewHSpacer(bindRow); err != nil {
 		return nil, err
@@ -227,7 +243,14 @@ func NewProxyPage() (*ProxyPage, error) {
 		return nil, err
 	}
 	pp.passLE.SetPasswordMode(true)
+	// Pack 97: asterisks instead of the dots of Windows, EM_SETPASSWORDCHAR.
+	win.SendMessage(pp.passLE.Handle(), 0x00CC, uintptr('*'), 0)
 	pp.passLE.SetToolTipText(chainProxyPassHint)
+	pp.passLE.TextChanged().Attach(func() {
+		if !pp.loading {
+			pp.placeholder = false
+		}
+	})
 	pp.passLE.EditingFinished().Attach(pp.queueSave)
 	if _, err = walk.NewHSpacer(loginRow); err != nil {
 		return nil, err
@@ -313,6 +336,24 @@ func NewProxyPage() (*ProxyPage, error) {
 		return nil, err
 	}
 
+	// 9. Pack 97: the address for the other machines of the local network.
+	addrRow, err := chainProxyRow(pp)
+	if err != nil {
+		return nil, err
+	}
+	addrTitle, err := walk.NewTextLabel(addrRow)
+	if err != nil {
+		return nil, err
+	}
+	addrTitle.SetText(chainProxyAddrTitle + ":")
+	if pp.addrLabel, err = walk.NewTextLabel(addrRow); err != nil {
+		return nil, err
+	}
+	pp.addrLabel.SetText(chainProxyAddrLocal)
+	if _, err = walk.NewHSpacer(addrRow); err != nil {
+		return nil, err
+	}
+
 	if _, err = walk.NewVSpacer(pp); err != nil {
 		return nil, err
 	}
@@ -381,6 +422,8 @@ func (pp *ProxyPage) reload() {
 		pp.userLE.SetText("")
 		pp.passLE.SetText("")
 		pp.hash = ""
+		pp.placeholder = false
+		pp.savedUser = ""
 		return
 	}
 
@@ -399,8 +442,9 @@ func (pp *ProxyPage) reload() {
 	pp.portNE.SetValue(float64(settings.Port()))
 	pp.graceNE.SetValue(float64(settings.ProxyGrace))
 	pp.userLE.SetText(settings.ProxyUser)
-	pp.passLE.SetText("")
 	pp.hash = settings.ProxyPassHash
+	pp.savedUser = strings.TrimSpace(settings.ProxyUser)
+	pp.showMask()
 	pp.splitCB.SetChecked(settings.ProxySplit)
 
 	pp.loaded = true
@@ -430,6 +474,8 @@ func (pp *ProxyPage) follow() {
 		pp.userLE.SetText("")
 		pp.passLE.SetText("")
 		pp.hash = ""
+		pp.placeholder = false
+		pp.savedUser = ""
 	}
 
 	switch {
@@ -505,15 +551,67 @@ func (pp *ProxyPage) save() {
 }
 
 // passwordHash turns the password box into what the settings keep. An
-// empty box means the password is not being changed.
+// empty box, or the untouched asterisks, mean the password is not being
+// changed. Pack 97: the new hash does not hold the login, so a new login
+// keeps the password; only a hash of the old kind needs it typed again.
 func (pp *ProxyPage) passwordHash(user string) string {
 	password := pp.passLE.Text()
-	if len(password) == 0 {
+	if pp.placeholder || len(password) == 0 {
+		if len(pp.hash) != 0 && manager.ChainProxyPassIsOld(pp.hash) && !strings.EqualFold(user, pp.savedUser) {
+			showErrorCustom(nil, chainProxyTabTitle, chainProxyPassAgain)
+			pp.hash = ""
+			pp.savedUser = user
+			pp.showMask()
+			return ""
+		}
+		pp.savedUser = user
 		return pp.hash
 	}
 	hash := manager.ChainProxyPassHash(user, password)
 	pp.hash = hash
+	pp.savedUser = user
+	pp.showMask()
 	return hash
+}
+
+// showMask puts the asterisks into the password box when a password is
+// saved, and empties it when there is none. Pack 97.
+func (pp *ProxyPage) showMask() {
+	was := pp.loading
+	pp.loading = true
+	if len(pp.hash) != 0 {
+		pp.passLE.SetText(chainProxyPassMask)
+		pp.placeholder = true
+	} else {
+		pp.passLE.SetText("")
+		pp.placeholder = false
+	}
+	pp.loading = was
+}
+
+// showAddress fills the line with the address for the other machines.
+// Pack 97.
+func (pp *ProxyPage) showAddress() {
+	if pp.addrLabel == nil {
+		return
+	}
+	lan := len(pp.tunnel) > 0 && pp.enableCB.Checked() &&
+		chainProxyPicked(pp.bindCombo, chainProxyBindValues, manager.ChainProxyBindLoopback) == manager.ChainProxyBindLAN
+	if !lan {
+		pp.addrLabel.SetText(chainProxyAddrLocal)
+		return
+	}
+	addresses := manager.ChainProxyLANAddresses()
+	if len(addresses) == 0 {
+		pp.addrLabel.SetText(chainProxyAddrMissing)
+		return
+	}
+	port := int(pp.portNE.Value())
+	with := make([]string, len(addresses))
+	for i := range addresses {
+		with[i] = fmt.Sprintf("%s:%d", addresses[i], port)
+	}
+	pp.addrLabel.SetText(strings.Join(with, ", "))
 }
 
 // showState writes what the proxy of this tunnel is doing right now.
@@ -521,6 +619,7 @@ func (pp *ProxyPage) showState() {
 	if pp.stateLabel == nil {
 		return
 	}
+	pp.showAddress()
 	if len(pp.tunnel) == 0 || !pp.enableCB.Checked() {
 		pp.stateLabel.SetText(chainProxyStateOff)
 		return
@@ -549,6 +648,17 @@ func (pp *ProxyPage) showState() {
 		// into a sentence of its own language.
 		if note := chainProxyNoteText(proxy.Note); len(note) > 0 {
 			text += " " + note
+		}
+		// Pack 97: the password and the wrong logins of the last minutes.
+		if chainProxyPicked(pp.bindCombo, chainProxyBindValues, manager.ChainProxyBindLoopback) == manager.ChainProxyBindLAN {
+			if len(pp.hash) != 0 {
+				text += " " + chainProxyPassSet
+			} else {
+				text += " " + chainProxyPassUnset
+			}
+		}
+		if proxy.LoginFails > 0 {
+			text += " " + fmt.Sprintf(chainProxyLoginFails, proxy.LoginFails, proxy.LoginFrom)
 		}
 		pp.stateLabel.SetText(text)
 		return

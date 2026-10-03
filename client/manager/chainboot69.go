@@ -95,11 +95,11 @@ func chainSweepLeftoverTunnels() {
 		}
 		service.Close()
 		if queryErr == nil && (status.State == svc.Running || status.State == svc.StartPending) {
-			log.Printf("[AwgChain] %s is running from before the manager started, so it is left alone and taken over", name)
+			log.Printf("[WarpAm] %s is running from before the manager started, so it is left alone and taken over", name)
 			continue
 		}
 		if queryErr == nil && status.State == svc.StopPending {
-			log.Printf("[AwgChain] %s is still stopping, so it is left alone instead of being uninstalled under its own feet", name)
+			log.Printf("[WarpAm] %s is still stopping, so it is left alone instead of being uninstalled under its own feet", name)
 			continue
 		}
 		state := "unreadable"
@@ -113,14 +113,14 @@ func chainSweepLeftoverTunnels() {
 		// its own handle after a reboot, with the icon busy and nothing up.
 		err = UninstallTunnel(name)
 		if err != nil {
-			log.Printf("[AwgChain] The service %s was left over from the last session (state %s) and could not be removed: %v", serviceName, state, err)
+			log.Printf("[WarpAm] The service %s was left over from the last session (state %s) and could not be removed: %v", serviceName, state, err)
 			continue
 		}
 		gone := ChainSweepGone(m, serviceName)
 		if !gone {
-			log.Printf("[AwgChain] The service %s was left over from the last session (state %s) and is still marked for deletion after %v, so something outside this program is holding it", serviceName, state, chainSweepWait)
+			log.Printf("[WarpAm] The service %s was left over from the last session (state %s) and is still marked for deletion after %v, so something outside this program is holding it", serviceName, state, chainSweepWait)
 			continue
 		}
-		log.Printf("[AwgChain] The service %s was left over from the last session (state %s) and is removed, so nothing takes it for a tunnel that is up", serviceName, state)
+		log.Printf("[WarpAm] The service %s was left over from the last session (state %s) and is removed, so nothing takes it for a tunnel that is up", serviceName, state)
 	}
 }

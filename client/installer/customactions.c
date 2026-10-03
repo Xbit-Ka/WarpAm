@@ -11,11 +11,25 @@
 #include <msiquery.h>
 #include <shlwapi.h>
 #include <shlobj.h>
+#include <sddl.h>
 #include <stdbool.h>
 #include <tchar.h>
 
-#define MANAGER_SERVICE_NAME TEXT("AmneziaWGManager")
-#define TUNNEL_SERVICE_PREFIX TEXT("AmneziaWGTunnel$")
+#define MANAGER_SERVICE_NAME TEXT("WarpAmManager")
+#define TUNNEL_SERVICE_PREFIX TEXT("WarpAmTunnel$")
+#define PROGRAM_EXE_NAME TEXT("WarpAm.exe")
+
+/*
+ * WarpAm pack 94: up to pack 93 the program was called AwgChain. Its
+ * services are stopped and deleted by this installer, and its Data folder
+ * is copied into the new one by MigrateLegacyData before the old product is
+ * removed, because the removal of the old product deletes its Data folder.
+ */
+#define LEGACY_MANAGER_SERVICE_NAME TEXT("AwgChainManager")
+#define LEGACY_TUNNEL_SERVICE_PREFIX TEXT("AwgChainTunnel$")
+#define LEGACY_FOLDER_NAME TEXT("AwgChain")
+#define LEGACY_REGISTRY_KEY TEXT("Software\\AmneziaWG")
+#define DATA_FOLDER_SDDL TEXT("O:SYG:SYD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)")
 
 enum log_level { LOG_LEVEL_INFO, LOG_LEVEL_WARN, LOG_LEVEL_ERR, LOG_LEVEL_MSIERR };
 
@@ -38,15 +52,15 @@ static void log_messagef(MSIHANDLE installer, enum log_level level, const TCHAR 
 
 	switch (level) {
 	case LOG_LEVEL_INFO:
-		template = TEXT("AmneziaWG: [1]");
+		template = TEXT("WarpAm: [1]");
 		type = INSTALLMESSAGE_INFO;
 		break;
 	case LOG_LEVEL_WARN:
-		template = TEXT("AmneziaWG warning: [1]");
+		template = TEXT("WarpAm warning: [1]");
 		type = INSTALLMESSAGE_INFO;
 		break;
 	case LOG_LEVEL_ERR:
-		template = TEXT("AmneziaWG error: [1]");
+		template = TEXT("WarpAm error: [1]");
 		type = INSTALLMESSAGE_ERROR;
 		break;
 	case LOG_LEVEL_MSIERR:
@@ -114,7 +128,7 @@ __declspec(dllexport) UINT __stdcall CheckWow64(MSIHANDLE installer)
 		if (!is_wow64_process)
 			goto out;
 	}
-	log_messagef(installer, LOG_LEVEL_MSIERR, TEXT("You must use the native version of WireGuard on this computer."));
+	log_messagef(installer, LOG_LEVEL_MSIERR, TEXT("You must use the native version of WarpAm on this computer."));
 	ret = ERROR_INSTALL_FAILURE;
 out:
 	if (is_com_initialized)
@@ -122,7 +136,7 @@ out:
 	return ret;
 }
 
-static UINT insert_service_control(MSIHANDLE installer, MSIHANDLE view, const TCHAR *service_name, bool start)
+static UINT insert_service_control(MSIHANDLE installer, MSIHANDLE view, const TCHAR *service_name, bool start, bool legacy)
 {
 	static unsigned int index = 0;
 	UINT ret;
@@ -137,10 +151,18 @@ static UINT insert_service_control(MSIHANDLE installer, MSIHANDLE view, const TC
 
 	MsiRecordSetString (record, 1/*ServiceControl*/, row_identifier);
 	MsiRecordSetString (record, 2/*Name          */, service_name);
-	MsiRecordSetInteger(record, 3/*Event         */, msidbServiceControlEventStop | msidbServiceControlEventUninstallStop | msidbServiceControlEventUninstallDelete);
+	if (legacy) {
+		/* A service of AwgChain is stopped and deleted and never started again. */
+		MsiRecordSetInteger(record, 3/*Event     */, msidbServiceControlEventStop | msidbServiceControlEventDelete);
+		start = false;
+	} else
+		MsiRecordSetInteger(record, 3/*Event     */, msidbServiceControlEventStop | msidbServiceControlEventUninstallStop | msidbServiceControlEventUninstallDelete);
 	MsiRecordSetString (record, 4/*Component_    */, TEXT("WireGuardExecutable"));
 	MsiRecordSetInteger(record, 5/*Wait          */, 1); /* Waits 30 seconds. */
-	log_messagef(installer, LOG_LEVEL_INFO, TEXT("Scheduling stop on upgrade or removal on uninstall of service %1"), service_name);
+	if (legacy)
+		log_messagef(installer, LOG_LEVEL_INFO, TEXT("Scheduling stop and removal of the old service %1"), service_name);
+	else
+		log_messagef(installer, LOG_LEVEL_INFO, TEXT("Scheduling stop on upgrade or removal on uninstall of service %1"), service_name);
 	ret = MsiViewExecute(view, record);
 	if (ret != ERROR_SUCCESS) {
 		log_errorf(installer, LOG_LEVEL_ERR, ret, TEXT("MsiViewExecute failed for service %1"), service_name);
@@ -220,12 +242,18 @@ __declspec(dllexport) UINT __stdcall EvaluateWireGuardServices(MSIHANDLE install
 		}
 
 		for (DWORD i = 0; i < service_status_count; ++i) {
+			bool legacy = false;
 			if (_tcsicmp(service_status[i].lpServiceName, MANAGER_SERVICE_NAME) &&
-			    _tcsnicmp(service_status[i].lpServiceName, TUNNEL_SERVICE_PREFIX, _countof(TUNNEL_SERVICE_PREFIX) - 1))
-				continue;
+			    _tcsnicmp(service_status[i].lpServiceName, TUNNEL_SERVICE_PREFIX, _countof(TUNNEL_SERVICE_PREFIX) - 1)) {
+				if (_tcsicmp(service_status[i].lpServiceName, LEGACY_MANAGER_SERVICE_NAME) &&
+				    _tcsnicmp(service_status[i].lpServiceName, LEGACY_TUNNEL_SERVICE_PREFIX, _countof(LEGACY_TUNNEL_SERVICE_PREFIX) - 1))
+					continue;
+				legacy = true;
+			}
 			insert_service_control(installer, view, service_status[i].lpServiceName,
 					       service_status[i].ServiceStatusProcess.dwCurrentState != SERVICE_STOPPED &&
-					       service_status[i].ServiceStatusProcess.dwCurrentState != SERVICE_STOP_PENDING);
+					       service_status[i].ServiceStatusProcess.dwCurrentState != SERVICE_STOP_PENDING,
+					       legacy);
 		}
 	}
 	ret = ERROR_SUCCESS;
@@ -256,10 +284,10 @@ __declspec(dllexport) UINT __stdcall LaunchApplicationAndAbort(MSIHANDLE install
 		log_errorf(installer, LOG_LEVEL_WARN, ret, TEXT("MsiGetProperty(\"WireGuardFolder\") failed"));
 		goto out;
 	}
-	if (!path[0] || !PathAppend(path, TEXT("amneziawg.exe")))
+	if (!path[0] || !PathAppend(path, PROGRAM_EXE_NAME))
 		goto out;
 	log_messagef(installer, LOG_LEVEL_INFO, TEXT("Launching %1"), path);
-	if (!CreateProcess(path, TEXT("amneziawg"), NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+	if (!CreateProcess(path, TEXT("WarpAm"), NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
 		log_errorf(installer, LOG_LEVEL_WARN, GetLastError(), TEXT("Failed to create \"%1\" process"), path);
 		goto out;
 	}
@@ -365,7 +393,9 @@ __declspec(dllexport) UINT __stdcall KillWireGuardProcesses(MSIHANDLE installer)
 
 	if (PathCombine(executable, process_path, TEXT("awg.exe")) && calculate_file_id(executable, &file_ids[file_ids_len]))
 		++file_ids_len;
-	if (PathCombine(executable, process_path, TEXT("amneziawg.exe")) && calculate_file_id(executable, &file_ids[file_ids_len]))
+	if (PathCombine(executable, process_path, PROGRAM_EXE_NAME) && calculate_file_id(executable, &file_ids[file_ids_len]))
+		++file_ids_len;
+	if (PathCombine(executable, process_path, TEXT("awgchain-guard.exe")) && calculate_file_id(executable, &file_ids[file_ids_len]))
 		++file_ids_len;
 	if (!file_ids_len)
 		goto out;
@@ -375,7 +405,9 @@ __declspec(dllexport) UINT __stdcall KillWireGuardProcesses(MSIHANDLE installer)
 		goto out;
 
 	for (bool ret = Process32First(snapshot, &entry); ret; ret = Process32Next(snapshot, &entry)) {
-		if (_tcsicmp(entry.szExeFile, TEXT("amneziawg.exe")) && _tcsicmp(entry.szExeFile, TEXT("awg.exe")))
+		if (_tcsicmp(entry.szExeFile, PROGRAM_EXE_NAME) &&
+		    _tcsicmp(entry.szExeFile, TEXT("awgchain-guard.exe")) &&
+		    _tcsicmp(entry.szExeFile, TEXT("awg.exe")))
 			continue;
 		process = OpenProcess(PROCESS_TERMINATE | PROCESS_QUERY_LIMITED_INFORMATION, false, entry.th32ProcessID);
 		if (!process)
@@ -480,7 +512,7 @@ __declspec(dllexport) UINT __stdcall RemoveConfigFolder(MSIHANDLE installer)
 	if (!path[0] || !PathAppend(path, TEXT("Data")))
 		goto out;
 	remove_directory_recursive(installer, path, 10);
-	RegDeleteKey(HKEY_LOCAL_MACHINE, TEXT("Software\\AmneziaWG")); // Assumes no WOW.
+	RegDeleteKey(HKEY_LOCAL_MACHINE, TEXT("Software\\WarpAm")); // Assumes no WOW.
 out:
 	if (is_com_initialized)
 		CoUninitialize();
@@ -508,7 +540,7 @@ __declspec(dllexport) UINT __stdcall RemoveAdapters(MSIHANDLE installer)
 		log_errorf(installer, LOG_LEVEL_WARN, ret, TEXT("MsiGetProperty(\"CustomActionData\") failed"));
 		goto out;
 	}
-	if (!path[0] || !PathAppend(path, TEXT("amneziawg.exe")))
+	if (!path[0] || !PathAppend(path, PROGRAM_EXE_NAME))
 		goto out;
 
 	if (!CreatePipe(&pipe, &si.hStdOutput, NULL, 0)) {
@@ -551,4 +583,165 @@ out:
 	if (is_com_initialized)
 		CoUninitialize();
 	return ERROR_SUCCESS;
+}
+
+/*
+ * WarpAm pack 94: the Data folder of AwgChain is carried over.
+ *
+ * The action is deferred and runs as SYSTEM right after InstallFiles. The
+ * MSI removes the old product only later (MajorUpgrade is scheduled after
+ * InstallExecute), and that removal deletes the Data folder of the old
+ * folder, so the copy has to be made here. CustomActionData is the folder
+ * of the new program. Nothing is copied when the new Data already holds a
+ * tunnel, a file that already exists is never overwritten and log.bin is
+ * left behind. A copy that fails stops the installation, so that the old
+ * product and its tunnels stay as they were.
+ */
+
+static bool legacy_program_folder(TCHAR out[MAX_PATH])
+{
+	HKEY key;
+	DWORD type, size = (MAX_PATH - 1) * sizeof(TCHAR), len;
+
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, LEGACY_REGISTRY_KEY, 0, KEY_QUERY_VALUE | KEY_WOW64_64KEY, &key) == ERROR_SUCCESS) {
+		LSTATUS ret = RegQueryValueEx(key, TEXT("InstallPath"), NULL, &type, (LPBYTE)out, &size);
+		RegCloseKey(key);
+		if (ret == ERROR_SUCCESS && type == REG_SZ && size >= sizeof(TCHAR)) {
+			out[size / sizeof(TCHAR)] = TEXT('\0');
+			PathRemoveBackslash(out);
+			/* The key is shared with AmneziaWG itself, so only a folder named AwgChain counts. */
+			if (!_tcsicmp(PathFindFileName(out), LEGACY_FOLDER_NAME))
+				return true;
+		}
+	}
+	len = GetEnvironmentVariable(TEXT("ProgramW6432"), out, MAX_PATH);
+	if (!len || len >= MAX_PATH)
+		len = GetEnvironmentVariable(TEXT("ProgramFiles"), out, MAX_PATH);
+	if (!len || len >= MAX_PATH)
+		return false;
+	return PathAppend(out, LEGACY_FOLDER_NAME);
+}
+
+static bool folder_has_files(const TCHAR *folder)
+{
+	TCHAR pattern[MAX_PATH];
+	WIN32_FIND_DATA find_data;
+	HANDLE find_handle;
+	bool found = false;
+
+	if (!PathCombine(pattern, folder, TEXT("*.*")))
+		return false;
+	find_handle = FindFirstFileEx(pattern, FindExInfoBasic, &find_data, FindExSearchNameMatch, NULL, 0);
+	if (find_handle == INVALID_HANDLE_VALUE)
+		return false;
+	do {
+		if (!(find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+			found = true;
+			break;
+		}
+	} while (FindNextFile(find_handle, &find_data));
+	FindClose(find_handle);
+	return found;
+}
+
+static bool copy_folder_recursive(MSIHANDLE installer, const TCHAR *from, const TCHAR *to, SECURITY_ATTRIBUTES *sa, unsigned int max_depth, unsigned int *copied)
+{
+	TCHAR pattern[MAX_PATH], source[MAX_PATH], target[MAX_PATH];
+	WIN32_FIND_DATA find_data;
+	HANDLE find_handle;
+	bool ok = true;
+
+	if (!max_depth) {
+		log_messagef(installer, LOG_LEVEL_WARN, TEXT("Too many levels of nesting at \"%1\""), from);
+		return false;
+	}
+	if (!CreateDirectory(to, sa) && GetLastError() != ERROR_ALREADY_EXISTS) {
+		log_errorf(installer, LOG_LEVEL_ERR, GetLastError(), TEXT("CreateDirectory(\"%1\") failed"), to);
+		return false;
+	}
+	if (!PathCombine(pattern, from, TEXT("*.*")))
+		return false;
+	find_handle = FindFirstFileEx(pattern, FindExInfoBasic, &find_data, FindExSearchNameMatch, NULL, 0);
+	if (find_handle == INVALID_HANDLE_VALUE) {
+		log_errorf(installer, LOG_LEVEL_ERR, GetLastError(), TEXT("FindFirstFileEx(\"%1\") failed"), pattern);
+		return false;
+	}
+	do {
+		if (find_data.cFileName[0] == TEXT('.') && (find_data.cFileName[1] == TEXT('\0') || (find_data.cFileName[1] == TEXT('.') && find_data.cFileName[2] == TEXT('\0'))))
+			continue;
+		if (!PathCombine(source, from, find_data.cFileName) || !PathCombine(target, to, find_data.cFileName)) {
+			ok = false;
+			break;
+		}
+		if (find_data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+			log_messagef(installer, LOG_LEVEL_WARN, TEXT("Skipping reparse point \"%1\""), source);
+			continue;
+		}
+		if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+			if (!copy_folder_recursive(installer, source, target, NULL, max_depth - 1, copied)) {
+				ok = false;
+				break;
+			}
+			continue;
+		}
+		if (!_tcsicmp(find_data.cFileName, TEXT("log.bin")))
+			continue;
+		if (CopyFile(source, target, TRUE)) {
+			++*copied;
+			continue;
+		}
+		if (GetLastError() == ERROR_FILE_EXISTS) {
+			log_messagef(installer, LOG_LEVEL_INFO, TEXT("Keeping existing \"%1\""), target);
+			continue;
+		}
+		log_errorf(installer, LOG_LEVEL_ERR, GetLastError(), TEXT("CopyFile(\"%1\", \"%2\") failed"), source, target);
+		ok = false;
+		break;
+	} while (FindNextFile(find_handle, &find_data));
+	FindClose(find_handle);
+	return ok;
+}
+
+__declspec(dllexport) UINT __stdcall MigrateLegacyData(MSIHANDLE installer)
+{
+	UINT ret = ERROR_SUCCESS;
+	TCHAR new_folder[MAX_PATH], old_folder[MAX_PATH], old_data[MAX_PATH], new_data[MAX_PATH], probe[MAX_PATH];
+	DWORD new_folder_len = _countof(new_folder);
+	SECURITY_ATTRIBUTES sa = { .nLength = sizeof(SECURITY_ATTRIBUTES) };
+	unsigned int copied = 0;
+	bool is_com_initialized = SUCCEEDED(CoInitialize(NULL));
+
+	if (MsiGetProperty(installer, TEXT("CustomActionData"), new_folder, &new_folder_len) != ERROR_SUCCESS || !new_folder[0])
+		goto out;
+	PathRemoveBackslash(new_folder);
+	if (!legacy_program_folder(old_folder))
+		goto out;
+	if (!_tcsicmp(old_folder, new_folder))
+		goto out;
+	if (!PathCombine(old_data, old_folder, TEXT("Data")) || !PathCombine(new_data, new_folder, TEXT("Data")))
+		goto out;
+	if (!PathCombine(probe, old_data, TEXT("Configurations")) || !folder_has_files(probe)) {
+		log_messagef(installer, LOG_LEVEL_INFO, TEXT("No tunnels of AwgChain in \"%1\", nothing to carry over"), old_data);
+		goto out;
+	}
+	if (PathCombine(probe, new_data, TEXT("Configurations")) && folder_has_files(probe)) {
+		log_messagef(installer, LOG_LEVEL_INFO, TEXT("\"%1\" already holds tunnels, the old ones in \"%2\" are left alone"), new_data, old_data);
+		goto out;
+	}
+	if (!ConvertStringSecurityDescriptorToSecurityDescriptor(DATA_FOLDER_SDDL, SDDL_REVISION_1, &sa.lpSecurityDescriptor, NULL)) {
+		log_errorf(installer, LOG_LEVEL_ERR, GetLastError(), TEXT("ConvertStringSecurityDescriptorToSecurityDescriptor failed"));
+		ret = ERROR_INSTALL_FAILURE;
+		goto out;
+	}
+	log_messagef(installer, LOG_LEVEL_INFO, TEXT("Copying \"%1\" to \"%2\""), old_data, new_data);
+	if (!copy_folder_recursive(installer, old_data, new_data, &sa, 10, &copied)) {
+		log_messagef(installer, LOG_LEVEL_MSIERR, TEXT("The tunnels of AwgChain could not be copied from \"%1\" to \"%2\". Nothing was removed, the old version stays installed."), old_data, new_data);
+		ret = ERROR_INSTALL_FAILURE;
+	} else
+		log_messagef(installer, LOG_LEVEL_INFO, TEXT("Copied %1!u! files from \"%2\""), copied, old_data);
+	LocalFree(sa.lpSecurityDescriptor);
+out:
+	if (is_com_initialized)
+		CoUninitialize();
+	return ret;
 }

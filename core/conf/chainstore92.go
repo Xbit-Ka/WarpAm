@@ -57,9 +57,9 @@ func chainRemoveFile(path, why string) error {
 		if os.IsNotExist(err) {
 			return nil
 		}
-		log.Printf("[AwgChain] The file %s could not be removed (%s): %v", path, why, err)
+		log.Printf("[WarpAm] The file %s could not be removed (%s): %v", path, why, err)
 		return err
 	}
-	log.Printf("[AwgChain] The file %s was removed: %s", path, why)
+	log.Printf("[WarpAm] The file %s was removed: %s", path, why)
 	return nil
 }

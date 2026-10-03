@@ -21,11 +21,14 @@ import (
 	"os"
 
 	"golang.org/x/sys/windows"
+
+	"github.com/amnezia-vpn/amneziawg-windows/v3/brand"
 )
 
+// WarpAm pack 94: the services carry the prefix of the program now.
 var chainServiceNames = []string{
-	"AwgChainTunnel$hop1-warp",
-	"AwgChainTunnel$hop2-amnezia",
+	brand.TunnelServicePrefix + "hop1-warp",
+	brand.TunnelServicePrefix + "hop2-amnezia",
 }
 
 const (
@@ -82,19 +85,19 @@ func blockUIWhenChainIsUp() {
 	}
 
 	if block {
-		chainMessage("AwgChain",
-			"AwgChain: the VPN chain is running ("+name+").\r\n\r\n"+
+		chainMessage(brand.Name,
+			brand.Name+": the VPN chain is running ("+name+").\r\n\r\n"+
 				"AWGCHAIN_UI_BLOCK=1 is set, so the interface will not open.\r\n\r\n"+
 				"Use awgchain.bat instead.",
 			windows.MB_ICONWARNING)
 		os.Exit(1)
 	}
 
-	text := "AwgChain: the VPN chain is running (" + name + ").\r\n\r\n" +
+	text := brand.Name + ": the VPN chain is running (" + name + ").\r\n\r\n" +
 		"AWGCHAIN_UI_WARN=1 is set, so you are being asked first. Since " +
 		"patch 8 the manager keeps the hops in order by itself, so this is " +
 		"only here for debugging.\r\n\r\nOpen the interface anyway?"
-	if chainMessage("AwgChain", text, windows.MB_ICONWARNING|mbYesNo|mbDefButton2) != idYes {
+	if chainMessage(brand.Name, text, windows.MB_ICONWARNING|mbYesNo|mbDefButton2) != idYes {
 		os.Exit(1)
 	}
 }

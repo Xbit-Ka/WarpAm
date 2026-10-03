@@ -27,11 +27,11 @@ func chainSettingsKeepBroken(path string, parseErr error) {
 			continue
 		}
 		if err := os.Rename(path, kept); err != nil {
-			log.Printf("[AwgChain] The settings file is damaged (%v) and could not be moved aside (%v), so the defaults are used", parseErr, err)
+			log.Printf("[WarpAm] The settings file is damaged (%v) and could not be moved aside (%v), so the defaults are used", parseErr, err)
 			return
 		}
-		log.Printf("[AwgChain] The settings file is damaged (%v). It is kept as %s and the defaults are used", parseErr, kept)
+		log.Printf("[WarpAm] The settings file is damaged (%v). It is kept as %s and the defaults are used", parseErr, kept)
 		return
 	}
-	log.Printf("[AwgChain] The settings file is damaged (%v) and there are already twenty copies kept aside, so it is left alone and the defaults are used", parseErr)
+	log.Printf("[WarpAm] The settings file is damaged (%v) and there are already twenty copies kept aside, so it is left alone and the defaults are used", parseErr)
 }

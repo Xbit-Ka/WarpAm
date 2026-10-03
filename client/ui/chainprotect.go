@@ -173,6 +173,10 @@ func chainProxyMark(name string) string {
 		return chainMarkProxyOnly
 	case manager.ChainProxyModeWith:
 		return chainMarkProxyWith
+	case manager.ChainProxyModeOnlyLAN:
+		return chainMarkProxyOnlyLAN
+	case manager.ChainProxyModeWithLAN:
+		return chainMarkProxyWithLAN
 	}
 	return ""
 }
@@ -214,6 +218,6 @@ func chainLiftLockBeforeQuit() {
 	// lift, which opens the machine whatever the mode says. A pipe that
 	// broke on the way out was enough to undo strict and paranoid mode.
 	if err := manager.IPCClientChainLiftLockOnQuit(); err != nil {
-		log.Printf("[AwgChain] The lock could not be lifted on the way out (%v); it is left as it stands, the mode decides", err)
+		log.Printf("[WarpAm] The lock could not be lifted on the way out (%v); it is left as it stands, the mode decides", err)
 	}
 }

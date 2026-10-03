@@ -117,7 +117,7 @@ var messageKeyToIndex = map[string]int{
 	"%v - UAPI: Updating endpoint":                                              289,
 	"%v - UAPI: Updating persistent keepalive interval":                         290,
 	"%v - UAPI: Updating preshared key":                                         288,
-	"&About Warpam…":                                                            176,
+	"&About WarpAm…":                                                            176,
 	"&Activate":                                                                 17,
 	"&Block untunneled traffic (kill-switch)":                                   47,
 	"&Configuration:":                                                           50,
@@ -138,7 +138,7 @@ var messageKeyToIndex = map[string]int{
 	"A name is required.":                                                       52,
 	"A tunnel was unable to be removed: %s":                                     121,
 	"ASec: Received message with unknown type":                                  202,
-	"About Warpam":                                                              12,
+	"About WarpAm":                                                              12,
 	"Activating":                                                                61,
 	"Active":                                                                    60,
 	"Add &empty tunnel…":                                                        98,
@@ -148,21 +148,21 @@ var messageKeyToIndex = map[string]int{
 	"Addresses: None":                                                           80,
 	"All peers must have public keys":                                           171,
 	"Allowed IPs:":                                                              25,
-	"Warpam Activated":                                                          85,
-	"Warpam Deactivated":                                                        87,
-	"Warpam Detection Error":                                                    76,
-	"Warpam Tunnel Error":                                                       89,
-	"Warpam Update Available":                                                   94,
-	"Warpam is running, but the UI is only accessible from desktops of the Builtin %s group.":    8,
-	"Warpam logo image":    13,
-	"Warpam may only be used by users who are a member of the Builtin %s group.":    7,
-	"Warpam system tray icon did not appear after 30 seconds.":                      9,
-	"Warpam: %s":                           90,
-	"Warpam: Deactivated":                  78,
+	"WarpAm Activated":                                                          85,
+	"WarpAm Deactivated":                                                        87,
+	"WarpAm Detection Error":                                                    76,
+	"WarpAm Tunnel Error":                                                       89,
+	"WarpAm Update Available":                                                   94,
+	"WarpAm is running, but the UI is only accessible from desktops of the Builtin %s group.":    8,
+	"WarpAm logo image":    13,
+	"WarpAm may only be used by users who are a member of the Builtin %s group.":    7,
+	"WarpAm system tray icon did not appear after 30 seconds.":                      9,
+	"WarpAm: %s":                           90,
+	"WarpAm: Deactivated":                  78,
 	"An Update is Available!":              93,
 	"An interface must have a private key": 169,
-	"An update to Warpam is available. It is highly advisable to update without delay.":           131,
-	"An update to Warpam is now available. You are advised to update as soon as possible.":        95,
+	"An update to WarpAm is available. It is highly advisable to update without delay.":           131,
+	"An update to WarpAm is now available. You are advised to update as soon as possible.":        95,
 	"Another tunnel already exists with the name ‘%s’":                                            109,
 	"Another tunnel already exists with the name ‘%s’.":                                           56,
 	"App version: %s\nWintun version: %s\nGo version: %s\nOperating system: %s\nArchitecture: %s": 294,
@@ -193,7 +193,7 @@ var messageKeyToIndex = map[string]int{
 	"Endpoint:":              26,
 	"Ensure that you obtained the configuration file from a trusted source.": 298,
 	"Error":                                                     0,
-	"Error Exiting Warpam":                                      129,
+	"Error Exiting WarpAm":                                      129,
 	"Error in getting configuration":                            172,
 	"Error: ":                                                   177,
 	"Error: %v. Please try again.":                              135,
@@ -325,18 +325,18 @@ var messageKeyToIndex = map[string]int{
 	"Unable to delete tunnel":                                            120,
 	"Unable to delete tunnels":                                           122,
 	"Unable to determine whether the process is running under WOW64: %v": 4,
-	"Unable to exit service due to: %v. You may want to stop Warpam from the service manager.":    130,
+	"Unable to exit service due to: %v. You may want to stop WarpAm from the service manager.":    130,
 	"Unable to import configuration: %v":                110,
 	"Unable to list existing tunnels":                   54,
 	"Unable to open current process token: %v":          6,
 	"Unable to update bind: %v":                         180,
-	"Unable to wait for Warpam window to appear: %v":    77,
+	"Unable to wait for WarpAm window to appear: %v":    77,
 	"Unknown state":                                     64,
 	"Update Now":                                        133,
 	"Usage: %s [\n%s]":                                  2,
 	"When a configuration has exactly one peer, and that peer has an allowed IPs containing at least one of 0.0.0.0/0 or ::/0, and the interface does not have table off, then the tunnel service engages a firewall ruleset to block all traffic that is neither to nor from the tunnel interface or is to the wrong DNS server, with special exceptions for DHCP and NDP.": 297,
 	"Writing file failed": 58,
-	"You must use the native version of Warpam on this computer.":    5,
+	"You must use the native version of WarpAm on this computer.":    5,
 	"[EnumerationSeparator]":            10,
 	"[UnitSeparator]":                   11,
 	"[none specified]":                  170,
@@ -463,13 +463,13 @@ const caData string = "" + // Size: 5393 bytes
 	"\x02Error\x02(sense argument): eleva i instala el servei d'administrador" +
 	"\x02Ús: %[1]s [\x0a%[2]s]\x02Opcions de línia d'ordres\x02No s'ha pogu" +
 	"t determinar si el procés corre sota WOW64: %[1]v\x02Heu de fer servir " +
-	"la versio nativa de Warpam en aquest ordinador.\x02No s'ha pogut obrir e" +
-	"l token del procés actual: %[1]v\x02Warpam només es pot fer servir per" +
-	" els usuaris que són membres del grup del sistema %[1]s.\x02Warpam s'es" +
+	"la versio nativa de WarpAm en aquest ordinador.\x02No s'ha pogut obrir e" +
+	"l token del procés actual: %[1]v\x02WarpAm només es pot fer servir per" +
+	" els usuaris que són membres del grup del sistema %[1]s.\x02WarpAm s'es" +
 	"tà executsnt, pero la interfície gràfica només és accessible als us" +
-	"uaris que són membres del grup del sistema %[1]s.\x02La icona de Warpam" +
+	"uaris que són membres del grup del sistema %[1]s.\x02La icona de WarpAm" +
 	" de la safata del sistema no ha aparegut després de 30 segons.\x02, " +
-	"\x02, \x02Sobre Warpam\x02Logo de Warpam\x02Tanca\x02Estat:\x02&Desactiv" +
+	"\x02, \x02Sobre WarpAm\x02Logo de WarpAm\x02Tanca\x02Estat:\x02&Desactiv" +
 	"a\x02&Activa\x02Clau pública:\x02Port d'escolta:\x02MTU:\x02Adreces:" +
 	"\x02Servidors DNS:\x02Scripts:\x02Clau precompartida:\x02IPs permeses:" +
 	"\x02Extrem:\x02Missatge de persistència:\x02Últim handshake:\x02Transf" +
@@ -490,14 +490,14 @@ const caData string = "" + // Size: 5393 bytes
 	"registre\x02Fitxers de text (*.txt)|*.txt|Tots els fitxers (*.*)|*.*\x02" +
 	"Exporta registre a fitxer\x02Error de túnel\x02%[1]s\x0a\x0aSi us plau," +
 	" consulteu el registre per més informació.\x02%[1]s (desactualitzat)" +
-	"\x02Error en detectar Warpam\x02No ha estat possible esperar que aparegu" +
-	"i la finestra de Warpam: %[1]v\x02Warpam: Desactivat\x02Estat: Desconegu" +
+	"\x02Error en detectar WarpAm\x02No ha estat possible esperar que aparegu" +
+	"i la finestra de WarpAm: %[1]v\x02WarpAm: Desactivat\x02Estat: Desconegu" +
 	"t\x02Adreces: Cap\x02&Administrar túnels…\x02&Importar túnel(s) des " +
-	"d'un fitxer…\x02&Surt\x02&Túnels\x02Warpam Activat\x02El túnel %[1]s" +
-	" ha estat activat.\x02Warpam Desactivat\x02El túnel %[1]s ha estat desa" +
-	"ctivat.\x02Error en el túnel de Warpam\x02Warpam: %[1]s\x02Estat: %[1]s" +
+	"d'un fitxer…\x02&Surt\x02&Túnels\x02WarpAm Activat\x02El túnel %[1]s" +
+	" ha estat activat.\x02WarpAm Desactivat\x02El túnel %[1]s ha estat desa" +
+	"ctivat.\x02Error en el túnel de WarpAm\x02WarpAm: %[1]s\x02Estat: %[1]s" +
 	"\x02Adreces: %[1]s\x02Hi ha una actualització disponible!\x02Actualitza" +
-	"ció de Warpam disponible\x02Hi ha una actualització de Warpam. Es reco" +
+	"ció de WarpAm disponible\x02Hi ha una actualització de WarpAm. Es reco" +
 	"mana actualitzar el més aviat millor.\x02Túnels\x02&Editar\x02Afegir &" +
 	"túnel buit…\x02Afegir túnel\x02Eliminar túnel(s) seleccionats\x02Ex" +
 	"portar túnels a zip\x02&Alterna\x02Exportar tots els túnels a &zip…" +
@@ -521,9 +521,9 @@ const caData string = "" + // Size: 5393 bytes
 	"Tots els fitxers (*.*)|*.*\x02Importar túnel(s) des d'un fitxer\x02Fitx" +
 	"ers ZIP de configuració (*.zip)|*.zip\x02Exportar túnels a zip\x02%[1]" +
 	"s (compilació no signada, sense actualitzacions)\x02Error al sortir de " +
-	"Warpam\x02No s'ha pogut sortir del servei a causa de l'error: %[1]v. Pot" +
-	" intentar aturar Warpam des de l'administrador de serveis.\x02Una actual" +
-	"ització per Warpam està disponible. Es recomana actualitzar immediatam" +
+	"WarpAm\x02No s'ha pogut sortir del servei a causa de l'error: %[1]v. Pot" +
+	" intentar aturar WarpAm des de l'administrador de serveis.\x02Una actual" +
+	"ització per WarpAm està disponible. Es recomana actualitzar immediatam" +
 	"ent.\x02Estat: Esperant a l'usuari\x02Actualitza ara\x02Estat: Esperant " +
 	"el servei d'actualitzacions\x02Error: %[1]v. Si us plau, torneu-ho a pro" +
 	"var.\x02Estat: Completat!\x02Ara\x02El rellotge del sistema s'ha atraça" +
@@ -642,13 +642,13 @@ const csData string = "" + // Size: 5591 bytes
 	"\x02Chyba\x02(žádný argument): Zvýšit oprávnění a instalovat slu" +
 	"žbu správce\x02Použití: %[1]s [\x0a%[2]s]\x02Možnosti příkazovéh" +
 	"o řádku\x02Nelze zjistit, zda proces běží pod WOW64: %[1]v\x02Musí" +
-	"te použít nativní verzi aplikace Warpam na tomto počítači.\x02Nelz" +
-	"e otevřít token aktuálního procesu: %[1]v\x02Warpam můžou použív" +
+	"te použít nativní verzi aplikace WarpAm na tomto počítači.\x02Nelz" +
+	"e otevřít token aktuálního procesu: %[1]v\x02WarpAm můžou použív" +
 	"at pouze uživatelé, kteří jsou členy Builtin skupiny %[1]s.\x02Warp" +
 	"am je spuštěn, ale uživatelské rozhraní je přístupné pouze uživ" +
-	"atelům Builtin skupiny %[1]s.\x02Ikona Warpam se ani po 30 sekundách n" +
-	"ezobrazila na systémové liště.\x02, \x02, \x02O aplikaci Warpam\x02O" +
-	"brázek loga Warpam\x02Zavřít\x02Stav:\x02&Deaktivovat\x02&Aktivovat" +
+	"atelům Builtin skupiny %[1]s.\x02Ikona WarpAm se ani po 30 sekundách n" +
+	"ezobrazila na systémové liště.\x02, \x02, \x02O aplikaci WarpAm\x02O" +
+	"brázek loga WarpAm\x02Zavřít\x02Stav:\x02&Deaktivovat\x02&Aktivovat" +
 	"\x02Veřejný klíč:\x02Port pro naslouchání:\x02MTU:\x02Adresy:\x02D" +
 	"NS servery:\x02Skripty:\x02Předsdílený klíč:\x02Povolené IP:\x02En" +
 	"dpoint:\x02Persistent keepalive:\x02Poslední handshake:\x02Přenos:\x02" +
@@ -668,13 +668,13 @@ const csData string = "" + // Size: 5591 bytes
 	"\x02Zpráva logu\x02Textové soubory (*.txt)|*.txt|Všechny soubory (*.*" +
 	")|*.*\x02Exportovat záznam do souboru\x02Chyba tunelu\x02%[1]s\x0a\x0aP" +
 	"ro více informací se prosím podívejte do logu.\x02%[1]s (neaktuáln" +
-	"í)\x02Chyba při detekci Warpam\x02Nelze čekat na zobrazení okna Warp" +
-	"am: %[1]v\x02Warpam: Deaktivován\x02Stav: Neznámý\x02Adresy: žádné" +
+	"í)\x02Chyba při detekci WarpAm\x02Nelze čekat na zobrazení okna Warp" +
+	"am: %[1]v\x02WarpAm: Deaktivován\x02Stav: Neznámý\x02Adresy: žádné" +
 	"\x02Spravovat tunely…\x02&Importovat tunel(y) ze souboru…\x02U&konč" +
-	"it\x02&Tunely\x02Warpam aktivován\x02Tunel %[1]s byl aktivován.\x02War" +
-	"pam deaktivován\x02Tunel %[1]s byl deaktivován.\x02Warpam Chyba Tunelu" +
-	"\x02Warpam: %[1]s\x02Stav: %[1]s\x02Adresy: %[1]s\x02Aktualizace je k di" +
-	"spozici!\x02Aktualizace Warpam je k dispozici\x02Aktualizace aplikace Wa" +
+	"it\x02&Tunely\x02WarpAm aktivován\x02Tunel %[1]s byl aktivován.\x02War" +
+	"pam deaktivován\x02Tunel %[1]s byl deaktivován.\x02WarpAm Chyba Tunelu" +
+	"\x02WarpAm: %[1]s\x02Stav: %[1]s\x02Adresy: %[1]s\x02Aktualizace je k di" +
+	"spozici!\x02Aktualizace WarpAm je k dispozici\x02Aktualizace aplikace Wa" +
 	"rpam je nyní k dispozici. Doporučujeme ji aktualizovat co nejdříve." +
 	"\x02Tunely\x02&Upravit\x02Přidat &prázdný tunel…\x02Přidat tunel" +
 	"\x02Odstranit vybrané tunely\x02Exportovat všechny tunely do zip\x02&P" +
@@ -703,8 +703,8 @@ const csData string = "" + // Size: 5591 bytes
 	"nf)|*.zip; *.conf|Všechny soubory (*.*)|*.*\x02Importovat tunel(y) ze s" +
 	"ouboru\x02Konfigurace souborů ZIP (*.zip)|*.zip\x02Exportovat tunely do" +
 	" zip\x02%[1]s (nepodepsaná verze, žádné aktualizace)\x02Chyba při u" +
-	"končování aplikace Warpam\x02Nelze ukončit službu z důvodu: %[1]v." +
-	" Warpam můžete zastavit ve správci služeb.\x02Aktualizace aplikace W" +
+	"končování aplikace WarpAm\x02Nelze ukončit službu z důvodu: %[1]v." +
+	" WarpAm můžete zastavit ve správci služeb.\x02Aktualizace aplikace W" +
 	"arpam je nyní k dispozici. Silně doporučujeme ji aktualizovat co nejd" +
 	"říve.\x02Stav: Čekání na uživatele\x02Aktualizovat nyní\x02Stav: " +
 	"Čeká se na službu aktualizací\x02Chyba: %[1]v. Zkuste to znovu.\x02S" +
@@ -731,7 +731,7 @@ const csData string = "" + // Size: 5591 bytes
 	"není specifikováno]\x02Všichni peeři musí mít veřejné klíče" +
 	"\x02Chyba při načítání konfigurace\x02Neplatný klíč pro sekci ro" +
 	"zhraní\x02Verze protokolu musí být 1\x02Neplatný klíč v sekci peer" +
-	"\x02&O aplikaci Warpam…"
+	"\x02&O aplikaci WarpAm…"
 
 var deIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -826,13 +826,13 @@ const deData string = "" + // Size: 5722 bytes
 	"\x02Fehler\x02(kein Argument): Als Administrator ausführen und den Mana" +
 	"ger-Dienst installieren\x02Verwendung: %[1]s [\x0a%[2]s]\x02Kommandozeil" +
 	"enoptionen\x02Es kann nicht festgestellt werden, ob der Prozess unter WO" +
-	"W64 ausgeführt wird: %[1]v\x02Sie müssen die Version von Warpam benutz" +
+	"W64 ausgeführt wird: %[1]v\x02Sie müssen die Version von WarpAm benutz" +
 	"en, die für ihren Computer bestimmt ist.\x02Konnte aktuellen Prozess-To" +
-	"ken nicht öffnen: %[1]v\x02Warpam kann nur von Benutzern verwendet werd" +
-	"en, die Mitglied der Gruppe %[1]s sind.\x02Warpam wird ausgeführt, aber" +
+	"ken nicht öffnen: %[1]v\x02WarpAm kann nur von Benutzern verwendet werd" +
+	"en, die Mitglied der Gruppe %[1]s sind.\x02WarpAm wird ausgeführt, aber" +
 	" auf die Benutzeroberfläche kann nur von Desktops der Gruppe %[1]s zuge" +
-	"griffen werden.\x02Das Warpam-Taskleistensymbol ist nicht innerhalb von " +
-	"30 Sekunden erschienen.\x02, \x02, \x02Über Warpam\x02Warpam Logo\x02Sc" +
+	"griffen werden.\x02Das WarpAm-Taskleistensymbol ist nicht innerhalb von " +
+	"30 Sekunden erschienen.\x02, \x02, \x02Über WarpAm\x02WarpAm Logo\x02Sc" +
 	"hließen\x02Status:\x02&Deaktivieren\x02&Aktivieren\x02Öffentlicher Sch" +
 	"lüssel:\x02Eingangsport:\x02MTU:\x02Adressen:\x02DNS-Server:\x02Skripte" +
 	":\x02Geteilter Schlüssel:\x02Erlaubte IPs:\x02Endpunkt:\x02Erhaltungsin" +
@@ -855,14 +855,14 @@ const deData string = "" + // Size: 5722 bytes
 	"\x02Protokolleintrag\x02Textdateien (*.txt)|*.txt|Alle Dateien (*.*)|*.*" +
 	"\x02Exportiere Protokoll in Datei\x02Tunnel Fehler\x02%[1]s\x0a\x0aBitte" +
 	" lesen Sie das Protokoll für weitere Informationen.\x02%[1]s (veraltet)" +
-	"\x02Warpam Erkennungsfehler\x02Warten auf das Erscheinen des Warpam Fens" +
-	"ters nicht möglich: %[1]v \x02Warpam: Deaktiviert\x02Status: Unbekannt" +
+	"\x02WarpAm Erkennungsfehler\x02Warten auf das Erscheinen des WarpAm Fens" +
+	"ters nicht möglich: %[1]v \x02WarpAm: Deaktiviert\x02Status: Unbekannt" +
 	"\x02Adressen: Keine\x02Tunnel &verwalten…\x02Tunnel aus Datei &importi" +
-	"eren…\x02&Beenden\x02&Tunnel\x02Warpam aktiviert\x02Der Tunnel %[1]s w" +
-	"urde aktiviert.\x02Warpam deaktiviert\x02Der Tunnel %[1]s wurde deaktivi" +
-	"ert.\x02Warpam Tunnel Fehler\x02Warpam: %[1]s\x02Status: %[1]s\x02Adress" +
-	"en: %[1]s\x02Eine Aktualisierung ist verfügbar!\x02Warpam Aktualisierun" +
-	"g verfügbar\x02Eine Aktualisierung für Warpam ist jetzt verfügbar. Es" +
+	"eren…\x02&Beenden\x02&Tunnel\x02WarpAm aktiviert\x02Der Tunnel %[1]s w" +
+	"urde aktiviert.\x02WarpAm deaktiviert\x02Der Tunnel %[1]s wurde deaktivi" +
+	"ert.\x02WarpAm Tunnel Fehler\x02WarpAm: %[1]s\x02Status: %[1]s\x02Adress" +
+	"en: %[1]s\x02Eine Aktualisierung ist verfügbar!\x02WarpAm Aktualisierun" +
+	"g verfügbar\x02Eine Aktualisierung für WarpAm ist jetzt verfügbar. Es" +
 	" wird empfohlen diese schnellstmöglich durchzuführen.\x02Tunnel\x02&Be" +
 	"arbeiten\x02Einen &leeren Tunnel hinzufügen…\x02Tunnel hinzufügen" +
 	"\x02Markierte(n) Tunnel entfernen\x02Alle Tunnel in eine Zip-Datei expor" +
@@ -887,9 +887,9 @@ const deData string = "" + // Size: 5722 bytes
 	"\x02Konfigurationsdateien (*.zip, *.conf)|*.zip;*.conf|Alle Dateien (*.*" +
 	")|*.*\x02Importiere Tunnel aus Datei\x02Konfigurations-ZIP-Dateien (*.zi" +
 	"p)|*.zip\x02Exportiere Tunnel in Zip-Datei\x02%[1]s (unsigniert, keine A" +
-	"ktualisierungen)\x02Fehler beim Beenden von Warpam\x02Der Dienst konnte " +
-	"nicht gestoppt werden: %[1]v. Versuchen Sie Warpam in der Dienstverwaltu" +
-	"ng zu beenden.\x02Eine Aktualisierung für Warpam ist verfügbar. Es ist" +
+	"ktualisierungen)\x02Fehler beim Beenden von WarpAm\x02Der Dienst konnte " +
+	"nicht gestoppt werden: %[1]v. Versuchen Sie WarpAm in der Dienstverwaltu" +
+	"ng zu beenden.\x02Eine Aktualisierung für WarpAm ist verfügbar. Es ist" +
 	" höchst empfehlenswert diese sofort durchzuführen.\x02Status: Auf Nutz" +
 	"er warten\x02Jetzt aktualisieren\x02Status: Auf Aktualisierungsdienst wa" +
 	"rten\x02Fehler: %[1]v. Bitte versuchen Sie es erneut.\x02Status: Fertig!" +
@@ -914,7 +914,7 @@ const deData string = "" + // Size: 5722 bytes
 	"iziert]\x02Alle Teilnehmer (peers) müssen öffentliche Schlüssel haben" +
 	"\x02Fehler beim Abrufen der Konfiguration\x02Ungültiger Eintrag im Absc" +
 	"hnitt [interface]\x02Die Protokollversion muss 1 sein\x02Ungültiger Ein" +
-	"trag im Abschnitt [peer]\x02&Über Warpam…"
+	"trag im Abschnitt [peer]\x02&Über WarpAm…"
 
 var enIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -1009,11 +1009,11 @@ const enData string = "" + // Size: 9456 bytes
 	"\x02Error\x02(no argument): elevate and install manager service\x02Usage" +
 	": %[1]s [\x0a%[2]s]\x02Command Line Options\x02Unable to determine wheth" +
 	"er the process is running under WOW64: %[1]v\x02You must use the native " +
-	"version of Warpam on this computer.\x02Unable to open current process to" +
-	"ken: %[1]v\x02Warpam may only be used by users who are a member of the B" +
-	"uiltin %[1]s group.\x02Warpam is running, but the UI is only accessible " +
-	"from desktops of the Builtin %[1]s group.\x02Warpam system tray icon did" +
-	" not appear after 30 seconds.\x02, \x02, \x02About Warpam\x02Warpam logo" +
+	"version of WarpAm on this computer.\x02Unable to open current process to" +
+	"ken: %[1]v\x02WarpAm may only be used by users who are a member of the B" +
+	"uiltin %[1]s group.\x02WarpAm is running, but the UI is only accessible " +
+	"from desktops of the Builtin %[1]s group.\x02WarpAm system tray icon did" +
+	" not appear after 30 seconds.\x02, \x02, \x02About WarpAm\x02WarpAm logo" +
 	" image\x02Close\x02Status:\x02&Deactivate\x02&Activate\x02Public key:" +
 	"\x02Listen port:\x02MTU:\x02Addresses:\x02DNS servers:\x02Scripts:\x02Pr" +
 	"eshared key:\x02Allowed IPs:\x02Endpoint:\x02Persistent keepalive:\x02La" +
@@ -1031,14 +1031,14 @@ const enData string = "" + // Size: 9456 bytes
 	"Deactivating\x02Unknown state\x02Log\x02&Copy\x02Select &all\x02&Save to" +
 	" file…\x02Time\x02Log message\x02Text Files (*.txt)|*.txt|All Files (*" +
 	".*)|*.*\x02Export log to file\x02Tunnel Error\x02%[1]s\x0a\x0aPlease con" +
-	"sult the log for more information.\x02%[1]s (out of date)\x02Warpam Dete" +
-	"ction Error\x02Unable to wait for Warpam window to appear: %[1]v\x02Warp" +
+	"sult the log for more information.\x02%[1]s (out of date)\x02WarpAm Dete" +
+	"ction Error\x02Unable to wait for WarpAm window to appear: %[1]v\x02Warp" +
 	"am: Deactivated\x02Status: Unknown\x02Addresses: None\x02&Manage tunnels" +
-	"…\x02&Import tunnel(s) from file…\x02E&xit\x02&Tunnels\x02Warpam Act" +
-	"ivated\x02The %[1]s tunnel has been activated.\x02Warpam Deactivated\x02" +
-	"The %[1]s tunnel has been deactivated.\x02Warpam Tunnel Error\x02Warpam:" +
+	"…\x02&Import tunnel(s) from file…\x02E&xit\x02&Tunnels\x02WarpAm Act" +
+	"ivated\x02The %[1]s tunnel has been activated.\x02WarpAm Deactivated\x02" +
+	"The %[1]s tunnel has been deactivated.\x02WarpAm Tunnel Error\x02WarpAm:" +
 	" %[1]s\x02Status: %[1]s\x02Addresses: %[1]s\x02An Update is Available!" +
-	"\x02Warpam Update Available\x02An update to Warpam is now available. You" +
+	"\x02WarpAm Update Available\x02An update to WarpAm is now available. You" +
 	" are advised to update as soon as possible.\x02Tunnels\x02&Edit\x02Add &" +
 	"empty tunnel…\x02Add Tunnel\x02Remove selected tunnel(s)\x02Export all" +
 	" tunnels to zip\x02&Toggle\x02Export all tunnels to &zip…\x02Edit &sel" +
@@ -1060,8 +1060,8 @@ const enData string = "" + // Size: 9456 bytes
 	"\x02Configuration Files (*.zip, *.conf)|*.zip;*.conf|All Files (*.*)|*.*" +
 	"\x02Import tunnel(s) from file\x02Configuration ZIP Files (*.zip)|*.zip" +
 	"\x02Export tunnels to zip\x02%[1]s (unsigned build, no updates)\x02Error" +
-	" Exiting Warpam\x02Unable to exit service due to: %[1]v. You may want to" +
-	" stop Warpam from the service manager.\x02An update to Warpam is availab" +
+	" Exiting WarpAm\x02Unable to exit service due to: %[1]v. You may want to" +
+	" stop WarpAm from the service manager.\x02An update to WarpAm is availab" +
 	"le. It is highly advisable to update without delay.\x02Status: Waiting f" +
 	"or user\x02Update Now\x02Status: Waiting for updater service\x02Error: %" +
 	"[1]v. Please try again.\x02Status: Complete!\x02Now\x02System clock woun" +
@@ -1082,7 +1082,7 @@ const enData string = "" + // Size: 9456 bytes
 	"lid key for [Peer] section\x02An interface must have a private key\x02[n" +
 	"one specified]\x02All peers must have public keys\x02Error in getting co" +
 	"nfiguration\x02Invalid key for interface section\x02Protocol version mus" +
-	"t be 1\x02Invalid key for peer section\x02&About Warpam…\x04\x00\x01 " +
+	"t be 1\x02Invalid key for peer section\x02&About WarpAm…\x04\x00\x01 " +
 	"\x07\x02Error:\x02Interface closed, ignored requested state %[1]s\x02Int" +
 	"erface state was %[1]s, requested %[2]s, now %[3]s\x02Unable to update b" +
 	"ind: %[1]v\x02Bind close failed: %[1]v\x02Trouble determining MTU, assum" +
@@ -1250,13 +1250,13 @@ const es_ESData string = "" + // Size: 5640 bytes
 	"\x02Error\x02(sin argumento): eleve e instale el servicio de administrad" +
 	"or\x02Uso: %[1]s [\x0a%[2]s]\x02Opciones de línea de comandos\x02No fue" +
 	" posible determinar si el proceso se está ejecutando bajo WOW64: %[1]v" +
-	"\x02Debe usar la versión nativa de Warpam en este equipo.\x02No fue pos" +
-	"ible abrir el token del proceso actual: %[1]v\x02Warpam solo puede ser u" +
-	"sado por usuarios que sean miembros del grupo integrado %[1]s.\x02Warpam" +
+	"\x02Debe usar la versión nativa de WarpAm en este equipo.\x02No fue pos" +
+	"ible abrir el token del proceso actual: %[1]v\x02WarpAm solo puede ser u" +
+	"sado por usuarios que sean miembros del grupo integrado %[1]s.\x02WarpAm" +
 	" se está ejecutando, pero la interfaz de usuario solo es accesible desd" +
-	"e escritorios del grupo integrado %[1]s.\x02El icono Warpam de la bandej" +
+	"e escritorios del grupo integrado %[1]s.\x02El icono WarpAm de la bandej" +
 	"a del sistema no apareció después de 30 segundos.\x02, \x02, \x02Acerc" +
-	"a de Warpam\x02Logotipo de Warpam\x02Cerrar\x02Estado:\x02&Desactivar" +
+	"a de WarpAm\x02Logotipo de WarpAm\x02Cerrar\x02Estado:\x02&Desactivar" +
 	"\x02&Activar\x02Clave pública:\x02Puerto de escucha:\x02MTU:\x02Direcci" +
 	"ones:\x02Servidores DNS:\x02Secuencias de comandos:\x02Clave compartida:" +
 	"\x02IPs permitidas:\x02Endpoint:\x02Keepalive persistente:\x02Último sa" +
@@ -1278,15 +1278,15 @@ const es_ESData string = "" + // Size: 5640 bytes
 	"ro\x02Archivos de texto (*.txt)|*.txt|Todos los archivos (*.*)|*.*\x02Ex" +
 	"portar registro a archivo\x02Error en el túnel\x02%[1]s\x0a\x0aPor favo" +
 	"r, consulte el registro para más información.\x02%[1]s (desactualizado" +
-	")\x02Error al detectar Warpam\x02No fue posible esperar a que aparezca l" +
-	"a ventana de Warpam: %[1]v\x02Warpam: Desactivado\x02Estado: Desconocido" +
+	")\x02Error al detectar WarpAm\x02No fue posible esperar a que aparezca l" +
+	"a ventana de WarpAm: %[1]v\x02WarpAm: Desactivado\x02Estado: Desconocido" +
 	"\x02Direcciones: Ninguna\x02&Administrar túneles…\x02&Importar túnel" +
-	"(es) desde archivo…\x02&Salir\x02&Túneles\x02Warpam Activado\x02El t" +
-	"únel %[1]s ha sido activado.\x02Warpam Desactivado\x02El túnel %[1]s h" +
-	"a sido desactivado.\x02Error en el túnel de Warpam\x02Warpam: %[1]s\x02" +
+	"(es) desde archivo…\x02&Salir\x02&Túneles\x02WarpAm Activado\x02El t" +
+	"únel %[1]s ha sido activado.\x02WarpAm Desactivado\x02El túnel %[1]s h" +
+	"a sido desactivado.\x02Error en el túnel de WarpAm\x02WarpAm: %[1]s\x02" +
 	"Estado: %[1]s\x02Direcciones: %[1]s\x02¡Hay una actualización disponib" +
-	"le!\x02Actualización de Warpam disponible\x02Está disponible una actua" +
-	"lización de Warpam. Se recomienda actualizar lo antes posible.\x02Túne" +
+	"le!\x02Actualización de WarpAm disponible\x02Está disponible una actua" +
+	"lización de WarpAm. Se recomienda actualizar lo antes posible.\x02Túne" +
 	"les\x02&Editar\x02Agregar &túnel vacío…\x02Agregar túnel\x02Elimina" +
 	"r túnel(es) seleccionados\x02Exportar todos los túneles a ZIP\x02&Camb" +
 	"iar estado\x02Exportar todos los túneles a &ZIP…\x02Editar túneles &" +
@@ -1311,8 +1311,8 @@ const es_ESData string = "" + // Size: 5640 bytes
 	"s ZIP de configuración (*.zip)|*.zip\x02Exportar túneles a ZIP\x02%[1]" +
 	"s (compilación no firmada, sin actualizaciones)\x02Error al salir de Wa" +
 	"rpam\x02No fue posible terminar el servicio debido a: %[1]v. Puede inten" +
-	"tar detener Warpam desde el administrador de servicios.\x02Hay una actua" +
-	"lización de Warpam disponible. Es muy recomendable actualizar de inmedi" +
+	"tar detener WarpAm desde el administrador de servicios.\x02Hay una actua" +
+	"lización de WarpAm disponible. Es muy recomendable actualizar de inmedi" +
 	"ato.\x02Estado: Esperando al usuario\x02Actualizar ahora\x02Estado: Espe" +
 	"rando al servicio de actualización\x02Error: %[1]v. Por favor, intente " +
 	"de nuevo.\x02Estado: ¡Completo!\x02Ahora\x02¡El reloj del sistema ha r" +
@@ -1337,7 +1337,7 @@ const es_ESData string = "" + // Size: 5640 bytes
 	"en tener claves públicas\x02Error al obtener la configuración\x02La cl" +
 	"ave no es válida para sección de interfaz\x02La versión del protocolo" +
 	" debe ser 1\x02La clave no es válida para la sección de par\x02&Acerca" +
-	" de Warpam…"
+	" de WarpAm…"
 
 var etIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -1432,12 +1432,12 @@ const etData string = "" + // Size: 5081 bytes
 	"\x02Viga\x02(tühi muutuja): paigalda haldusteenus ülemõigustega\x02Ka" +
 	"sutus: %[1]s [ \x0a%[2]s]\x02Käsurea valikud\x02Pole võimalik tuvastad" +
 	"a, kas protsess töötab WOW64 kontekstis: %[1]v\x02Peate kasutama antud" +
-	" arvutiga sobivat Warpam'i versiooni.\x02Praeguse protsessi tähist ei s" +
-	"aa avada: %[1]v\x02Warpam'i võivad kasutada ainult kasutajad, kes on si" +
-	"sseehitatud %[1]s grupi liikmed.\x02Warpam töötab, aga kasutajaliides " +
+	" arvutiga sobivat WarpAm'i versiooni.\x02Praeguse protsessi tähist ei s" +
+	"aa avada: %[1]v\x02WarpAm'i võivad kasutada ainult kasutajad, kes on si" +
+	"sseehitatud %[1]s grupi liikmed.\x02WarpAm töötab, aga kasutajaliides " +
 	"on ainult ligipääsetav sisseehitatud %[1]s grupi töölaudadest.\x02Wa" +
 	"rpam'i süsteemisalve ikoon ei ilmunud 30 sekundi jooksul.\x02, \x02, " +
-	"\x02Warpam'ist\x02Warpam logo pilt\x02Sulge\x02Staatus:\x02&Ühendu laht" +
+	"\x02WarpAm'ist\x02WarpAm logo pilt\x02Sulge\x02Staatus:\x02&Ühendu laht" +
 	"i\x02&Ühenda\x02Avalik võti:\x02Kuulamisport:\x02MTU:\x02Aadressid:" +
 	"\x02DNS-serverid:\x02Skriptid:\x02Eeljagatud võti:\x02Lubatud IP-aadres" +
 	"sid:\x02Lõpp-punkt:\x02Kestev ühendushoidik:\x02Värskeim kätlus:\x02" +
@@ -1457,14 +1457,14 @@ const etData string = "" + // Size: 5081 bytes
 	"&Kopeeri\x02Vali &kõik\x02&Salvesta faili…\x02Aeg\x02Logisõnum\x02Te" +
 	"kstifailid (*.txt)|*.txt|Kõik failid (*.*)|*.*\x02Ekspordi logid faili" +
 	"\x02Tunneli viga\x02%[1]s\x0a\x0aLisainformatsiooni saamiseks palun vaad" +
-	"ake logisid.\x02%[1]s (uuendamata)\x02Warpam'i tuvastusviga\x02Warpam'i " +
-	"akna ilmumise ootamine ebaõnnestus: %[1]v\x02Warpam: Lahti ühendatud" +
+	"ake logisid.\x02%[1]s (uuendamata)\x02WarpAm'i tuvastusviga\x02WarpAm'i " +
+	"akna ilmumise ootamine ebaõnnestus: %[1]v\x02WarpAm: Lahti ühendatud" +
 	"\x02Staatus: Tundmatu olek\x02Aadressid: Pole\x02&Halda tunneleid…\x02" +
-	"&Impordi tunnel(id) failist…\x02Sul&e\x02&Tunnelid\x02Warpam ühendatu" +
-	"d\x02Tunnel '%[1]s' on ühendatud.\x02Warpam lahti ühendatud\x02Tunnel " +
-	"'%[1]s' on lahti ühendatud.\x02Warpam tunneli viga\x02Warpam: %[1]s\x02" +
-	"Staatus: %[1]s\x02Aadressid: %[1]s\x02Uuendus on saadaval!\x02Warpam uue" +
-	"ndus saadaval\x02Warpam'i uuendus on nüüd saadaval. Soovitame teil esi" +
+	"&Impordi tunnel(id) failist…\x02Sul&e\x02&Tunnelid\x02WarpAm ühendatu" +
+	"d\x02Tunnel '%[1]s' on ühendatud.\x02WarpAm lahti ühendatud\x02Tunnel " +
+	"'%[1]s' on lahti ühendatud.\x02WarpAm tunneli viga\x02WarpAm: %[1]s\x02" +
+	"Staatus: %[1]s\x02Aadressid: %[1]s\x02Uuendus on saadaval!\x02WarpAm uue" +
+	"ndus saadaval\x02WarpAm'i uuendus on nüüd saadaval. Soovitame teil esi" +
 	"mesel võimalusel uuendada.\x02Tunnelid\x02&Muuda\x02Lisa tühi tunn&el" +
 	"…\x02Lisa tunnel\x02Eemalda valitud tunnel(id)\x02Ekspordi kõik tunne" +
 	"lid zip-faili\x02Lüli&tu ümber\x02Ekspordi kõik tunnelid &zip-faili" +
@@ -1486,9 +1486,9 @@ const etData string = "" + // Size: 5081 bytes
 	"\x02Ei saanud eemaldada %[1]d tunnelit.\x02Seadistusfailid (*.zip, *.con" +
 	"f)|*.zip;*.conf|Kõik failid (*.*)|*.*\x02Impordi tunnel(id) failist\x02" +
 	"Pakendatud seadistusfailid (*.zip)|*.zip\x02Ekspordi tunnelid zip-faili" +
-	"\x02%[1]s (allkirjastamata kompilatsioon, uuendusi pole)\x02Viga Warpam'" +
+	"\x02%[1]s (allkirjastamata kompilatsioon, uuendusi pole)\x02Viga WarpAm'" +
 	"i sulgemisel\x02Teenuse lõpetamine ebaõnnestus järgneva tõttu: %[1]v" +
-	". Võid proovida Warpam'i lõpetada teenusehaldurist.\x02Warpam'ile on u" +
+	". Võid proovida WarpAm'i lõpetada teenusehaldurist.\x02WarpAm'ile on u" +
 	"uendus saadaval. Sügavalt soovitame uuendada niipea kui võimalik.\x02S" +
 	"taatus: Ootan kasutaja järel\x02Uuenda nüüd\x02Staatus: Ootan uuendus" +
 	"teenuse järel\x02Viga: %[1]v. Palun proovige uuesti.\x02Staatus: Valmis" +
@@ -1511,7 +1511,7 @@ const etData string = "" + // Size: 5081 bytes
 	"us\x02Liides peab omama privaatvõtit\x02[pole määratud]\x02Kõik part" +
 	"nerid peavad omama avalikke võtmeid\x02Seadistuste saamisel ilmnes viga" +
 	"\x02Sobimatu võti liidese lõigus\x02Protokolli versioon peab olema 1" +
-	"\x02Sobimatu võti partneri lõigus\x02&Warpam'ist…"
+	"\x02Sobimatu võti partneri lõigus\x02&WarpAm'ist…"
 
 var faIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -1615,7 +1615,7 @@ const faData string = "" + // Size: 6629 bytes
 	"اربری فقط از دسکتاپ های گروه %[1]s قابل دس" +
 	"ترسی است.\x02ایکون وایرگارد در سینی سیستم" +
 	" ،بعد از 30 ثانیه ظاهر نشد.\x02، \x02، \x02دربا" +
-	"ره Warpam\x02تصویر لوگوی Warpam\x02بستن\x02وضعیت:" +
+	"ره WarpAm\x02تصویر لوگوی WarpAm\x02بستن\x02وضعیت:" +
 	"\x02&غیرفعال\u200cسازی\x02&فعال\u200cسازی\x02کلید" +
 	" عمومی:\x02پورت شنود:\x02MTU:\x02نشانی\u200cها:\x02" +
 	"سرورهای DNS:\x02اسکریپت\u200cها:\x02کلید از پیش" +
@@ -1648,16 +1648,16 @@ const faData string = "" + // Size: 6629 bytes
 	"رای اطلاعات بیشتر به گزارش رویداد مراجع" +
 	"ه کنید.\x02%[1]s (قدیمی)\x02وقوع اشکال در وایر" +
 	"گارد\x02نمی\u200cتوان منتظر ماند تا پنجره War" +
-	"pam ظاهر شود: %[1]v\x02Warpam: غیر فعال شده است\x02" +
+	"pam ظاهر شود: %[1]v\x02WarpAm: غیر فعال شده است\x02" +
 	"وضعیت: ناشناخته\x02نشانی\u200cها: هیچ\x02&مدی" +
 	"ریت تونل\u200cها…\x02&وارد کردن تونل(ها) از " +
-	"پرونده…\x02خروج\x02&تونل\u200cها\x02Warpam فعال" +
-	"\u200c شد\x02تونل %[1]s فعال\u200c شده است.\x02Warpam غ" +
+	"پرونده…\x02خروج\x02&تونل\u200cها\x02WarpAm فعال" +
+	"\u200c شد\x02تونل %[1]s فعال\u200c شده است.\x02WarpAm غ" +
 	"یرفعال شد\x02تونل %[1]s غیرفعال شده است.\x02خ" +
-	"طای تونل Warpam\x02Warpam: %[1]s\x02وضعیت: %[1]s\x02نشان" +
+	"طای تونل WarpAm\x02WarpAm: %[1]s\x02وضعیت: %[1]s\x02نشان" +
 	"ی\u200cها: %[1]s\x02یک به\u200cروزرسانی در دسترس " +
-	"است!\x02به\u200cروزرسانی Warpam در دسترس است\x02" +
-	"به\u200cروزرسانی Warpam اکنون در دسترس است. ب" +
+	"است!\x02به\u200cروزرسانی WarpAm در دسترس است\x02" +
+	"به\u200cروزرسانی WarpAm اکنون در دسترس است. ب" +
 	"ه شما توصیه می\u200cشود در اسرع وقت به\u200cر" +
 	"وزرسانی کنید.\x02تونل\u200cها\x02&ویرایش\x02اف" +
 	"زودن &خالی\u200cکردن تونل…\x02افزودن تونل" +
@@ -1677,7 +1677,7 @@ const faData string = "" + // Size: 6629 bytes
 	"ل\u200cها را حذف کرد\x02وارد کردن تونل(ها) از" +
 	" پرونده\x02پرونده\u200cهای پیکربندی زیپ (*.zip" +
 	")|*.zip\x02برون\u200cبری تونل\u200cها به زیپ\x02خطا" +
-	" در هنگام خارج شدن از Warpam\x02وضعیت: درانتظ" +
+	" در هنگام خارج شدن از WarpAm\x02وضعیت: درانتظ" +
 	"ار برای کاربر\x02اکنون به\u200cروز رسانی کن" +
 	"\x02وضعیت: درانتظار برای سرویس به\u200cروزر" +
 	"سان\x02خطا: %[1]v. لطفا دوباره تلاش کنید.\x02و" +
@@ -1708,7 +1708,7 @@ const faData string = "" + // Size: 6629 bytes
 	"می داشته باشند\x02خطا در دریافت پیکربندی" +
 	"\x02کلید برای بخش [Interface] نامعتبر است\x02نسخ" +
 	"ه پروتکل باید 1 باشد\x02کلید برای بخش طرفی" +
-	"ن نامعتبر است\x02&درباره Warpam…"
+	"ن نامعتبر است\x02&درباره WarpAm…"
 
 var fiIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -1804,12 +1804,12 @@ const fiData string = "" + // Size: 4745 bytes
 	"enna hallintapalvelu\x02Käyttö: %[1]s [\x0a%[2]s]\x02Komentorivin vali" +
 	"nnat\x02Ei pystytä määrittämään mikäli prosessia suoritetaan WOW6" +
 	"4-järjestelmän alaisuudessa: %[1]v\x02Tällä tietokoneella voi käytt" +
-	"ää vain Warpamin natiivia versiota.\x02Ei voida avata tämänhetkisen " +
+	"ää vain WarpAmin natiivia versiota.\x02Ei voida avata tämänhetkisen " +
 	"prosessin tokenia: %[1]v\x02Ainoastaan sisäänrakennetun ryhmän %[1]s " +
-	"jäsenet voivat käyttää Warpamia.\x02Warpam on käynnissä, mutta kä" +
+	"jäsenet voivat käyttää WarpAmia.\x02WarpAm on käynnissä, mutta kä" +
 	"yttöliittymä on vain sisäänrakennetun ryhmän %[1]s käytettävissä" +
-	".\x02Warpamin ilmoitusalueen kuvake ei ilmestynyt 30 sekunnin jälkeen." +
-	"\x02, \x02, \x02Tietoa Warpamista\x02Warpam logon kuva\x02Sulje\x02Tila:" +
+	".\x02WarpAmin ilmoitusalueen kuvake ei ilmestynyt 30 sekunnin jälkeen." +
+	"\x02, \x02, \x02Tietoa WarpAmista\x02WarpAm logon kuva\x02Sulje\x02Tila:" +
 	"\x02&Deaktivoi\x02&Aktivoi\x02Julkinen avain:\x02Kuuntele porttia:\x02MT" +
 	"U:\x02Osoitteet:\x02DNS palvelimet:\x02Komentosarjat:\x02Jaettu avain:" +
 	"\x02Sallitut IP-osoitteet:\x02Päätepiste:\x02Jatkuva keepalive:\x02Vii" +
@@ -1830,13 +1830,13 @@ const fiData string = "" + // Size: 4745 bytes
 	"n…\x02Aika\x02Lokiviesti\x02Tekstitiedostot (*.txt)|*.txt|Kaikki tiedo" +
 	"stot (*.*)|*.*\x02Vie loki tiedostoon\x02Tunnelivirhe\x02%[1]s\x0a\x0aLu" +
 	"e lisää lokista saadaksesi lisätietoja.\x02%[1]s (ei ajantasalla)\x02" +
-	"Warpamin tunnistusvirhe\x02Ei voida odottaa Warpamin ikkunan ilmestymist" +
-	"ä: %[1]v\x02Warpam: deaktivoitu\x02Tila: tuntematon\x02Osoitteet: ei mi" +
+	"WarpAmin tunnistusvirhe\x02Ei voida odottaa WarpAmin ikkunan ilmestymist" +
+	"ä: %[1]v\x02WarpAm: deaktivoitu\x02Tila: tuntematon\x02Osoitteet: ei mi" +
 	"tään\x02&Hallitse tunneleita…\x02Tuo tunnele&ita tiedostosta…\x02L" +
-	"o&peta\x02&Tunnelit\x02Warpam aktivoitu\x02Tunneli %[1]s on aktivoitu." +
-	"\x02Warpam deaktivoitu\x02Tunneli %[1]s on deaktivoitu.\x02Warpam tunnel" +
-	"ivirhe\x02Warpam: %[1]s\x02Tila: %[1]s\x02Osoitteet: %[1]s\x02Päivitys " +
-	"on saatavilla!\x02Warpam päivitys saatavilla\x02Warpamin päivitys on n" +
+	"o&peta\x02&Tunnelit\x02WarpAm aktivoitu\x02Tunneli %[1]s on aktivoitu." +
+	"\x02WarpAm deaktivoitu\x02Tunneli %[1]s on deaktivoitu.\x02WarpAm tunnel" +
+	"ivirhe\x02WarpAm: %[1]s\x02Tila: %[1]s\x02Osoitteet: %[1]s\x02Päivitys " +
+	"on saatavilla!\x02WarpAm päivitys saatavilla\x02WarpAmin päivitys on n" +
 	"yt saatavilla. Sinua kehotetaan päivittämään mahdollisimman pian." +
 	"\x02Tunneli\x02&Muokkaa\x02Lisää tyhjä tunn&eli…\x02Lisää tunneli" +
 	"\x02Poista valitut tunneli(t)\x02Vie kaikki tunnelit zip-tiedostoon\x02V" +
@@ -1855,7 +1855,7 @@ const fiData string = "" + // Size: 4745 bytes
 	"luat poistaa tunnelin ‘%[1]s’?\x02%[1]s Tätä toimintoa ei voi peru" +
 	"uttaa.\x02Tunnelia ei voitu poistaa\x02Tunnelia ei voitu poistaa: %[1]s" +
 	"\x02Tunnelia ei voitu poistaa\x02Tuo tunneli(t) tiedostosta\x02Vie tunne" +
-	"lit zip-tiedostoon\x02Virhe Warpamista poistuttaessa\x02Tila: Odotetaan " +
+	"lit zip-tiedostoon\x02Virhe WarpAmista poistuttaessa\x02Tila: Odotetaan " +
 	"käyttäjää\x02Päivitä nyt\x02Tila: Valmis!\x02Nyt\x02Järjestelmän" +
 	" kello jättää!\x14\x01\x81\x01\x00\x02\x0c\x02%[1]d vuosi\x00\x0d\x02" +
 	"%[1]d vuotta\x14\x01\x81\x01\x00\x02\x0e\x02%[1]d päivä\x00\x10\x02%[1" +
@@ -1877,7 +1877,7 @@ const fiData string = "" + // Size: 4745 bytes
 	"iteltynä]\x02Kaikilla osapuolilla pitää olla julkinen avain\x02Virhe " +
 	"luettaessa määritystä\x02Virheellinen avain liitäntä-osiossa\x02Pro" +
 	"tokollan version pitää olla 1\x02Virheellinen avain osapuoli-osiossa" +
-	"\x02Tietoja &Warpamista…"
+	"\x02Tietoja &WarpAmista…"
 
 var frIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -1972,13 +1972,13 @@ const frData string = "" + // Size: 5847 bytes
 	"\x02Erreur\x02(sans argument) : élever et installer service du gestionn" +
 	"aire\x02Utilisation : %[1]s [\x0a%[2]s]\x02Options de la ligne de comman" +
 	"de\x02Impossible de détecter si le processus s’exécute sous WOW64 : " +
-	"%[1]v\x02Vous devez utiliser la version native de Warpam sur cet ordinat" +
+	"%[1]v\x02Vous devez utiliser la version native de WarpAm sur cet ordinat" +
 	"eur.\x02Impossible d'ouvrir le jeton du processus actuel : %[1]v\x02Seul" +
 	"ement les utilisateurs qui sont membres du groupe intégré %[1]s peuven" +
-	"t utiliser Warpam.\x02Warpam est en cours d'exécution, mais l'IU est ac" +
+	"t utiliser WarpAm.\x02WarpAm est en cours d'exécution, mais l'IU est ac" +
 	"cessible seulement à partir des bureaux du group intégré %[1]s.\x02L" +
-	"’icône de la barre d’état système du Warpam n'est pas apparue apr" +
-	"ès 30 secondes.\x02, \x02 \x02À propos du Warpam\x02Image du logo du W" +
+	"’icône de la barre d’état système du WarpAm n'est pas apparue apr" +
+	"ès 30 secondes.\x02, \x02 \x02À propos du WarpAm\x02Image du logo du W" +
 	"arpam\x02Fermer\x02État :\x02&Désactiver\x02&Activer\x02Clé publique " +
 	":\x02Port d'écoute :\x02MTU :\x02Adresses :\x02Serveurs DNS :\x02Script" +
 	"s :\x02Clé pré-partagée :\x02Adresses IP autorisées :\x02Point de te" +
@@ -2002,15 +2002,15 @@ const frData string = "" + // Size: 5847 bytes
 	"\x02Fichiers texte (*.txt)|*.txt|Tous les fichiers (*.*)|*.*\x02Exporter" +
 	" le journal vers le fichier\x02Erreur du tunnel\x02%[1]s\x0a\x0aConsulte" +
 	"z le journal pour plus d’informations, s'il vous plaît.\x02%[1]s (obs" +
-	"olète)\x02Erreur de détection du Warpam\x02Impossible d’attendre l'a" +
-	"ffichage du fenêtre Warpam : %[1]v\x02Warpam: Désactivé\x02État : In" +
+	"olète)\x02Erreur de détection du WarpAm\x02Impossible d’attendre l'a" +
+	"ffichage du fenêtre WarpAm : %[1]v\x02WarpAm: Désactivé\x02État : In" +
 	"connu\x02Adresses : Aucune\x02&Gestion des tunnels…\x02&Importer le(s)" +
-	" tunnel(s) à partir du fichier…\x02Q&uitter\x02& Tunnels\x02Warpam ac" +
-	"tivé\x02Tunnel %[1]s a été activé.\x02Warpam désactivé\x02Tunnel %" +
-	"[1]s a été désactivé.\x02Erreur du tunnel Warpam\x02Warpam : %[1]s" +
+	" tunnel(s) à partir du fichier…\x02Q&uitter\x02& Tunnels\x02WarpAm ac" +
+	"tivé\x02Tunnel %[1]s a été activé.\x02WarpAm désactivé\x02Tunnel %" +
+	"[1]s a été désactivé.\x02Erreur du tunnel WarpAm\x02WarpAm : %[1]s" +
 	"\x02État : %[1]s\x02Adresses : %[1]s\x02Mise à jour disponible!\x02War" +
-	"pam mise à jour est disponible\x02Une mise à jour du Warpam est dispon" +
-	"ible. Il est conseillé de mettre votre Warpam à jour dès que possible" +
+	"pam mise à jour est disponible\x02Une mise à jour du WarpAm est dispon" +
+	"ible. Il est conseillé de mettre votre WarpAm à jour dès que possible" +
 	".\x02Tunnels\x02&Modifier\x02Ajouter un &tunnel vide…\x02Ajouter le tu" +
 	"nnel\x02Supprimer le(s) tunnel(s) sélectionné(s)\x02Exporter tous les " +
 	"tunnels vers zip\x02&Basculer\x02Exporter tous les tunnels vers &zip…" +
@@ -2034,10 +2034,10 @@ const frData string = "" + // Size: 5847 bytes
 	"ers de configuration (*.zip, *.conf)|*.zip;*.conf|Tous les fichiers (*.*" +
 	")|*.*\x02Importer le(s) tunnel(s) à partir du fichier\x02Fichiers de co" +
 	"nfiguration ZIP (*.zip)|*.zip\x02Exporter les tunnels vers zip\x02%[1]s " +
-	"(version non signée, aucune mise à jour)\x02Erreur de sortie du Warpam" +
+	"(version non signée, aucune mise à jour)\x02Erreur de sortie du WarpAm" +
 	"\x02Impossible de quitter le service en raison de : %[1]v. Essayez d'arr" +
-	"êter Warpam à partir du gestionnair des services.\x02Une mise à jour " +
-	"du Warpam est disponible. Il est fortement conseillé de metter votre Wa" +
+	"êter WarpAm à partir du gestionnair des services.\x02Une mise à jour " +
+	"du WarpAm est disponible. Il est fortement conseillé de metter votre Wa" +
 	"rpam à jour sans délai.\x02État: En attente de l’utilisateur\x02Met" +
 	"tre à jour maintenant\x02État: En attente du programme de mise à jour" +
 	"\x02Erreur : %[1]v. Veuillez réessayer.\x02État: Terminé!\x02Maintena" +
@@ -2062,7 +2062,7 @@ const frData string = "" + // Size: 5847 bytes
 	"ivent contenir une clé publique\x02Erreur d'obtention de la configurati" +
 	"on\x02Clé non valide pour la section d'interface\x02Version du protocol" +
 	"e doit être 1\x02Clé non valide pour la section d'homologue\x02&À pro" +
-	"pos Warpam…"
+	"pos WarpAm…"
 
 var idIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -2157,12 +2157,12 @@ const idData string = "" + // Size: 2412 bytes
 	"\x02Kesalahan\x02(tidak ada argumen): naikkan akses dan instal servis ma" +
 	"najer\x02Penggunaan: %[1]s [\x0a%[2]s]\x02Opsi Command Line\x02Tidak dap" +
 	"at menentukan apakah proses sedang berjalan di bawah WOW64: %[1]v\x02And" +
-	"a harus menggunakan Warpam versi asli pada komputer ini.\x02Tidak dapat " +
-	"membuka token proses saat ini: %[1]v\x02Warpam hanya dapat digunakan ole" +
-	"h pengguna yang merupakan anggota grup Bawaan %[1]s.\x02Warpam sedang be" +
+	"a harus menggunakan WarpAm versi asli pada komputer ini.\x02Tidak dapat " +
+	"membuka token proses saat ini: %[1]v\x02WarpAm hanya dapat digunakan ole" +
+	"h pengguna yang merupakan anggota grup Bawaan %[1]s.\x02WarpAm sedang be" +
 	"rjalan, tetapi UI hanya dapat diakses dari desktop grup Bawaan %[1]s." +
-	"\x02Ikon sistem Warpam tidak muncul setelah 30 detik.\x02, \x02, \x02Ten" +
-	"tang Warpam\x02Gambar logo Warpam\x02Tutup\x02Status:\x02&Nonaktifkan" +
+	"\x02Ikon sistem WarpAm tidak muncul setelah 30 detik.\x02, \x02, \x02Ten" +
+	"tang WarpAm\x02Gambar logo WarpAm\x02Tutup\x02Status:\x02&Nonaktifkan" +
 	"\x02&Aktifkan\x02Kunci publik:\x02Port Pendengar:\x02MTU:\x02Alamat:\x02" +
 	"Server DNS:\x02Skrip:\x02Preshared key:\x02IP yang diperbolehkan:\x02End" +
 	"point:\x02Aktif\x02Mengaktifkan\x02Nonaktif\x02Menonaktifkan\x02Status t" +
@@ -2170,10 +2170,10 @@ const idData string = "" + // Size: 2412 bytes
 	"berkas…\x02Waktu\x02Pesan log\x02Berkas Txt (*.Txt)|*.Txt|Semua berkas" +
 	" (*.*)|*.*\x02Ekspor log kedalam file\x02Tunnel eror\x02%[1]s\x0a\x0aSil" +
 	"akan baca log untuk informasi lebih lanjut.\x02%[1]s (kadaluarsa)\x02Det" +
-	"eksi eror Warpam\x02Tidak dapat menunggu jendela Warpam muncul: %[1]v" +
-	"\x02Warpam: Dinonaktifkan\x02Status: Tidak diketahui\x02Alamat: Kosong" +
+	"eksi eror WarpAm\x02Tidak dapat menunggu jendela WarpAm muncul: %[1]v" +
+	"\x02WarpAm: Dinonaktifkan\x02Status: Tidak diketahui\x02Alamat: Kosong" +
 	"\x02&Manajer Tunnel…\x02&Impor tunnel dari file…\x02&Keluar\x02Warpa" +
-	"m Tunnel Eror\x02Warpam: %[1]s\x02Status: %[1]s\x02Ekspor semua tunnel k" +
+	"m Tunnel Eror\x02WarpAm: %[1]s\x02Status: %[1]s\x02Ekspor semua tunnel k" +
 	"e &zip…\x02Ubah tunnel &terpilih…\x02&Hapus tunnel terpilih\x02Tidak" +
 	" dapat mengimpor konfigurasi yang dipilih: %[1]v\x02Sekarang\x02Jam sist" +
 	"em mundur!\x14\x01\x81\x01\x00\x00\x18\x02%[1]d tahun\x0a%[1]d tahun\x14" +
@@ -2193,7 +2193,7 @@ const idData string = "" + // Size: 2412 bytes
 	" Private Key\x02Tidak Ditetapkan\x02Semua peers harus memiliki kunci pub" +
 	"lik\x02Eror ketika mendapatkan konfigurasi\x02Kunci tidak valid pada bag" +
 	"ian [Interface]\x02Versi protokol harus 1\x02Kunci tidak valid pada bagi" +
-	"an [Peer]\x02&Tentang Warpam…"
+	"an [Peer]\x02&Tentang WarpAm…"
 
 var itIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -2288,13 +2288,13 @@ const itData string = "" + // Size: 5412 bytes
 	"\x02Errore\x02(nessun argomento): eleva e installa il servizio di gestio" +
 	"ne\x02Utilizzo: %[1]s [\x0a%[2]s]\x02Opzioni riga di comando\x02Impossib" +
 	"ile determinare se il processo è in esecuzione in WOW64: %[1]v\x02Devi " +
-	"utilizzare la versione nativa di Warpam su questo computer.\x02Impossibi" +
-	"le aprire il token del processo corrente: %[1]v\x02Warpam può essere ut" +
-	"ilizzato solo dagli utenti membri del gruppo %[1]s di sistema.\x02Warpam" +
+	"utilizzare la versione nativa di WarpAm su questo computer.\x02Impossibi" +
+	"le aprire il token del processo corrente: %[1]v\x02WarpAm può essere ut" +
+	"ilizzato solo dagli utenti membri del gruppo %[1]s di sistema.\x02WarpAm" +
 	" è in esecuzione, ma l'interfaccia utente è accessibile solo dai deskt" +
 	"op del gruppo %[1]s di sistema.\x02L'icona della barra delle applicazion" +
-	"i di Warpam non è apparsa dopo 30 secondi.\x02, \x02 \x02Informazioni s" +
-	"u Warpam\x02Immagine del logo di Warpam\x02Chiudi\x02Stato:\x02&Disattiv" +
+	"i di WarpAm non è apparsa dopo 30 secondi.\x02, \x02 \x02Informazioni s" +
+	"u WarpAm\x02Immagine del logo di WarpAm\x02Chiudi\x02Stato:\x02&Disattiv" +
 	"a\x02&Attiva\x02Chiave pubblica:\x02Porta in ascolto:\x02MTU:\x02Indiriz" +
 	"zi:\x02Server DNS:\x02Script:\x02Chiave pre-condivisa:\x02IP consentiti:" +
 	"\x02Endpoint:\x02Keepalive permanente:\x02Ultima negoziazione:\x02Trasfe" +
@@ -2314,14 +2314,14 @@ const itData string = "" + // Size: 5412 bytes
 	"Selezion&a tutto\x02&Salva su file…\x02Tempo\x02Messaggio di log\x02Fi" +
 	"le di testo (*.txt)|*.txt|Tutti i file (*.*)|*.*\x02Esporta log su file" +
 	"\x02Errore del tunnel\x02%[1]s\x0a\x0aConsulta il log per ulteriori Info" +
-	"rmazioni.\x02%[1]s (obsoleto)\x02Errore di rilevamento di Warpam\x02Impo" +
-	"ssibile attendere la comparsa della finestra di Warpam: %[1]v\x02Warpam:" +
+	"rmazioni.\x02%[1]s (obsoleto)\x02Errore di rilevamento di WarpAm\x02Impo" +
+	"ssibile attendere la comparsa della finestra di WarpAm: %[1]v\x02WarpAm:" +
 	" disattivato\x02Stato: sconosciuto\x02Indirizzi: nessuno\x02&Gestisci i " +
-	"tunnel…\x02&Importa tunnel da file…\x02E&sci\x02&Tunnel\x02Warpam at" +
-	"tivato\x02Il tunnel %[1]s è stato attivato.\x02Warpam disattivato\x02Il" +
-	" tunnel %[1]s è stato disattivato.\x02Errore tunnel di Warpam\x02Warpam" +
+	"tunnel…\x02&Importa tunnel da file…\x02E&sci\x02&Tunnel\x02WarpAm at" +
+	"tivato\x02Il tunnel %[1]s è stato attivato.\x02WarpAm disattivato\x02Il" +
+	" tunnel %[1]s è stato disattivato.\x02Errore tunnel di WarpAm\x02WarpAm" +
 	": %[1]s\x02Stato: %[1]s\x02Indirizzi: %[1]s\x02Un aggiornamento è dispo" +
-	"nibile!\x02Aggiornamento di Warpam disponibile\x02Un aggiornamento di Wa" +
+	"nibile!\x02Aggiornamento di WarpAm disponibile\x02Un aggiornamento di Wa" +
 	"rpam è disponibile. Ti consigliamo di aggiornare il prima possibile." +
 	"\x02Tunnel\x02&Modifica\x02Aggiungi tunn&el vuoto...\x02Aggiungi tunnel" +
 	"\x02Rimuovi tunnel selezionati\x02Esporta tutti i tunnel in zip\x02Commu" +
@@ -2345,9 +2345,9 @@ const itData string = "" + // Size: 5412 bytes
 	"nfigurazione (*.zip, *.conf)|*.zip;*.conf|Tutti i file (*.*)|*.*\x02Impo" +
 	"rta tunnel da file\x02File di configurazione ZIP (*.zip)|*.zip\x02Esport" +
 	"a tunnel in zip\x02%[1]s (versione non firmata, nessun aggiornamento)" +
-	"\x02Errore durante la chiusura di Warpam\x02Impossibile uscire dal servi" +
-	"zio a causa di: %[1]v. Potresti voler interrompere Warpam dal gestore de" +
-	"i servizi.\x02Un aggiornamento di Warpam è disponibile. Ti consigliamo " +
+	"\x02Errore durante la chiusura di WarpAm\x02Impossibile uscire dal servi" +
+	"zio a causa di: %[1]v. Potresti voler interrompere WarpAm dal gestore de" +
+	"i servizi.\x02Un aggiornamento di WarpAm è disponibile. Ti consigliamo " +
 	"vivamente di aggiornare immediatamente.\x02Stato: in attesa dell'utente" +
 	"\x02Aggiorna ora\x02Stato: in attesa del servizio di aggiornamento\x02Er" +
 	"rore: %[1]v. Prova ancora.\x02Stato: Completo!\x02Ora\x02L'orologio di s" +
@@ -2372,7 +2372,7 @@ const itData string = "" + // Size: 5412 bytes
 	" una chiave pubblica\x02Errore durante il recupero della configurazione" +
 	"\x02Chiave non valida per la sezione dell'interfaccia\x02La versione del" +
 	" protocollo deve essere 1\x02Chiave non valida per la sezione peer\x02In" +
-	"form&azioni su Warpam…"
+	"form&azioni su WarpAm…"
 
 var jaIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -2468,13 +2468,13 @@ const jaData string = "" + // Size: 6220 bytes
 	"をインストールする\x02使い方: %[1]s [\x0a%[2]s]\x02コマン" +
 	"ドラインオプション\x02プロセスがWOW64下で動作してい" +
 	"るか確認できません: %[1]v\x02このコンピュータではネ" +
-	"イティブ版の Warpam を使ってください。\x02現在のプロ" +
-	"セスのトークンを開けません: %[1]v\x02Warpam は組み込み" +
-	"の %[1]s グループのメンバーだけが使えます。\x02Warpam " +
+	"イティブ版の WarpAm を使ってください。\x02現在のプロ" +
+	"セスのトークンを開けません: %[1]v\x02WarpAm は組み込み" +
+	"の %[1]s グループのメンバーだけが使えます。\x02WarpAm " +
 	"は実行中ですが、UI画面は組み込みの %[1]s グループの" +
-	"デスクトップからしか開けません。\x02Warpam システム" +
+	"デスクトップからしか開けません。\x02WarpAm システム" +
 	"トレイアイコンは30秒後に非表示になります。\x02, \x02" +
-	" \x02Warpam について\x02Warpam ロゴ画像\x02閉じる\x02状態:" +
+	" \x02WarpAm について\x02WarpAm ロゴ画像\x02閉じる\x02状態:" +
 	"\x02無効化(&D)\x02有効化(&A)\x02公開鍵:\x02待受ポート番" +
 	"号:\x02MTU:\x02アドレス:\x02DNS サーバ:\x02スクリプト:\x02" +
 	"事前共有鍵:\x02Allowed IPs:\x02エンドポイント:\x02持続的" +
@@ -2499,16 +2499,16 @@ const jaData string = "" + // Size: 6220 bytes
 	"ジ\x02テキストファイル (*.txt)|*.txt|すべてのファイル (" +
 	"*.*)|*.*\x02ログをファイルにエクスポート\x02トンネル" +
 	"エラー\x02%[1]s\x0a\x0a詳細はログを参照してください。" +
-	"\x02%[1]s (更新あり)\x02Warpam 検出エラー\x02Warpam ウィン" +
-	"ドウが表示できませんでした: %[1]v\x02Warpam: 無効化済" +
+	"\x02%[1]s (更新あり)\x02WarpAm 検出エラー\x02WarpAm ウィン" +
+	"ドウが表示できませんでした: %[1]v\x02WarpAm: 無効化済" +
 	"み\x02状態: 不明\x02アドレス: なし\x02トンネルの管理" +
 	"…(&M)\x02トンネルをファイルからインポート…(&I)\x02" +
-	"終了(&X)\x02トンネル(&T)\x02Warpam 有効化済み\x02トンネル" +
-	" %[1]s は有効になりました。\x02Warpam 無効化済み\x02ト" +
-	"ンネル %[1]s は無効になりました。\x02Warpam トンネルエ" +
-	"ラー\x02Warpam: %[1]s\x02状態: %[1]s\x02アドレス: %[1]s\x02更" +
-	"新が利用できます！\x02Warpam の更新が利用可能です\x02" +
-	"Warpam の更新が利用可能になりました。できるだけ早" +
+	"終了(&X)\x02トンネル(&T)\x02WarpAm 有効化済み\x02トンネル" +
+	" %[1]s は有効になりました。\x02WarpAm 無効化済み\x02ト" +
+	"ンネル %[1]s は無効になりました。\x02WarpAm トンネルエ" +
+	"ラー\x02WarpAm: %[1]s\x02状態: %[1]s\x02アドレス: %[1]s\x02更" +
+	"新が利用できます！\x02WarpAm の更新が利用可能です\x02" +
+	"WarpAm の更新が利用可能になりました。できるだけ早" +
 	"く更新してください。\x02トンネル\x02編集(&E)\x02空の" +
 	"トンネルを追加…(&E)\x02トンネルの追加\x02選択したト" +
 	"ンネルの削除\x02すべてのトンネルをzipにエクスポー" +
@@ -2533,9 +2533,9 @@ const jaData string = "" + // Size: 6220 bytes
 	"conf)|*.zip;*.conf|すべてのファイル (*.*)|*.*\x02ファイルか" +
 	"らトンネルをインポート\x02ZIP形式設定ファイル (*.zip)" +
 	"|*.zip\x02トンネルをZIPにエクスポート\x02%[1]s (未署名の" +
-	"ビルド、更新の提供なし)\x02Warpam 終了エラー\x02%[1]v " +
+	"ビルド、更新の提供なし)\x02WarpAm 終了エラー\x02%[1]v " +
 	"のためサービスを終了できませんでした。サービスマ" +
-	"ネージャから Warpam を停止できます。\x02Warpam の更新" +
+	"ネージャから WarpAm を停止できます。\x02WarpAm の更新" +
 	"が利用可能です。速やかに更新することを強く推奨し" +
 	"ます。\x02状態: ユーザーからの応答待ち\x02今すぐ更" +
 	"新\x02状態: アップデータサービスを待機中\x02エラー: " +
@@ -2561,7 +2561,7 @@ const jaData string = "" + // Size: 6220 bytes
 	"てのピアには公開鍵が必須です\x02設定の読込中にエ" +
 	"ラーが発生しました\x02無効な Interface セクションのキ" +
 	"ー項目\x02プロトコルバージョンは 1 でなければなり" +
-	"ません\x02無効な Peer セクションのキー項目\x02Warpamに" +
+	"ません\x02無効な Peer セクションのキー項目\x02WarpAmに" +
 	"ついて…(&A)"
 
 var koIndex = []uint32{ // 304 elements
@@ -2657,13 +2657,13 @@ const koData string = "" + // Size: 5416 bytes
 	"\x02오류\x02(인수 없음): 관리자 서비스 상승 및 설치\x02" +
 	"사용: %[1]s [\x0a%[2]s]\x02커맨드 라인 옵션\x02WOW64에서 프" +
 	"로세스가 실행 중인지 확인할 수 없음: %[1]v\x02이 컴퓨" +
-	"터에서는 기본 버전의 Warpam를 사용해야 합니다.\x02현" +
-	"재 프로세스 토큰을 열 수 없음: %[1]v\x02Warpam는 Builtin %[" +
+	"터에서는 기본 버전의 WarpAm를 사용해야 합니다.\x02현" +
+	"재 프로세스 토큰을 열 수 없음: %[1]v\x02WarpAm는 Builtin %[" +
 	"1]s 그룹의 구성원인 사용자만 사용할 수 있습니다.\x02W" +
 	"arpam가 실행 중이나 UI는 Builtin의 데스크톱에서만 액세" +
-	"스할 수 있습니다%[1]s 그룹.\x02Warpam 시스템 트레이 아" +
+	"스할 수 있습니다%[1]s 그룹.\x02WarpAm 시스템 트레이 아" +
 	"이콘이 30초 후에 나타나지 않았습니다.\x02, \x02, \x02Warp" +
-	"am에 관하여\x02Warpam 로고 이미지\x02닫기\x02상태:\x02&비" +
+	"am에 관하여\x02WarpAm 로고 이미지\x02닫기\x02상태:\x02&비" +
 	"활성화하기\x02&활성화하기\x02공개 키:\x02수신 포트:\x02" +
 	"MTU:\x02주소:\x02DNS 서버:\x02스크립트:\x02사전 공유 키:" +
 	"\x02허용된 IP:\x02엔드포인트:\x02지속적 연결 유지:\x02마" +
@@ -2684,15 +2684,15 @@ const koData string = "" + // Size: 5416 bytes
 	"\x02&복사\x02전체 &선택\x02&파일에 저장…\x02시간\x02로" +
 	"그 메시지\x02텍스트 파일 (*.txt)|*.txt|모든 파일 (*.*)|*.*" +
 	"\x02로그 파일 내보내기\x02터널 오류\x02%[1]s\x0a\x0a자세" +
-	"한 내용은 로그를 참조하세요.\x02%[1]s (구식)\x02Warpam 감" +
-	"지 오류\x02Warpam 창이 나타날 때까지 기다릴 수 없음: %[" +
-	"1]v\x02Warpam: 비활성화됨\x02상태: 알 수 없음\x02주소: 없" +
+	"한 내용은 로그를 참조하세요.\x02%[1]s (구식)\x02WarpAm 감" +
+	"지 오류\x02WarpAm 창이 나타날 때까지 기다릴 수 없음: %[" +
+	"1]v\x02WarpAm: 비활성화됨\x02상태: 알 수 없음\x02주소: 없" +
 	"음\x02&터널 관리…\x02&파일에서 터널(s) 불러오기…\x02" +
-	"종료&\x02&터널\x02Warpam 활성화됨\x02다음 %[1]s 터널이 활" +
-	"성화되었습니다.\x02Warpam 비활성화됨\x02다음 %[1]s 터널" +
-	"이 비활성화되었습니다.\x02Warpam 터널 오류\x02와이어가" +
+	"종료&\x02&터널\x02WarpAm 활성화됨\x02다음 %[1]s 터널이 활" +
+	"성화되었습니다.\x02WarpAm 비활성화됨\x02다음 %[1]s 터널" +
+	"이 비활성화되었습니다.\x02WarpAm 터널 오류\x02와이어가" +
 	"드: %[1]s\x02상태: %[1]s\x02주소: %[1]s\x02업데이트를 사용" +
-	"할 수 있습니다!\x02Warpam 업데이트 가능\x02이제 Warpam 업" +
+	"할 수 있습니다!\x02WarpAm 업데이트 가능\x02이제 WarpAm 업" +
 	"데이트를 사용할 수 있습니다. 최대한 빨리 업데이트" +
 	"하는 것이 좋습니다.\x02터널\x02&편집\x02&빈 터널 추가" +
 	"…\x02터널 추가\x02선택한 터널(s) 제거\x02터널들을 Zip " +
@@ -2713,10 +2713,10 @@ const koData string = "" + // Size: 5416 bytes
 	"제거할 수 없었습니다.\x02구성 파일 (*.zip, *.conf)|*.zip;*." +
 	"conf|All Files (*.*)|*.*\x02파일에서 터널(s) 불러오기\x02형" +
 	"상 ZIP 파일 (*.zip)|*.zip\x02터널들을 Zip 파일에 내보내기" +
-	"\x02%[1]s (서명되지 않은 빌드, 업데이트 없음)\x02Warpam " +
+	"\x02%[1]s (서명되지 않은 빌드, 업데이트 없음)\x02WarpAm " +
 	"오류로 종료중\x02다음 원인으로 인해 서비스를 종료할" +
-	" 수 없: %[1]v. 서비스 관리자에서 Warpam를 중지할 수 있" +
-	"습니다.\x02Warpam에 대한 업데이트가 가능합니다. 지체 " +
+	" 수 없: %[1]v. 서비스 관리자에서 WarpAm를 중지할 수 있" +
+	"습니다.\x02WarpAm에 대한 업데이트가 가능합니다. 지체 " +
 	"없이 업데이트하는 것이 좋습니다.\x02상태: 사용자를 " +
 	"기다리는 중\x02지금 업데이트\x02상태: 업데이터 서비" +
 	"스를 기다리는 중\x02오류: %[1]v. 다시 시도해 주세요." +
@@ -2740,7 +2740,7 @@ const koData string = "" + // Size: 5416 bytes
 	"\x02[특정되지 않음]\x02모든 피어에는 공개 키가 있어야" +
 	" 함\x02구성을 가져오는 중 오류가 발생\x02인터페이스 " +
 	"섹션의 키가 잘못됨\x02프로토콜 버전은 1이어야 합니" +
-	"다.\x02피어 섹션의 키가 잘못됨\x02&Warpam에 관하여…"
+	"다.\x02피어 섹션의 키가 잘못됨\x02&WarpAm에 관하여…"
 
 var nlIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -2835,13 +2835,13 @@ const nlData string = "" + // Size: 5028 bytes
 	"\x02Foutmelding\x02(geen argumenten): Verhoog rechten en installeer behe" +
 	"erder-service\x02Gebruikswijze: %[1]s [\x0a%[2]s]\x02Opdracht-prompt Opt" +
 	"ies\x02Kan niet bepalen of het proces wordt uitgevoerd onder WOW64: %[1]" +
-	"v\x02Je moet de native versie van Warpam gebruiken op deze computer.\x02" +
-	"Kan de huidige proces-token niet openen: %[1]v\x02Warpam mag alleen gebr" +
+	"v\x02Je moet de native versie van WarpAm gebruiken op deze computer.\x02" +
+	"Kan de huidige proces-token niet openen: %[1]v\x02WarpAm mag alleen gebr" +
 	"uikt worden door gebruikers die deel uitmaken van de ingebouwde %[1]s gr" +
-	"oep.\x02Warpam is actief, maar de gebruikersinterface is alleen toeganke" +
-	"lijk via de desktops van de Ingebouwde %[1]s groep.\x02Warpam systeem tr" +
-	"ay icoon is niet weergegeven na 30 seconden.\x02, \x02 \x02Over Warpam" +
-	"\x02Warpam logo-afbeelding\x02Sluiten\x02Status:\x02&Deactiveer\x02&Acti" +
+	"oep.\x02WarpAm is actief, maar de gebruikersinterface is alleen toeganke" +
+	"lijk via de desktops van de Ingebouwde %[1]s groep.\x02WarpAm systeem tr" +
+	"ay icoon is niet weergegeven na 30 seconden.\x02, \x02 \x02Over WarpAm" +
+	"\x02WarpAm logo-afbeelding\x02Sluiten\x02Status:\x02&Deactiveer\x02&Acti" +
 	"veer\x02Publieke sleutel:\x02Luister op poort:\x02MTU:\x02Adressen:\x02D" +
 	"NS-servers:\x02Scripts:\x02Gedeelde sleutel:\x02Toegestane IP-adressen:" +
 	"\x02Eindpunt:\x02Recentste uitwisseling:\x02Overdracht:\x02uitgeschakeld" +
@@ -2859,14 +2859,14 @@ const nlData string = "" + // Size: 5028 bytes
 	"pslaan naar bestand…\x02Tijd\x02Logbericht\x02Tekstbestanden (*.txt)|*" +
 	".txt|Alle bestanden (*. *)|*.*\x02Exporteer logboek naar bestand\x02Tunn" +
 	"el-fout\x02%[1]s\x0a\x0aRaadpleeg het logboek voor meer informatie.\x02%" +
-	"[1]s (out-of-date)\x02Warpam Detection Fout\x02Kan niet wachten op het W" +
-	"arpam-window: %[1]v\x02Warpam: Gedeactiveerd\x02Status: Onbekend\x02Addr" +
+	"[1]s (out-of-date)\x02WarpAm Detection Fout\x02Kan niet wachten op het W" +
+	"arpam-window: %[1]v\x02WarpAm: Gedeactiveerd\x02Status: Onbekend\x02Addr" +
 	"essen: Geen\x02&Tunnels beheren…\x02&Importeer tunnel(s) van bestand" +
-	"…\x02&Afsluiten\x02&Tunnels\x02Warpam Geactiveerd\x02De %[1]s tunnel i" +
-	"s geactiveerd.\x02Warpam Gedeactiveerd\x02De %[1]s tunnel is gedeactivee" +
-	"rd.\x02Warpam Tunnel Fout\x02Warpam: %[1]s\x02Status: %[1]s\x02Addressen" +
-	": %[1]s\x02Een Update is Beschikbaar!\x02Warpam update beschikbaar\x02Ee" +
-	"n update voor Warpam is beschikbaar. Het wordt aangeraden zo snel mogeli" +
+	"…\x02&Afsluiten\x02&Tunnels\x02WarpAm Geactiveerd\x02De %[1]s tunnel i" +
+	"s geactiveerd.\x02WarpAm Gedeactiveerd\x02De %[1]s tunnel is gedeactivee" +
+	"rd.\x02WarpAm Tunnel Fout\x02WarpAm: %[1]s\x02Status: %[1]s\x02Addressen" +
+	": %[1]s\x02Een Update is Beschikbaar!\x02WarpAm update beschikbaar\x02Ee" +
+	"n update voor WarpAm is beschikbaar. Het wordt aangeraden zo snel mogeli" +
 	"jk bij te werken.\x02Tunnels\x02B&ewerken\x02Voeg l&ege tunnel toe…" +
 	"\x02Tunnel toevoegen\x02Geselecteerde tunnel(s) verwijderen\x02Alle tunn" +
 	"els naar een zip-bestand exporteren\x02In-/ui&tschakelen\x02Alle tunnels" +
@@ -2890,7 +2890,7 @@ const nlData string = "" + // Size: 5028 bytes
 	"n verwijderd.\x02Configuratiebestanden (*.zip, *.conf)|*.zip;*.conf|Alle" +
 	" bestanden (*.*)|*.*\x02Importeer tunnel(s) uit bestand\x02Configuratieb" +
 	"estanden ZIP (*.zip)|*.zip\x02Alle tunnels naar zip-bestand exporteren" +
-	"\x02Fout bij afsluiten Warpam\x02Er is een update voor Warpam beschikbaa" +
+	"\x02Fout bij afsluiten WarpAm\x02Er is een update voor WarpAm beschikbaa" +
 	"r. Het wordt ten sterkste aangeraden deze zo snel mogelijk te installere" +
 	"n.\x02Status: Wachten op gebruiker\x02Nu Bijwerken\x02Fout: %[1]v. Probe" +
 	"er het opnieuw.\x02Status: Voltooid!\x02Nu\x02Systeemklok is achteruit g" +
@@ -2913,7 +2913,7 @@ const nlData string = "" + // Size: 5028 bytes
 	"l hebben\x02[Niets opgegeven]\x02Alle peers moeten publieke sleutels heb" +
 	"ben\x02Fout bij het lezen van de configuratie\x02Ongeldige sleutel voor " +
 	"interface-gedeelte\x02Protocol-versie moet 1 zijn\x02Ongeldige sleutel v" +
-	"oor peer-gedeelte\x02Over &Warpam…"
+	"oor peer-gedeelte\x02Over &WarpAm…"
 
 var pa_INIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -3009,16 +3009,16 @@ const pa_INData string = "" + // Size: 8506 bytes
 	"ਂਡ ਲਾਈਨ ਚੋਣਾਂ\x02ਪਤਾ ਲਗਾਉਣ ਲਈ " +
 	"ਅਸਮਰੱਥ ਹੈ ਕਿ ਪਰੋਸੈਸ WOW64 ਅਧੀਨ " +
 	"ਚੱਲ ਰਿਹਾ ਹੈ: %[1]v\x02ਤੁਹਾਨੂੰ ਇਸ ਕ" +
-	"ੰਪਿਊਟਰ ਉੱਤੇ Warpam ਦਾ ਮੂਲ ਵਰਜ਼ਨ ਵ" +
+	"ੰਪਿਊਟਰ ਉੱਤੇ WarpAm ਦਾ ਮੂਲ ਵਰਜ਼ਨ ਵ" +
 	"ਰਤਣਾ ਚਾਹੀਦਾ ਹੈ।\x02ਮੌਜੂਦਾ ਪਰ" +
 	"ੋਸੈਸ ਟੋਕਨ ਖੋਲ੍ਹਣ ਲਈ ਅਸਮਰੱਥ: " +
-	"%[1]v\x02Warpam ਨੂੰ ਸਿਰਫ਼ ਉਹੀ ਵਰਤੋਂਕ" +
+	"%[1]v\x02WarpAm ਨੂੰ ਸਿਰਫ਼ ਉਹੀ ਵਰਤੋਂਕ" +
 	"ਾਰ ਵਰਤ ਸਕਦੇ ਹਨ, ਜੋ ਕਿ ਪਹਿਲਾਂ " +
 	"ਮੌਜੂਦ %[1]s ਗਰੁੱਪ ਦੇ ਮੈਂਬਰ ਹਨ।" +
-	"\x02Warpam ਚੱਲ ਰਿਹਾ ਹੈ, ਪਰ UI ਨੂੰ ਸਿਰ" +
+	"\x02WarpAm ਚੱਲ ਰਿਹਾ ਹੈ, ਪਰ UI ਨੂੰ ਸਿਰ" +
 	"ਫ਼ ਪਹਿਲਾਂ ਮੌਜੂਦ %[1]s ਗਰੁੱਪ ਦੇ " +
 	"ਡੈਸਕਟਾਪ ਰਾਹੀਂ ਹੀ ਵਰਤਿਆ ਜਾ ਸ" +
-	"ਕਦਾ ਹੈ।\x02Warpam ਸਿਸਟਮ ਟਰੇ ਆਈਕਾਨ " +
+	"ਕਦਾ ਹੈ।\x02WarpAm ਸਿਸਟਮ ਟਰੇ ਆਈਕਾਨ " +
 	"30 ਸਕਿੰਟਾਂ ਬਾਅਦ ਦਿਖਾਈ ਨਹੀਂ ਦ" +
 	"ਿੱਤਾ ਹੈ।\x02, \x02, \x02ਵਾਇਰਗਾਰਡ ਬਾਰ" +
 	"ੇ\x02ਬੰਦ ਕਰੋ\x02ਸਥਿਤੀ:\x02ਨਾ-ਸਰਗਰਮ" +
@@ -3056,7 +3056,7 @@ const pa_INData string = "" + // Size: 8506 bytes
 	"ਾਂ (*.txt)|*.txt|ਸਾਰੀਆਂ ਫ਼ਾਇਲਾਂ (*.*)|*.*" +
 	"\x02ਲਾਗ ਫ਼ਾਇਲ ਵਿੱਚ ਬਰਾਮਦ ਕਰੋ\x02" +
 	"ਟਨਲ ਗਲਤੀ\x02%[1]s\x0a\x0aPlease consult the log for more i" +
-	"nformation.\x02%[1]s (out of date)\x02Warpam ਖੋਜ ਗ਼ਲਤੀ" +
+	"nformation.\x02%[1]s (out of date)\x02WarpAm ਖੋਜ ਗ਼ਲਤੀ" +
 	"\x02ਵਾਇਰਗਾਰਡ: ਨਾ-ਸਰਗਰਮ ਕੀਤਾ\x02ਸ" +
 	"ਥਿਤੀ: ਅਣਪਛਾਤੀ\x02ਸਿਰਨਾਵੇਂ: ਕੋ" +
 	"ਈ ਨਹੀਂ\x02ਟਨਲਾਂ ਦਾ ਇੰਤਜ਼ਾਮ ਕਰੋ(" +
@@ -3101,11 +3101,11 @@ const pa_INData string = "" + // Size: 8506 bytes
 	"ਮਰੱਥ\x02ਸੰਰਚਨਾ ਫ਼ਾਇਲਾਂ (*.zip, *.conf)" +
 	"|*.zip;*.conf|ਸਾਰੀਆਂ ਫ਼ਾਇਲਾਂ (*.*)|*.*\x02ਫ" +
 	"਼ਾਇਲ ਤੋਂ ਟਨਲਾਂ ਦਰਾਮਦ ਕਰੋ\x02ਸ" +
-	"ੰਰਚਨਾ ਜ਼ਿੱਪ ਫਾਇਲਾਂ (*.zip)|*.zip\x02Warpam " +
+	"ੰਰਚਨਾ ਜ਼ਿੱਪ ਫਾਇਲਾਂ (*.zip)|*.zip\x02WarpAm " +
 	"ਤੋਂ ਬਾਹਰ ਜਾਣ ਲਈ ਗ਼ਲਤੀ\x02ਸੇਵਾ " +
 	"ਤੋਂ ਬਾਹਰ ਜਾਣ ਲਈ ਅਸਮਰੱਥ, ਕਾਰਨ" +
 	": %[1]v। ਤੁਸੀਂ ਸੇਵਾ ਮੈਨੇਜਰ ਤੋਂ War" +
-	"pam ਨੂੰ ਰੋਕਣਾ ਚਾਹੋਗੇ।\x02Warpam ਲਈ ਅ" +
+	"pam ਨੂੰ ਰੋਕਣਾ ਚਾਹੋਗੇ।\x02WarpAm ਲਈ ਅ" +
 	"ੱਪਡੇਟ ਮੌਜੂਦ ਹੈ। ਤੁਹਾਨੂੰ ਬਿ" +
 	"ਨਾਂ ਦੇਰ ਕੀਤਿਆਂ ਅੱਪਡੇਟ ਕਰਨ ਦ" +
 	"ੀ ਸਲਾਹ ਦਿੱਤੀ ਜਾਂਦੀ ਹੈ।\x02ਹਾਲ" +
@@ -3229,13 +3229,13 @@ const plData string = "" + // Size: 5900 bytes
 	"\x02Błąd\x02(brak argumentu): Podnieś uprawnienia i zainstaluj usług" +
 	"ę menedżera\x02Użycie: %[1]s [\x0a%[2]s]\x02Opcje wiersza poleceń" +
 	"\x02Nie można określić, czy proces jest uruchomiony w środowisku WOW" +
-	"64: %[1]v\x02Należy użyć natywnej wersji Warpam na tym komputerze." +
-	"\x02Nie można otworzyć bieżącego tokenu procesu: %[1]v\x02Warpam mo" +
+	"64: %[1]v\x02Należy użyć natywnej wersji WarpAm na tym komputerze." +
+	"\x02Nie można otworzyć bieżącego tokenu procesu: %[1]v\x02WarpAm mo" +
 	"że być używany tylko przez użytkowników, którzy są członkami wbu" +
-	"dowanej grupy %[1]s.\x02Warpam jest uruchomiony, ale interfejs jest dost" +
+	"dowanej grupy %[1]s.\x02WarpAm jest uruchomiony, ale interfejs jest dost" +
 	"ępny tylko z poziomu użytkowników należących do wbudowanej grupy %[" +
-	"1]s.\x02Ikona Warpam nie pojawiła się po 30 sekundach w zasobniku syst" +
-	"emowym.\x02, \x02, \x02Informacje o Warpam\x02Logo Warpam\x02Zamknij\x02" +
+	"1]s.\x02Ikona WarpAm nie pojawiła się po 30 sekundach w zasobniku syst" +
+	"emowym.\x02, \x02, \x02Informacje o WarpAm\x02Logo WarpAm\x02Zamknij\x02" +
 	"Status:\x02&Dezaktywuj\x02&Aktywuj\x02Klucz publiczny:\x02Port nasłuchu" +
 	":\x02MTU:\x02Adresy:\x02Serwery DNS:\x02Skrypty:\x02PSK:\x02Dozwolone ad" +
 	"resy IP:\x02Urządzenie końcowe:\x02Utrzymanie połączenia:\x02Ostatni" +
@@ -3257,13 +3257,13 @@ const plData string = "" + // Size: 5900 bytes
 	" tekstowe (*.txt)|*.txt|Wszystkie pliki (*.*)|*.*\x02Eksportuj dziennik " +
 	"do pliku\x02Błąd tunelu\x02%[1]s\x0a\x0aAby uzyskać więcej informacj" +
 	"i, zapoznaj się z dziennikiem.\x02%[1]s (nieaktualny)\x02Błąd detekcj" +
-	"i Warpam\x02Nie można poczekać na pojawienie się okna Warpam: %[1]v" +
-	"\x02Warpam: Dezaktywowany\x02Status: Nieznany\x02Adresy: Brak\x02&Zarzą" +
+	"i WarpAm\x02Nie można poczekać na pojawienie się okna WarpAm: %[1]v" +
+	"\x02WarpAm: Dezaktywowany\x02Status: Nieznany\x02Adresy: Brak\x02&Zarzą" +
 	"dzaj tunelami…\x02&Importuj tunel(e) z pliku…\x02W&yjście\x02&Tunel" +
-	"e\x02Warpam Aktywny\x02Tunel %[1]s został aktywowany.\x02Warpam dezakty" +
-	"wowany\x02Tunel %[1]s został dezaktywowany.\x02Błąd tunelu Warpam\x02" +
-	"Warpam: %[1]s\x02Status: %[1]s\x02Adresy: %[1]s\x02Dostępna nowa aktual" +
-	"izacja!\x02Aktualizacja Warpam jest dostępna\x02Aktualizacja Warpam jes" +
+	"e\x02WarpAm Aktywny\x02Tunel %[1]s został aktywowany.\x02WarpAm dezakty" +
+	"wowany\x02Tunel %[1]s został dezaktywowany.\x02Błąd tunelu WarpAm\x02" +
+	"WarpAm: %[1]s\x02Status: %[1]s\x02Adresy: %[1]s\x02Dostępna nowa aktual" +
+	"izacja!\x02Aktualizacja WarpAm jest dostępna\x02Aktualizacja WarpAm jes" +
 	"t już dostępna. Zaleca się jak najszybszą aktualizację.\x02Tunele" +
 	"\x02&Edytuj\x02Dodaj &pusty tunel…\x02Dodaj tunel\x02Usuń wybrany(-e)" +
 	" tunel(e)\x02Eksportuj wszystkie tunele do archiwum ZIP\x02&Przełącz" +
@@ -3292,9 +3292,9 @@ const plData string = "" + // Size: 5900 bytes
 	"konfiguracji (*.zip, *.conf)|*.zip;*.conf|Wszystkie pliki (*.*)|*.*\x02I" +
 	"mportuj tunel(e) z pliku\x02Pliki ZIP konfiguracji (*.zip)|*.zip\x02Eksp" +
 	"ortuj tunele do archiwum ZIP\x02%[1]s (wersja niepodpisana, brak aktuali" +
-	"zacji)\x02Błąd podczas zamykania Warpam\x02Nie można wyłączyć usł" +
-	"ugi ze względu na: %[1]v. Jeśli chcesz wyłączyć Warpam, możesz to " +
-	"zrobić z poziomu menedżera usług.\x02Aktualizacja Warpam jest dostęp" +
+	"zacji)\x02Błąd podczas zamykania WarpAm\x02Nie można wyłączyć usł" +
+	"ugi ze względu na: %[1]v. Jeśli chcesz wyłączyć WarpAm, możesz to " +
+	"zrobić z poziomu menedżera usług.\x02Aktualizacja WarpAm jest dostęp" +
 	"na. Zaleca się natychmiastową aktualizację.\x02Status: Czekam na uży" +
 	"tkownika\x02Uaktualnij teraz\x02Status: Czekam na usługę aktualizacji" +
 	"\x02Błąd: %[1]v. Spróbuj ponownie.\x02Status: Ukończone!\x02Teraz" +
@@ -3322,7 +3322,7 @@ const plData string = "" + // Size: 5900 bytes
 	"eślono]\x02Wszyscy uczestnicy muszą mieć klucze publiczne\x02Błąd p" +
 	"odczas pobierania konfiguracji\x02Nieprawidłowy klucz dla sekcji interf" +
 	"ace\x02Wersja protokołu musi być 1\x02Nieprawidłowy klucz dla sekcji " +
-	"peer\x02&Informacje o Warpam…"
+	"peer\x02&Informacje o WarpAm…"
 
 var pt_BRIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -3417,13 +3417,13 @@ const pt_BRData string = "" + // Size: 5420 bytes
 	"\x02Erro\x02(sem argumento): elevar e instalar o serviço gerenciador" +
 	"\x02Uso: %[1]s [\x0a%[2]s]\x02Opções de linha de comando\x02Não foi p" +
 	"ossível determinar se o processo está sendo executado em WOW64: %[1]v" +
-	"\x02Você deve usar a versão nativa do Warpam neste computador.\x02Não" +
-	" foi possível abrir o token do processo atual: %[1]v\x02O Warpam só po" +
+	"\x02Você deve usar a versão nativa do WarpAm neste computador.\x02Não" +
+	" foi possível abrir o token do processo atual: %[1]v\x02O WarpAm só po" +
 	"de ser usado por usuários que são membros do grupo incorporado %[1]s." +
-	"\x02O Warpam está funcionando, mas a interface do usuário só é acess" +
+	"\x02O WarpAm está funcionando, mas a interface do usuário só é acess" +
 	"ível em desktops do grupo incorporado %[1]s.\x02O ícone do sistema da " +
-	"barra do Warpam não apareceu após 30 segundos.\x02, \x02, \x02Sobre o " +
-	"Warpam\x02Imagem do logotipo Warpam\x02Fechar\x02Status:\x02Desativado" +
+	"barra do WarpAm não apareceu após 30 segundos.\x02, \x02, \x02Sobre o " +
+	"WarpAm\x02Imagem do logotipo WarpAm\x02Fechar\x02Status:\x02Desativado" +
 	"\x02&Ativar\x02Chaves públicas:\x02Porta de escuta:\x02MTU:\x02Endereç" +
 	"os:\x02Servidores DNS:\x02Scripts:\x02Tecla Pressionada:\x02IPs Permitid" +
 	"os:\x02Ponto Final:\x02Mensagem persistente:\x02Shake mais recente:\x02T" +
@@ -3443,15 +3443,15 @@ const pt_BRData string = "" + // Size: 5420 bytes
 	"r em arquivo…\x02Tempo\x02Registro de mensagens\x02Arquivos de texto (" +
 	"*.txt)|*.txt|Todos os arquivos (*.*)|*.*\x02Exportar arquivo de log\x02E" +
 	"rro de túnel\x02%[1]s\x0a\x0aPor favor, consulte o log para obter mais " +
-	"informações.\x02%[1]s (desatualizado)\x02Erro de Detecção do Warpam" +
-	"\x02Não foi possível esperar a janela do Warpam aparecer: %[1]v\x02War" +
+	"informações.\x02%[1]s (desatualizado)\x02Erro de Detecção do WarpAm" +
+	"\x02Não foi possível esperar a janela do WarpAm aparecer: %[1]v\x02War" +
 	"pam: Desativado\x02Status desconhecido\x02Endereços: Nenhum\x02&Gerenci" +
 	"ar túneis…\x02&Importar túnel(s) do arquivo…\x02Sai&r\x02&Túneis" +
-	"\x02Warpam ativado\x02O túnel %[1]s foi ativado.\x02Warpam: Desativado" +
-	"\x02O túnel %[1]s foi desativado.\x02Erro no Túnel Warpam\x02Warpam: %" +
+	"\x02WarpAm ativado\x02O túnel %[1]s foi ativado.\x02WarpAm: Desativado" +
+	"\x02O túnel %[1]s foi desativado.\x02Erro no Túnel WarpAm\x02WarpAm: %" +
 	"[1]s\x02Status: %[1]s\x02Endereços: %[1]s\x02Uma atualização está di" +
-	"sponível!\x02Atualização do Warpam disponível\x02Uma atualização p" +
-	"ara o Warpam está agora disponível. Recomenda-se atualizar o mais ráp" +
+	"sponível!\x02Atualização do WarpAm disponível\x02Uma atualização p" +
+	"ara o WarpAm está agora disponível. Recomenda-se atualizar o mais ráp" +
 	"ido possível.\x02Túneis\x02&Editar\x02Adicionar &túnel vazio…\x02Ad" +
 	"icionar um túnel\x02Remover túneis selecionados\x02Exportar todos os t" +
 	"úneis para zip\x02&Alternancia\x02Exportar todos os túneis para &zip" +
@@ -3475,9 +3475,9 @@ const pt_BRData string = "" + // Size: 5420 bytes
 	" de configuração (*.zip, *.conf)|*.zip;*.conf|Todos os arquivos (*.*)|" +
 	"*.*\x02Importar túnel(es) do arquivo\x02Arquivos ZIP de configuração " +
 	"(*.zip)|*.zip\x02Exportar túneis para zip\x02%[1]s (versão não assina" +
-	"da, sem atualizações)\x02Erro ao sair do Warpam\x02Não é possível s" +
-	"air do serviço devido a: %[1]v. Você pode querer parar o Warpam do ger" +
-	"enciador de serviços.\x02Uma atualização para o Warpam está disponí" +
+	"da, sem atualizações)\x02Erro ao sair do WarpAm\x02Não é possível s" +
+	"air do serviço devido a: %[1]v. Você pode querer parar o WarpAm do ger" +
+	"enciador de serviços.\x02Uma atualização para o WarpAm está disponí" +
 	"vel. É altamente aconselhável atualizar sem demora.\x02Status: Aguarda" +
 	"ndo o usuário\x02Atualizar agora\x02Estado: Aguardando o serviço do at" +
 	"ualizador\x02Erro: %[1]v. Por favor, tente novamente.\x02Status da taref" +
@@ -3501,7 +3501,7 @@ const pt_BRData string = "" + // Size: 5420 bytes
 	"do]\x02Todos os pares devem ter chaves públicas\x02Erro ao atualizar co" +
 	"nfiguração\x02Chave inválida para a seção da interface\x02A versão" +
 	" do protocolo deve ser 1\x02Chave inválida para a seção do par\x02Sob" +
-	"re o &Warpam…"
+	"re o &WarpAm…"
 
 var roIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -3596,13 +3596,13 @@ const roData string = "" + // Size: 5850 bytes
 	"\x02Eroare\x02(fără argument): obținere drept administrativ și insta" +
 	"lare serviciu de gestionare\x02Utilizare: %[1]s [\x0a%[2]s]\x02Opțiuni " +
 	"linie de comandă\x02Nu se poate determina dacă procesul rulează sub W" +
-	"OW64: %[1]v\x02Trebuie să utilizezi versiunea nativă a Warpam pe acest" +
+	"OW64: %[1]v\x02Trebuie să utilizezi versiunea nativă a WarpAm pe acest" +
 	" calculator.\x02Nu poate fi deschis tokenul actual de proces: %[1]v\x02W" +
 	"arpam poate fi utilizat doar de către utilizatorii care sunt membri ai " +
-	"grupului Builtin %[1]s.\x02Warpam rulează, dar interfața cu utilizator" +
+	"grupului Builtin %[1]s.\x02WarpAm rulează, dar interfața cu utilizator" +
 	"ul este accesibilă doar din spațiile de lucru ale grupului Builtin %[1" +
-	"]s.\x02Pictograma Warpam din bara de sistem nu a apărut după 30 de sec" +
-	"unde.\x02, \x02, \x02Despre Warpam\x02Imagine siglă Warpam\x02Închider" +
+	"]s.\x02Pictograma WarpAm din bara de sistem nu a apărut după 30 de sec" +
+	"unde.\x02, \x02, \x02Despre WarpAm\x02Imagine siglă WarpAm\x02Închider" +
 	"e\x02Stare:\x02&Dezactivare\x02&Activare\x02Cheie publică:\x02Port de a" +
 	"scultare:\x02MTU:\x02Adrese:\x02Servere DNS:\x02Scripturi:\x02Cheie pred" +
 	"istribuită:\x02IP-uri permise:\x02Punct final:\x02Mesaj keepalive persi" +
@@ -3624,14 +3624,14 @@ const roData string = "" + // Size: 5850 bytes
 	"rnal\x02Fișiere text (*.txt)|*.txt|Toate fișierele (*.*)|*.*\x02Export" +
 	"are jurnal în fișier\x02Eroare de tunel\x02%[1]s\x0a\x0aConsultă jurn" +
 	"alul pentru mai multe informații.\x02%[1]s (neactualizat)\x02Eroare de " +
-	"detectare Warpam\x02Nu se poate aștepta ca fereastra Warpam să apară:" +
-	" %[1]v\x02Warpam: dezactivat\x02Stare: necunoscută\x02Adrese: niciuna" +
+	"detectare WarpAm\x02Nu se poate aștepta ca fereastra WarpAm să apară:" +
+	" %[1]v\x02WarpAm: dezactivat\x02Stare: necunoscută\x02Adrese: niciuna" +
 	"\x02&Gestionare tuneluri…\x02&Importare tunel(uri) din fișier…\x02I" +
-	"e&șire\x02&Tuneluri\x02Warpam activat\x02Tunelul %[1]s a fost activat." +
-	"\x02Warpam dezactivat\x02Tunelul %[1]s a fost dezactivat.\x02Eroare de t" +
-	"unel Warpam\x02Warpam: %[1]s\x02Stare: %[1]s\x02Adrese: %[1]s\x02Este di" +
-	"sponibilă o actualizare!\x02Actualizare disponibilă pentru Warpam\x02O" +
-	" actualizare pentru Warpam este acum disponibilă. Se recomandă efectua" +
+	"e&șire\x02&Tuneluri\x02WarpAm activat\x02Tunelul %[1]s a fost activat." +
+	"\x02WarpAm dezactivat\x02Tunelul %[1]s a fost dezactivat.\x02Eroare de t" +
+	"unel WarpAm\x02WarpAm: %[1]s\x02Stare: %[1]s\x02Adrese: %[1]s\x02Este di" +
+	"sponibilă o actualizare!\x02Actualizare disponibilă pentru WarpAm\x02O" +
+	" actualizare pentru WarpAm este acum disponibilă. Se recomandă efectua" +
 	"rea actualizării cât mai rapid posibil.\x02Tuneluri\x02&Editare\x02Ad" +
 	"ăugare tunel &gol…\x02Adăugare tunel\x02Eliminare tunel(uri) selecta" +
 	"t(e)\x02Exportă toate tunelurile în zip\x02&Comutare\x02Exportă toate" +
@@ -3658,9 +3658,9 @@ const roData string = "" + // Size: 5850 bytes
 	"figurare (*.zip, *.conf)|*.zip;*.conf|Toate fișierele (*.*)|*.*\x02Impo" +
 	"rtare tunel(uri) din fișier\x02Fișiere ZIP de configurare (*.zip)|*.zi" +
 	"p\x02Exportare tuneluri în zip\x02%[1]s (versiune nesemnată, fără ac" +
-	"tualizări)\x02Eroare la ieșirea din Warpam\x02Nu se poate ieși din se" +
-	"rviciu din cauza: %[1]v. Poți opri Warpam din managerul de servicii." +
-	"\x02Este disponibilă o actualizare pentru Warpam. Se recomandă ferm ac" +
+	"tualizări)\x02Eroare la ieșirea din WarpAm\x02Nu se poate ieși din se" +
+	"rviciu din cauza: %[1]v. Poți opri WarpAm din managerul de servicii." +
+	"\x02Este disponibilă o actualizare pentru WarpAm. Se recomandă ferm ac" +
 	"tualizarea imediată.\x02Stare: se așteaptă utilizatorul\x02Actualizea" +
 	"ză acum\x02Stare: se așteaptă serviciul de actualizare\x02Eroare: %[1" +
 	"]v. Încearcă din nou.\x02Stare: finalizată!\x02Acum\x02Ceasul de sist" +
@@ -3687,7 +3687,7 @@ const roData string = "" + // Size: 5850 bytes
 	"cată]\x02Toate perechile trebuie să aibă chei publice\x02Eroare la ob" +
 	"ținerea configurației\x02Cheie invalidă pentru secțiunea interfeței" +
 	"\x02Versiunea de protocol trebuie să fie 1\x02Cheie invalidă pentru se" +
-	"cțiunea perechii\x02&Despre Warpam…"
+	"cțiunea perechii\x02&Despre WarpAm…"
 
 var ruIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -3785,15 +3785,15 @@ const ruData string = "" + // Size: 9497 bytes
 	"\x0a%[2]s]\x02Параметры командной строки\x02Ош" +
 	"ибка определения или процесс работает " +
 	"как WOW64: %[1]v\x02Используйте нативную верс" +
-	"ию Warpam на этом компьютере.\x02Не удается " +
+	"ию WarpAm на этом компьютере.\x02Не удается " +
 	"открыть токен текущего процесса: %[1]v\x02Wa" +
 	"rpam может использоваться только пользов" +
 	"ателями, входящими во встроенную групп" +
-	"у %[1]s.\x02Warpam запущен, но пользовательски" +
+	"у %[1]s.\x02WarpAm запущен, но пользовательски" +
 	"й интерфейс доступен только с рабочих с" +
 	"толов группы %[1]s.\x02Значок в системном т" +
-	"рее Warpam не появился после 30 секунд.\x02, " +
-	"\x02, \x02О Warpam\x02Логотип Warpam\x02Закрыть\x02Ста" +
+	"рее WarpAm не появился после 30 секунд.\x02, " +
+	"\x02, \x02О WarpAm\x02Логотип WarpAm\x02Закрыть\x02Ста" +
 	"тус:\x02&Отключить\x02&Подключить\x02Публич" +
 	"ный ключ:\x02Порт:\x02MTU:\x02IP-адреса:\x02DNS-сер" +
 	"веры:\x02Скрипты:\x02Общий ключ:\x02Разрешен" +
@@ -3827,17 +3827,17 @@ const ruData string = "" + // Size: 9497 bytes
 	"файл\x02Ошибка туннеля\x02%[1]s\x0a\x0aОбратите" +
 	"сь к журналу для получения дополнитель" +
 	"ной информации.\x02%[1]s (устарел)\x02Ошибка " +
-	"обнаружения Warpam\x02Не удалось дождаться " +
-	"появления окна Warpam: %[1]v\x02Warpam: деактивир" +
+	"обнаружения WarpAm\x02Не удалось дождаться " +
+	"появления окна WarpAm: %[1]v\x02WarpAm: деактивир" +
 	"ован\x02Статус: неизвестен\x02Адреса: нет" +
 	"\x02&Управление туннелями…\x02&Импорт тун" +
 	"нелей из файла…\x02Вы&ход\x02&Туннели\x02Warpa" +
-	"m включен\x02Туннель %[1]s подключен.\x02Warpam " +
+	"m включен\x02Туннель %[1]s подключен.\x02WarpAm " +
 	"выключен\x02Туннель %[1]s отключен.\x02Ошибк" +
-	"а туннеля Warpam\x02Warpam: %[1]s\x02Статус: %[1]s\x02Ад" +
+	"а туннеля WarpAm\x02WarpAm: %[1]s\x02Статус: %[1]s\x02Ад" +
 	"реса: %[1]s\x02Доступно обновление!\x02Досту" +
-	"пно обновление Warpam\x02Доступно обновлен" +
-	"ие для Warpam. Рекомендуется обновить его " +
+	"пно обновление WarpAm\x02Доступно обновлен" +
+	"ие для WarpAm. Рекомендуется обновить его " +
 	"как можно скорее.\x02Туннели\x02&Редактиро" +
 	"вать\x02Добавить &пустой туннель…\x02Доба" +
 	"вить туннель\x02Удалить выбранные тунне" +
@@ -3882,8 +3882,8 @@ const ruData string = "" + // Size: 9497 bytes
 	"ы конфигурации (*.zip)|*.zip\x02Экспорт туннел" +
 	"ей в zip-архив\x02%[1]s (неподписанная сборка" +
 	", нет обновлений)\x02Ошибка при завершени" +
-	"и Warpam\x02Не удалось завершить службу: %[1]v." +
-	" Вы можете остановить Warpam вручную из ос" +
+	"и WarpAm\x02Не удалось завершить службу: %[1]v." +
+	" Вы можете остановить WarpAm вручную из ос" +
 	"настки Службы.\x02Доступно обновление Warp" +
 	"am. Настоятельно рекомендуем обновить п" +
 	"риложение.\x02Статус: ожидание пользоват" +
@@ -3922,7 +3922,7 @@ const ruData string = "" + // Size: 9497 bytes
 	"нфигурации\x02Неверный ключ для секции и" +
 	"нтерфейса\x02Версия протокола должна бы" +
 	"ть 1\x02Недействительный ключ для секции " +
-	"пира\x02&О Warpam…\x02Убедитесь, что вы получ" +
+	"пира\x02&О WarpAm…\x02Убедитесь, что вы получ" +
 	"или файл конфигурации в надёжном источ" +
 	"нике.\x02Официальные сервисы Amnezia доступ" +
 	"ны только на сайте amnezia.org."
@@ -4023,19 +4023,19 @@ const si_LKData string = "" + // Size: 11069 bytes
 	"]s]\x02විධාන රේඛා විකල්ප\x02ක්\u200d" +
 	"රියාවලිය WOW64: %[1]vයටතේ ක්\u200dරිය" +
 	"ාත්මක වේද යන්න තීරණය කළ නොහ" +
-	"ැක\x02ඔබ මෙම පරිගණකයේ Warpam හි දේ" +
+	"ැක\x02ඔබ මෙම පරිගණකයේ WarpAm හි දේ" +
 	"ශීය අනුවාදය භාවිතා කළ යුතු" +
 	"ය.\x02වත්මන් ක්\u200dරියාවලි ටෝක" +
-	"නය විවෘත කළ නොහැක: %[1]v\x02Warpam භාව" +
+	"නය විවෘත කළ නොහැක: %[1]v\x02WarpAm භාව" +
 	"ිතා කළ හැක්කේ Builtin %[1]s කණ්ඩායම" +
 	"ේ සාමාජිකයෙකු වන පරිශීලකයි" +
-	"න් විසින් පමණි.\x02Warpam ක්\u200dරිය" +
+	"න් විසින් පමණි.\x02WarpAm ක්\u200dරිය" +
 	"ාත්මක වේ, නමුත් UI ප්\u200dරවේශ ව" +
 	"ිය හැක්කේ Builtin %[1]s කාණ්ඩයේ ඩෙස" +
-	"්ක්ටොප් වලින් පමණි.\x02Warpam පද්" +
+	"්ක්ටොප් වලින් පමණි.\x02WarpAm පද්" +
 	"ධති තැටි නිරූපකය තත්පර 30කට " +
 	"පසුව දිස් නොවීය.\x02, \x02, \x02වයර්" +
-	"ගාඩ් ගැන\x02Warpam ලාංඡන රූපය\x02වස" +
+	"ගාඩ් ගැන\x02WarpAm ලාංඡන රූපය\x02වස" +
 	"න්න\x02තත්\u200dවය:\x02&අක්\u200dරිය කර" +
 	"න්න\x02&සක්රිය කරන්න\x02පොදු යත" +
 	"ුර:\x02සවන්දීමේ තොට:\x02MTU:\x02ලිපි" +
@@ -4077,21 +4077,21 @@ const si_LKData string = "" + // Size: 11069 bytes
 	"*.*\x02ලොගය ගොනුවට අපනයනය කරන්" +
 	"න\x02උමං දෝෂය\x02%[1]s\x0a\x0aවැඩි විස්" +
 	"තර සඳහා කරුණාකර ලඝු-සටහන බල" +
-	"න්න.\x02%[1]s (ඉකුත් වී ඇත)\x02Warpam හඳු" +
+	"න්න.\x02%[1]s (ඉකුත් වී ඇත)\x02WarpAm හඳු" +
 	"නාගැනීමේ දෝෂය\x02වයර්ගාඩ් කව" +
 	"ුළුව පෙනෙන තෙක් බලා සිටීමට " +
-	"බලාපොරොත්තු වේ: %[1]v\x02Warpam: අක්" +
+	"බලාපොරොත්තු වේ: %[1]v\x02WarpAm: අක්" +
 	"\u200dරිය කර ඇත\x02තත්\u200dවය: නොදනී" +
 	"\x02ලිපින: කිසිත් නැත\x02&උමං…කළ" +
 	"මනාකරණය කරන්න\x02…ගොනුවෙන් උ" +
 	"මං(ය) &ආයාත කරන්න\x02පි&ටවන්න\x02&" +
 	"උමං මාර්ග\x02වයර්ගාඩ් ක්\u200dරි" +
 	"යාත්මකයි\x02%[1]s උමග සක්රිය කර " +
-	"ඇත.\x02Warpam අක්රිය කර ඇත\x02%[1]s උමං " +
-	"මාර්ගය අක්\u200dරිය කර ඇත.\x02Warpam උ" +
+	"ඇත.\x02WarpAm අක්රිය කර ඇත\x02%[1]s උමං " +
+	"මාර්ගය අක්\u200dරිය කර ඇත.\x02WarpAm උ" +
 	"මං දෝෂය\x02තත්\u200dවය: %[1]s\x02ලිපින: " +
-	"%[1]s\x02යාවත්කාලීනයක් තිබේ!\x02Warpam" +
-	" යාවත්කාලීනය තිබේ\x02Warpam වෙත ය" +
+	"%[1]s\x02යාවත්කාලීනයක් තිබේ!\x02WarpAm" +
+	" යාවත්කාලීනය තිබේ\x02WarpAm වෙත ය" +
 	"ාවත්කාලීනයක් දැන් තිබේ. හැ" +
 	"කි ඉක්මනින් යාවත්කාලීන කිර" +
 	"ීමට ඔබට උපදෙස් දෙනු ලැබේ.\x02උ" +
@@ -4138,8 +4138,8 @@ const si_LKData string = "" + // Size: 11069 bytes
 	"ැත)\x02වයර්ගාඩ් පිටවීමේදී දෝ" +
 	"ෂයකි\x02%[1]vනිසා සේවයෙන් ඉවත් ව" +
 	"ිය නොහැක. ඔබට සේවා කළමනාකරු" +
-	"ගෙන් Warpam නැවැත්වීමට අවශ්\u200dය" +
-	" විය හැකිය.\x02Warpam වෙත යාවත්කාල" +
+	"ගෙන් WarpAm නැවැත්වීමට අවශ්\u200dය" +
+	" විය හැකිය.\x02WarpAm වෙත යාවත්කාල" +
 	"ීනයක් තිබේ. ප්රමාදයකින් තො" +
 	"රව යාවත්කාලීන කිරීම ඉතා යෝ" +
 	"ග්ය වේ.\x02තත්\u200dවය: පරිශීලක සඳ" +
@@ -4281,12 +4281,12 @@ const skData string = "" + // Size: 6011 bytes
 	"štalovať službu manažéra\x02Použitie: %[1]s [\x0a%[2]s]\x02Možnos" +
 	"ti príkazového riadku\x02Nepodarilo sa zistiť, či proces beží pod " +
 	"WOW64: %[1]v\x02V tomto počítači musíte používať pôvodnú verziu" +
-	" programu Warpam.\x02Nepodarilo sa otvoriť token aktuálneho procesu: %" +
-	"[1]v\x02Warpam môžu používať iba členovia Builtin skupiny %[1]s." +
-	"\x02Warpam je spustený, ale používateľské rozhranie je prístupné " +
-	"iba členom Builtin skupiny %[1]s.\x02Warpam ikona sa ani po 30 sekundá" +
-	"ch neobjavila na systémovej lište.\x02, \x02 \x02O Warpam\x02Obrázok " +
-	"Warpam loga\x02Zatvoriť\x02Stav:\x02&Deaktivovať\x02&Aktivovať\x02Ver" +
+	" programu WarpAm.\x02Nepodarilo sa otvoriť token aktuálneho procesu: %" +
+	"[1]v\x02WarpAm môžu používať iba členovia Builtin skupiny %[1]s." +
+	"\x02WarpAm je spustený, ale používateľské rozhranie je prístupné " +
+	"iba členom Builtin skupiny %[1]s.\x02WarpAm ikona sa ani po 30 sekundá" +
+	"ch neobjavila na systémovej lište.\x02, \x02 \x02O WarpAm\x02Obrázok " +
+	"WarpAm loga\x02Zatvoriť\x02Stav:\x02&Deaktivovať\x02&Aktivovať\x02Ver" +
 	"ejný kľúč:\x02Otvorený port:\x02MTU:\x02Adresy:\x02Servery DNS:\x02" +
 	"Skripty:\x02Vopred zdieľaný kľúč:\x02Povolené IP adresy:\x02Koncov" +
 	"ý bod:\x02Perzistentný keepalive:\x02Posledné spojenie (handshake):" +
@@ -4307,14 +4307,14 @@ const skData string = "" + // Size: 6011 bytes
 	"u…\x02Čas\x02Správa v denníku udalostí\x02Textové súbory (*.txt)" +
 	"|*.txt|Všetky súbory (*.*)|*.*\x02Exportovať denník udalostí do sú" +
 	"boru\x02Chyba tunela\x02%[1]s\x0a\x0aViac informácií nájdete v denní" +
-	"ku udalostí.\x02%[1]s (neaktuány)\x02Chyba detekcie Warpam\x02Nie je m" +
-	"ožné čakať na zobrazenie Warpam okna: %[1]v\x02Warpam: deaktivovaný" +
+	"ku udalostí.\x02%[1]s (neaktuány)\x02Chyba detekcie WarpAm\x02Nie je m" +
+	"ožné čakať na zobrazenie WarpAm okna: %[1]v\x02WarpAm: deaktivovaný" +
 	"\x02Stav: Nezámy\x02Adresa: žiadna\x02&Spravovať tunely…\x02&Import" +
-	"ovať tunel(y) zo súboru…\x02U&končiť\x02&Tunely\x02Warpam je aktiv" +
-	"ovaný\x02Tunel %[1]s bol aktivovaný.\x02Warpam je deaktivovaný\x02Tun" +
-	"el %[1]s bol deaktivovaný.\x02Chyba Warpam tunelu\x02Warpam: %[1]s\x02S" +
+	"ovať tunel(y) zo súboru…\x02U&končiť\x02&Tunely\x02WarpAm je aktiv" +
+	"ovaný\x02Tunel %[1]s bol aktivovaný.\x02WarpAm je deaktivovaný\x02Tun" +
+	"el %[1]s bol deaktivovaný.\x02Chyba WarpAm tunelu\x02WarpAm: %[1]s\x02S" +
 	"tav: %[1]s\x02Adresa: %[1]s\x02Je dostupná aktualizácia!\x02Dostupná " +
-	"aktualizácia pre Warpam\x02Je k dispozícii aktualizácia programu Warp" +
+	"aktualizácia pre WarpAm\x02Je k dispozícii aktualizácia programu Warp" +
 	"am. Je odporúčané čo najskôr vykonať aktualizáciu.\x02Tunely\x02&" +
 	"Upraviť\x02Pridať &prázdny tunel…\x02Pridať tunel\x02Odstrániť o" +
 	"značený(é) tunel(y)\x02Export všetkých tunelov do zip súboru\x02P&" +
@@ -4345,10 +4345,10 @@ const skData string = "" + // Size: 6011 bytes
 	"dstrániť.\x02Konfirugačné súbory (*.zip, *.conf)|*.zip;*.conf|Všet" +
 	"ky súbory (*.*)|*.*\x02Importovať tunel(y) zo súboru\x02Konfiguračn" +
 	"é ZIP súbry (*.zip)|*.zip\x02Export tunelov do zip súboru\x02%[1]s (n" +
-	"epodpísaná verzia, žiadne aktualizácie)\x02Chyba ukončenia Warpam" +
+	"epodpísaná verzia, žiadne aktualizácie)\x02Chyba ukončenia WarpAm" +
 	"\x02Nie je možné ukončiť služby z dôvodu: %[1]v. Skúste zastaviť" +
-	" Warpam v správcovi služieb.\x02Je k dispozícii nová verzia programu" +
-	" Warpam. Odporúčame bezodkladne vykonať aktualizáciu.\x02Stav: Čak" +
+	" WarpAm v správcovi služieb.\x02Je k dispozícii nová verzia programu" +
+	" WarpAm. Odporúčame bezodkladne vykonať aktualizáciu.\x02Stav: Čak" +
 	"á sa na užívateľa\x02Aktualizovať teraz\x02Stav: Čaká sa na aktua" +
 	"lizačnú službu\x02Chyba: %[1]v. Skúste to znova.\x02Stav: Dokončen" +
 	"é!\x02Teraz\x02Systémové hodiny sa vrátili v čase!\x14\x01\x81\x01" +
@@ -4374,7 +4374,7 @@ const skData string = "" + // Size: 6011 bytes
 	"sí mať priradený súkromný kľúč\x02[nešpecifikované]\x02Všetci" +
 	" peeri musia mať priradený verejný kľúč\x02Chyba pri získavaní k" +
 	"onfigurácie\x02Neplatný kľúč sekcie rozhrania\x02Verzia protokolu m" +
-	"usí byť 1\x02Neplatný kľúč peer sekcie\x02&O Warpam…"
+	"usí byť 1\x02Neplatný kľúč peer sekcie\x02&O WarpAm…"
 
 var slIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -4470,11 +4470,11 @@ const slData string = "" + // Size: 5534 bytes
 	"ti skrbniško storitev\x02Uporaba: %[1]s [\x0a%[2]s]\x02Možnosti ukazne" +
 	" vrstice\x02Napaka pri določanju ali proces teče kot WOW64: %[1]v\x02N" +
 	"a temu računalniku morate uporabiti enako-arhitekturno različico Warpa" +
-	"ma.\x02Napaka pri odpiranju žetona trenutnega procesa: %[1]v\x02Warpam " +
+	"ma.\x02Napaka pri odpiranju žetona trenutnega procesa: %[1]v\x02WarpAm " +
 	"lahko uporabljajo samo uporabniki, ki so člani vgrajene skupine %[1]s." +
-	"\x02Warpam je zagnan, vendar je up. vmesnik dostopen samo z namizij upor" +
-	"abnikov članov skupine %[1]s.\x02Ikona Warpama se po 30 sekundah ni poj" +
-	"avila v sistemski vrstici.\x02, \x02 \x02O Warpamu\x02Slika Warpamovega " +
+	"\x02WarpAm je zagnan, vendar je up. vmesnik dostopen samo z namizij upor" +
+	"abnikov članov skupine %[1]s.\x02Ikona WarpAma se po 30 sekundah ni poj" +
+	"avila v sistemski vrstici.\x02, \x02 \x02O WarpAmu\x02Slika WarpAmovega " +
 	"logotipa\x02Zapri\x02Status:\x02&Dezaktiviraj\x02&Aktiviraj\x02Javni klj" +
 	"uč:\x02Vrata poslušanja:\x02MTU:\x02Naslovi:\x02Strežniki DNS:\x02Skr" +
 	"ipta:\x02Ključ v skupni rabi:\x02Dovoljeni IP-ji:\x02Končna točka:" +
@@ -4495,14 +4495,14 @@ const slData string = "" + // Size: 5534 bytes
 	"\x02Čas\x02Sporočilo v dnevniku\x02Tekstovne datoteke (*.txt)|*.txt|Vs" +
 	"e datoteke (*.*)|*.*\x02Izvozi dnevnik v datoteko\x02Napaka tunela\x02%[" +
 	"1]s\x0a\x0aDodatne informacije najdete v dnevniku.\x02%[1]s (neposodoblj" +
-	"en)\x02Napaka zaznavanja Warpama\x02Čakanje, da se pojavi Warpamovo okn" +
-	"o, ni možno: %[1]v\x02Warpam: Dezaktiviran\x02Status: Neznan\x02Naslovi" +
+	"en)\x02Napaka zaznavanja WarpAma\x02Čakanje, da se pojavi WarpAmovo okn" +
+	"o, ni možno: %[1]v\x02WarpAm: Dezaktiviran\x02Status: Neznan\x02Naslovi" +
 	": Brez\x02&Upravljaj tunele\u00a0…\x02&Uvozi tunel(e) iz datoteke…" +
-	"\x02I&zhod\x02&Tuneli\x02Warpam aktiviran\x02Tunel %[1]s je bil aktivira" +
-	"n.\x02Warpam dezaktiviran\x02Tunel %[1]s je bil dezaktiviran.\x02Napaka " +
-	"tunela Warpam\x02Warpam: %[1]s\x02Status: %[1]s\x02Naslovi: %[1]s\x02Na " +
-	"voljo je posodobitev!\x02Posodobitev Warpama je na voljo\x02Posodobitev " +
-	"Warpama je na voljo. Svetujemo posodobitev čim prej.\x02Tuneli\x02&Ured" +
+	"\x02I&zhod\x02&Tuneli\x02WarpAm aktiviran\x02Tunel %[1]s je bil aktivira" +
+	"n.\x02WarpAm dezaktiviran\x02Tunel %[1]s je bil dezaktiviran.\x02Napaka " +
+	"tunela WarpAm\x02WarpAm: %[1]s\x02Status: %[1]s\x02Naslovi: %[1]s\x02Na " +
+	"voljo je posodobitev!\x02Posodobitev WarpAma je na voljo\x02Posodobitev " +
+	"WarpAma je na voljo. Svetujemo posodobitev čim prej.\x02Tuneli\x02&Ured" +
 	"i\x02Dodaj &prazen tunel\u00a0…\x02Dodaj tunel\x02Odstrani izbrane tun" +
 	"ele\x02Izvozi vse tunele v zip\x02&Preklopi\x02Izvozi vse tunele v &zip" +
 	"\u00a0…\x02Uredi &izbran tunel\u00a0…\x02Odst&rani izbrane tunele" +
@@ -4530,9 +4530,9 @@ const slData string = "" + // Size: 5534 bytes
 	"guracijske datoteke (*.zip, *.conf)|*.zip;*.conf|Vse datoteke (*.*)|*.*" +
 	"\x02Uvozi tunele iz datoteke\x02Konfiguracijske datoteke ZIP (*.zip)|*.z" +
 	"ip\x02Izvozi tunele v datoteko zip\x02%[1]s (nepodpisane različice, bre" +
-	"z posodobitev)\x02Napaka pri izhodu iz Warpama\x02Storitve ni bilo mogo" +
-	"če zaustaviti, ker: %[1]v. Poskusite zaustaviti Warpam z uporabo progra" +
-	"ma Storitve.\x02Posodobitev Warpam je na voljo. Zelo priporočamo posodo" +
+	"z posodobitev)\x02Napaka pri izhodu iz WarpAma\x02Storitve ni bilo mogo" +
+	"če zaustaviti, ker: %[1]v. Poskusite zaustaviti WarpAm z uporabo progra" +
+	"ma Storitve.\x02Posodobitev WarpAm je na voljo. Zelo priporočamo posodo" +
 	"bitev brez odlašanja.\x02Status: Čaka na uporabnika\x02Posodobi zdaj" +
 	"\x02Status: Čaka na servis za posodobitev\x02Napaka: %[1]v. Poskusite p" +
 	"onovno.\x02Status: Končano!\x02Zdaj\x02Sistemska ura prevrtena nazaj!" +
@@ -4557,7 +4557,7 @@ const slData string = "" + // Size: 5534 bytes
 	"odsek [Peer]\x02Vmesnik mora imeti zasebni ključ\x02[ni navedeno]\x02Vs" +
 	"i vrstniki morajo imeti javni ključ\x02Napaka pri branju konfiguracije" +
 	"\x02Napačen ključ za odsek vmesnika\x02Verzija protokola mora biti 1" +
-	"\x02Napačen ključ za odsek vrstnika\x02O &Warpamu\u00a0…"
+	"\x02Napačen ključ za odsek vrstnika\x02O &WarpAmu\u00a0…"
 
 var sv_SEIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -4652,12 +4652,12 @@ const sv_SEData string = "" + // Size: 5023 bytes
 	"\x02Fel\x02(inget argument): höj och installera hanterartjänsten\x02An" +
 	"vändning: %[1]s [\x0a%[2]s]\x02Kommandoradsalternativ\x02Det går inte " +
 	"att avgöra om processen körs under WOW64: %[1]v\x02Du måste använda " +
-	"den inbyggda versionen av Warpam på denna dator.\x02Det går inte att " +
-	"öppna nuvarande process-token: %[1]v\x02Warpam får endast användas av" +
-	" användare som är medlemmar i gruppen Builtin %[1]s.\x02Warpam körs, " +
+	"den inbyggda versionen av WarpAm på denna dator.\x02Det går inte att " +
+	"öppna nuvarande process-token: %[1]v\x02WarpAm får endast användas av" +
+	" användare som är medlemmar i gruppen Builtin %[1]s.\x02WarpAm körs, " +
 	"men gränssnittet är endast tillgängligt från skrivbordet i gruppen B" +
-	"uiltin %[1]s.\x02Warpam systemfältet visades inte efter 30 sekunder." +
-	"\x02, \x02, \x02Om Warpam\x02Warpam-logotyp bild\x02Stäng\x02Status:" +
+	"uiltin %[1]s.\x02WarpAm systemfältet visades inte efter 30 sekunder." +
+	"\x02, \x02, \x02Om WarpAm\x02WarpAm-logotyp bild\x02Stäng\x02Status:" +
 	"\x02&Avaktivera\x02&Aktivera\x02Publik nyckel:\x02Lyssningsport:\x02MTU:" +
 	"\x02Adresser:\x02DNS-servrar:\x02Skript:\x02Fördelad nyckel:\x02Tillåt" +
 	"na IP: s:\x02Slutpunkt:\x02Beständig keepalive:\x02Senaste handskakning" +
@@ -4676,14 +4676,14 @@ const sv_SEData string = "" + // Size: 5023 bytes
 	"llstånd\x02Logg\x02&Kopiera\x02Markera &allt\x02&Spara till fil…\x02T" +
 	"id\x02Loggmeddelande\x02Textfiler (*.txt)|*.txt|Alla filer (*.*)|*.*\x02" +
 	"Exportera logg till fil\x02Tunnelfel\x02%[1]s\x0a\x0aVänligen inspekter" +
-	"a loggen för mer information.\x02%[1]s (föråldrad)\x02Warpam Vaktfel" +
-	"\x02Lyckas inte vänta på att Warpam fönstret ska visas: %[1]v\x02Warp" +
+	"a loggen för mer information.\x02%[1]s (föråldrad)\x02WarpAm Vaktfel" +
+	"\x02Lyckas inte vänta på att WarpAm fönstret ska visas: %[1]v\x02Warp" +
 	"am: inaktiverad\x02Status: Okänd\x02Adresser: Ingen\x02&Hantera tunnlar" +
-	"…\x02&Importera tunnlar från fil…\x02A&vsluta\x02&Tunnlar\x02Warpam" +
-	" aktiverad\x02%[1]s tunneln har aktiverats.\x02Warpam inaktiverad\x02%[1" +
-	"]s tunneln har inaktiverats.\x02Warpam Tunnelfel\x02Warpam: %[1]s\x02Sta" +
+	"…\x02&Importera tunnlar från fil…\x02A&vsluta\x02&Tunnlar\x02WarpAm" +
+	" aktiverad\x02%[1]s tunneln har aktiverats.\x02WarpAm inaktiverad\x02%[1" +
+	"]s tunneln har inaktiverats.\x02WarpAm Tunnelfel\x02WarpAm: %[1]s\x02Sta" +
 	"tus: %[1]s\x02Adresser: %[1]s\x02En uppdatering är tillgänglig!\x02War" +
-	"pam uppdatering tillgänglig\x02En uppdatering till Warpam är nu tillg" +
+	"pam uppdatering tillgänglig\x02En uppdatering till WarpAm är nu tillg" +
 	"änglig. Du rekommenderas att uppdatera så snart som möjligt.\x02Tunnl" +
 	"ar\x02&Redigera\x02Lägg till &tom tunnel…\x02Skapa tunnel\x02Ta bort " +
 	"valda tunnlar\x02Exportera alla tunnlar till zip\x02&Växla\x02Exportera" +
@@ -4707,8 +4707,8 @@ const sv_SEData string = "" + // Size: 5023 bytes
 	"från fil\x02Inställningsfiler ZIP (*.zip)|*.zip\x02Exportera tunnlar t" +
 	"ill zip\x02%[1]s (osignerat bygge, inga uppdateringar)\x02Fel när Warpa" +
 	"m avslutades\x02Det går inte att avsluta tjänsten på grund av %[1]v. " +
-	"Du kanske vill stoppa Warpam från servicehanteraren.\x02En uppdatering " +
-	"av Warpam finns tillgänglig. Uppdatering bör utföras snarast möjligt" +
+	"Du kanske vill stoppa WarpAm från servicehanteraren.\x02En uppdatering " +
+	"av WarpAm finns tillgänglig. Uppdatering bör utföras snarast möjligt" +
 	".\x02Status: Väntar på användaren\x02Uppdatera nu\x02Status: Väntar " +
 	"på uppdateringstjänst\x02Fel: %[1]v. Vänligen försök igen.\x02Statu" +
 	"s: Färdig!\x02Nu\x02Systemets klocka har ställts tillbaka!\x14\x01\x81" +
@@ -4730,7 +4730,7 @@ const sv_SEData string = "" + // Size: 5023 bytes
 	"t måste innehålla en privat nyckel\x02[ingen angiven]\x02Alla peers m" +
 	"åste ha offentliga nycklar\x02Fel vid hämtning av konfiguration\x02Ogi" +
 	"ltig nyckel för gränssnittsavsnitt\x02Protokollversion måste vara 1" +
-	"\x02Ogiltig nyckel för peer-avsnitt\x02Om &Warpam…"
+	"\x02Ogiltig nyckel för peer-avsnitt\x02Om &WarpAm…"
 
 var trIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -4825,12 +4825,12 @@ const trData string = "" + // Size: 5246 bytes
 	"\x02Hata\x02(parametre belirtilmediyse): gerekli izinleri al ve yönetim" +
 	" hizmetini yükle\x02Kullanım: %[1]s [\x0a%[2]s]\x02Komut Satırı Seç" +
 	"enekleri\x02İşlemin WOW64 altında çalıştığından emin olunamadı" +
-	": %[1]v\x02Bu bilgisayarda Warpam'ın yerel sürümünü kullanmalısın" +
-	"ız.\x02Geçerli işlem jetonu açılamadı: %[1]v\x02Warpam'ı sadece y" +
-	"erleşik %[1]s grubunun üyeleri kullanabilir.\x02Warpam çalışıyor f" +
+	": %[1]v\x02Bu bilgisayarda WarpAm'ın yerel sürümünü kullanmalısın" +
+	"ız.\x02Geçerli işlem jetonu açılamadı: %[1]v\x02WarpAm'ı sadece y" +
+	"erleşik %[1]s grubunun üyeleri kullanabilir.\x02WarpAm çalışıyor f" +
 	"akat kullanıcı arayüzüne sadece yerleşik %[1]s grubunun bilgisayarl" +
-	"arından erişilebilir.\x02Warpam sistem tepsisi simgesi 30 saniye sonun" +
-	"da belirmedi.\x02, \x02, \x02Warpam Hakkında\x02Warpam logosu\x02Kapat" +
+	"arından erişilebilir.\x02WarpAm sistem tepsisi simgesi 30 saniye sonun" +
+	"da belirmedi.\x02, \x02, \x02WarpAm Hakkında\x02WarpAm logosu\x02Kapat" +
 	"\x02Durum:\x02&Devre dışı bırak\x02&Etkinleştir\x02Ortak anahtar:" +
 	"\x02Dinlenen port:\x02MTU:\x02Adresler:\x02DNS sunucuları:\x02Betikler:" +
 	"\x02Önceden paylaşılan anahtar:\x02İzin verilen IP’ler:\x02Uç nok" +
@@ -4851,14 +4851,14 @@ const trData string = "" + // Size: 5246 bytes
 	"yala\x02&Tümünü seç\x02&Dosyaya kaydet…\x02Saat\x02Günlük mesaj" +
 	"ı\x02Metin dosyaları (*.txt)|*.txt|Tüm dosyalar (*.*)|*.*\x02Günlü" +
 	"ğü dosyaya aktar\x02Tünel Hatası\x02%[1]s\x0a\x0aDaha fazla bilgi i" +
-	"çin lütfen günlüğe göz atın.\x02%[1]s (eski sürüm)\x02Warpam Te" +
-	"spit Hatası\x02Warpam penceresinin belirmesi beklenemedi: %[1]v\x02Warp" +
+	"çin lütfen günlüğe göz atın.\x02%[1]s (eski sürüm)\x02WarpAm Te" +
+	"spit Hatası\x02WarpAm penceresinin belirmesi beklenemedi: %[1]v\x02Warp" +
 	"am: Devre dışı\x02Durum: Bilinmiyor\x02Adresler: Yok\x02&Tünelleri y" +
 	"önet…\x02Tünelleri dosyadan &içe aktar…\x02Çı&kış\x02&Tünell" +
-	"er\x02Warpam Etkin\x02%[1]s tüneli etkinleştirildi.\x02Warpam Devre D" +
+	"er\x02WarpAm Etkin\x02%[1]s tüneli etkinleştirildi.\x02WarpAm Devre D" +
 	"ışı Bırakıldı\x02%[1]s tüneli devre dışı bırakıldı.\x02Warp" +
-	"am Tünel Hatası\x02Warpam: %[1]s\x02Durum: %[1]s\x02Adresler: %[1]s" +
-	"\x02Güncelleme Mevcut!\x02Warpam Güncellemesi Mevcut\x02Yeni bir Warpa" +
+	"am Tünel Hatası\x02WarpAm: %[1]s\x02Durum: %[1]s\x02Adresler: %[1]s" +
+	"\x02Güncelleme Mevcut!\x02WarpAm Güncellemesi Mevcut\x02Yeni bir Warpa" +
 	"m güncellemesi yayımlandı. İlk fırsatta güncelleme yapmanız tavsi" +
 	"ye edilir.\x02Tüneller\x02&Düzenle\x02Boş tünel &ekle…\x02Tünel e" +
 	"kle\x02Seçilen tünelleri kaldır\x02Tüm tünelleri zip olarak dışa " +
@@ -4881,9 +4881,9 @@ const trData string = "" + // Size: 5246 bytes
 	"ırılamadı.\x02Yapılandırma dosyaları (*.zip, *.conf)|*.zip;*.conf|" +
 	"Tüm dosyalar (*.*)|*.*\x02Tünelleri dosyadan içe aktar\x02Yapılandı" +
 	"rma ZIP dosyaları (*.zip)|*.zip\x02Tünelleri zip olarak dışa aktar" +
-	"\x02%[1]s (imzasız derleme, güncelleme yok)\x02Warpam Çıkış Hatas" +
-	"ı\x02Şu nedenden dolayı hizmetten çıkılamadı: %[1]v. Warpam'ı hi" +
-	"zmet yöneticisinden durdurabilirsiniz.\x02Yeni bir Warpam güncellemesi" +
+	"\x02%[1]s (imzasız derleme, güncelleme yok)\x02WarpAm Çıkış Hatas" +
+	"ı\x02Şu nedenden dolayı hizmetten çıkılamadı: %[1]v. WarpAm'ı hi" +
+	"zmet yöneticisinden durdurabilirsiniz.\x02Yeni bir WarpAm güncellemesi" +
 	" yayımlandı. Vakit kaybetmeden güncelleme yapmanız tavsiye edilir." +
 	"\x02Durum: Kullanıcı bekleniyor\x02Şimdi güncelle\x02Durum: Güncell" +
 	"eştirme hizmeti bekleniyor\x02Hata: %[1]v. Lütfen yeniden deneyin.\x02" +
@@ -4906,7 +4906,7 @@ const trData string = "" + // Size: 5246 bytes
 	"anahtar\x02Arabirimde gizli anahtar bulunmalıdır\x02[belirtilmedi]\x02" +
 	"Tüm eşlerin ortak anahtarları olmalıdır\x02Yapılandırma alınırk" +
 	"en hata oluştu\x02Arabirim bölümünde geçersiz anahtar\x02Protokol s" +
-	"ürümü 1 olmalıdır\x02Eş bölümünde geçersiz anahtar\x02&Warpam " +
+	"ürümü 1 olmalıdır\x02Eş bölümünde geçersiz anahtar\x02&WarpAm " +
 	"hakkında…"
 
 var ukIndex = []uint32{ // 304 elements
@@ -5006,14 +5006,14 @@ const ukData string = "" + // Size: 8953 bytes
 	"ти, чи працює процес під WOW64: %[1]v\x02Ви пов" +
 	"инні використовувати нативну версію Warp" +
 	"am на цьому комп'ютері.\x02Не вдалося відк" +
-	"рити токен поточного процесу: %[1]v\x02Warpam " +
+	"рити токен поточного процесу: %[1]v\x02WarpAm " +
 	"може бути використаний тільки користув" +
 	"ачами, які є членами вбудованих %[1]s груп" +
-	".\x02Warpam запущено, але UI доступний лише з " +
+	".\x02WarpAm запущено, але UI доступний лише з " +
 	"комп\x22ютерів вбудованої %[1]s групи.\x02Зн" +
-	"ачок системи Warpam не з'явився через 30 сек" +
-	"унд.\x02, \x02, \x02Про Warpam\x02Зображення логот" +
-	"ипу Warpam\x02Закрити\x02Статус:\x02&Деактивув" +
+	"ачок системи WarpAm не з'явився через 30 сек" +
+	"унд.\x02, \x02, \x02Про WarpAm\x02Зображення логот" +
+	"ипу WarpAm\x02Закрити\x02Статус:\x02&Деактивув" +
 	"ати\x02&Активувати\x02Відкритий ключ:\x02По" +
 	"рт:\x02MTU:\x02Адреси:\x02DNS-сервери:\x02Скрипти:" +
 	"\x02Preshared ключ:\x02Дозволені IP адреси:\x02Endpoi" +
@@ -5045,16 +5045,16 @@ const ukData string = "" + // Size: 8953 bytes
 	"унелю\x02%[1]s\x0a\x0aБудь ласка, зверніться д" +
 	"о логу для отримання додаткової інформ" +
 	"ації.\x02%[1]s (застарілий)\x02Помилка виявле" +
-	"ння Warpam\x02Не вдалося дочекатися появи в" +
-	"ікна Warpam: %[1]v\x02Warpam: Вимкнений\x02Статус: Н" +
+	"ння WarpAm\x02Не вдалося дочекатися появи в" +
+	"ікна WarpAm: %[1]v\x02WarpAm: Вимкнений\x02Статус: Н" +
 	"евідомий\x02Адреси: немає\x02&Керування ту" +
 	"нелями…\x02&Імпортувати тунель з файлу…" +
-	"\x02Ви&йти\x02&Тунелі\x02Warpam активовано\x02Ту" +
-	"нель %[1]s активовано.\x02Warpam деактивовано" +
+	"\x02Ви&йти\x02&Тунелі\x02WarpAm активовано\x02Ту" +
+	"нель %[1]s активовано.\x02WarpAm деактивовано" +
 	"\x02Тунель %[1]s було деактивовано.\x02Помил" +
-	"ка тунелю Warpam\x02Warpam: %[1]s\x02Статус: %[1]s\x02Ад" +
+	"ка тунелю WarpAm\x02WarpAm: %[1]s\x02Статус: %[1]s\x02Ад" +
 	"реси: %[1]s\x02Доступно оновлення!\x02Доступ" +
-	"не оновлення Warpam\x02Оновлення до Warpam дос" +
+	"не оновлення WarpAm\x02Оновлення до WarpAm дос" +
 	"тупне. Рекомендуємо оновити якомога шв" +
 	"идше.\x02Тунелі\x02&Редагувати\x02Додати &пу" +
 	"стий тунель…\x02Додати тунель\x02Видалит" +
@@ -5097,10 +5097,10 @@ const ukData string = "" + // Size: 8953 bytes
 	"айлу\x02ZIP-файли конфігурації (*.zip) | *.zip\x02" +
 	"Експортувати тунелі в zip\x02%[1]s (непідпис" +
 	"ані збірки, немає оновлень)\x02Помилка пр" +
-	"и виході з Warpam\x02Не вдалося зупинити слу" +
+	"и виході з WarpAm\x02Не вдалося зупинити слу" +
 	"жбу через: %[1]v. Ви можете зупинити її вру" +
 	"чну через менеджер сервісів.\x02Доступне" +
-	" оновлення Warpam, доцільне оновлення без " +
+	" оновлення WarpAm, доцільне оновлення без " +
 	"затримок.\x02Статус: Очікування користув" +
 	"ача\x02Оновити зараз\x02Статус: Очікуванн" +
 	"я на службу оновлення\x02Помилка: %[1]v. Буд" +
@@ -5137,7 +5137,7 @@ const ukData string = "" + // Size: 8953 bytes
 	"і\x02Помилка при отриманні конфігурації" +
 	"\x02Недійсний ключ для розділу інтерфейс" +
 	"у\x02Версія протоколу повинна бути 1\x02Хи" +
-	"бний ключ для [Peer] розділу\x02Про &Warpam…"
+	"бний ключ для [Peer] розділу\x02Про &WarpAm…"
 
 var viIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -5230,7 +5230,7 @@ var viIndex = []uint32{ // 304 elements
 
 const viData string = "" + // Size: 932 bytes
 	"\x02Lỗi\x02Sử dụng: %[1]s [\x0a%[2]s]\x02Tùy chọn dòng lệnh" +
-	"\x02,\x02,\x02Thông tin về Warpam\x02Logo Warpam\x02Đóng\x02Trạng" +
+	"\x02,\x02,\x02Thông tin về WarpAm\x02Logo WarpAm\x02Đóng\x02Trạng" +
 	" thái:\x02Đã hủy kích hoạt\x02Kích hoạt\x02Đầu cuối:\x02" +
 	"đã kích hoạt\x02Nhận %[1]s, gứi %[2]s\x02Không thể xác đ" +
 	"ịnh tình trạng VPN\x02Không thể kích hoạt VPN\x02Không thể" +
@@ -5339,12 +5339,12 @@ var zh_CNIndex = []uint32{ // 304 elements
 const zh_CNData string = "" + // Size: 4090 bytes
 	"\x02错误\x02(无参数): 提升并安装管理服务\x02用法: %[1]s " +
 	"[\x0a%[2]s]\x02命令行选项\x02无法确定该进程是否在WOW64下" +
-	"运行: %[1]v\x02您必须在此计算机上使用原生版本的 Warpam" +
-	"。\x02无法打开当前进程令牌: %[1]v\x02Warpam 可能只能被" +
-	"内建的 %[1]s 小组中的成员使用。\x02Warpam 正在运行，但" +
-	"用户界面只能从内建的 %[1]s 小组的桌面访问。\x02Warpam " +
+	"运行: %[1]v\x02您必须在此计算机上使用原生版本的 WarpAm" +
+	"。\x02无法打开当前进程令牌: %[1]v\x02WarpAm 可能只能被" +
+	"内建的 %[1]s 小组中的成员使用。\x02WarpAm 正在运行，但" +
+	"用户界面只能从内建的 %[1]s 小组的桌面访问。\x02WarpAm " +
 	"系统托盘图标在30秒后没有出现。\x02、\x02 \x02关于 Warpa" +
-	"m\x02Warpam logo 图片\x02关闭\x02状态:\x02断开 (&D)\x02连接 (&" +
+	"m\x02WarpAm logo 图片\x02关闭\x02状态:\x02断开 (&D)\x02连接 (&" +
 	"A)\x02公钥:\x02监听端口:\x02MTU:\x02地址:\x02DNS 服务器:\x02" +
 	"脚本:\x02预共享密钥:\x02允许的 IP:\x02对端:\x02连接保活" +
 	"间隔:\x02上次握手时间:\x02流量:\x02连接前\x02连接后\x02" +
@@ -5361,13 +5361,13 @@ const zh_CNData string = "" + // Size: 4090 bytes
 	"\x02未知\x02日志\x02复制 (&C)\x02全选 (&A)\x02导出… (&S)\x02" +
 	"时间\x02日志消息\x02文本文件 (*.txt)|*.txt|所有文件 (*.*)|" +
 	"*.*\x02导出日志\x02隧道错误\x02%[1]s\x0a\x0a更多信息请查" +
-	"看日志。\x02%[1]s (已过时)\x02Warpam 检测错误\x02无法等待" +
-	" Warpam 窗口出现: %[1]v\x02Warpam: 已断开\x02状态: 未知\x02" +
+	"看日志。\x02%[1]s (已过时)\x02WarpAm 检测错误\x02无法等待" +
+	" WarpAm 窗口出现: %[1]v\x02WarpAm: 已断开\x02状态: 未知\x02" +
 	"地址: 无\x02管理隧道… (&M)\x02从文件导入隧道… (&I)\x02" +
-	"退出 (&E)\x02隧道 (&T)\x02Warpam 已连接\x02隧道「%[1]s」已" +
-	"连接。\x02Warpam 已断开\x02隧道「%[1]s」已断开连接。\x02" +
-	"Warpam 隧道错误\x02Warpam: %[1]s\x02状态: %[1]s\x02地址: %[1]s" +
-	"\x02发现更新！\x02Warpam 更新\x02新的 Warpam 版本发布了。" +
+	"退出 (&E)\x02隧道 (&T)\x02WarpAm 已连接\x02隧道「%[1]s」已" +
+	"连接。\x02WarpAm 已断开\x02隧道「%[1]s」已断开连接。\x02" +
+	"WarpAm 隧道错误\x02WarpAm: %[1]s\x02状态: %[1]s\x02地址: %[1]s" +
+	"\x02发现更新！\x02WarpAm 更新\x02新的 WarpAm 版本发布了。" +
 	"强烈建议您现在安装。\x02隧道\x02编辑 (&E)\x02新建空隧" +
 	"道… (&E)\x02新建隧道\x02删除所选隧道\x02导出所有隧道 " +
 	"(ZIP 压缩包)\x02切换连接状态 (&T)\x02导出所有隧道 (ZIP " +
@@ -5385,8 +5385,8 @@ const zh_CNData string = "" + // Size: 4090 bytes
 	"配置文件 (*.zip, *.conf)|*.zip;*.conf|所有文件 (*.*)|*.*\x02从" +
 	"文件导入隧道\x02配置文件 (*.zip)|*.zip\x02导出配置文件 (" +
 	"ZIP 压缩包)\x02%[1]s (未签名版本，禁用自动更新)\x02退出" +
-	" Warpam 时出错\x02无法停止服务: %[1]v。您可能需要在服" +
-	"务管理器中手动停止 Warpam 服务。\x02发现新版 Warpam。" +
+	" WarpAm 时出错\x02无法停止服务: %[1]v。您可能需要在服" +
+	"务管理器中手动停止 WarpAm 服务。\x02发现新版 WarpAm。" +
 	"强烈建议您现在安装。\x02状态: 等待用户\x02立即更新" +
 	"\x02状态: 等待更新服务\x02错误: %[1]v。请重试。\x02状态" +
 	": 完成！\x02刚刚\x02系统时间倒退了！\x14\x01\x81\x01\x00" +
@@ -5405,7 +5405,7 @@ const zh_CNData string = "" + // Size: 4090 bytes
 	"的该键无效\x02接口必须有一个私钥\x02[未指定]\x02每个" +
 	"节点都必须指定公钥\x02获取配置时出错\x02接口段落的" +
 	"键无效\x02协议版本必须为 1\x02节点段落的键无效\x02关" +
-	"于 Warpam… (&A)"
+	"于 WarpAm… (&A)"
 
 var zh_TWIndex = []uint32{ // 304 elements
 	// Entry 0 - 1F
@@ -5500,11 +5500,11 @@ const zh_TWData string = "" + // Size: 4257 bytes
 	"\x02錯誤\x02(無參數)：提升權限並安裝管理服務\x02使用" +
 	"方法： %[1]s [\x0a%[2]s]\x02命令列選項\x02無法確定該處理" +
 	"程序是否在 WOW64 下執行： %[1]v\x02您必須在此電腦上執" +
-	"行原生版本的 Warpam。\x02無法開啓目前處理程序的權杖" +
-	"： %[1]v\x02Warpam 可能只能被內建的「%[1]s」群組成員使" +
-	"用。\x02Warpam 正在執行，但 UI 只能從內建的內建的「%[1" +
-	"]s」群組成員的桌面存取。\x02Warpam 的工作列圖示在 30 " +
-	"秒後並沒有顯示。\x02、\x02 \x02關於 Warpam\x02Warpam logo 圖" +
+	"行原生版本的 WarpAm。\x02無法開啓目前處理程序的權杖" +
+	"： %[1]v\x02WarpAm 可能只能被內建的「%[1]s」群組成員使" +
+	"用。\x02WarpAm 正在執行，但 UI 只能從內建的內建的「%[1" +
+	"]s」群組成員的桌面存取。\x02WarpAm 的工作列圖示在 30 " +
+	"秒後並沒有顯示。\x02、\x02 \x02關於 WarpAm\x02WarpAm logo 圖" +
 	"片\x02關閉\x02狀態\x02中斷連線 (&D)\x02連線 (&A)\x02公鑰" +
 	"\x02監聽埠\x02MTU\x02位址\x02DNS 伺服器\x02指令碼：\x02預" +
 	"交換金鑰\x02允許的位址\x02連接點\x02Keepalive 間隔\x02最" +
@@ -5523,13 +5523,13 @@ const zh_TWData string = "" + // Size: 4257 bytes
 	"… (&S)\x02時間\x02日誌訊息\x02純文字 (*.txt)|*.txt|所有檔" +
 	"案 (*.*)|*.*\x02匯出日誌…\x02隧道錯誤\x02%[1]s\x0a\x0a如需" +
 	"更多資訊，請查看日誌。\x02%[1]s（已過時）\x02偵測 Warp" +
-	"am 錯誤\x02無法等待 Warpam 視窗開啓： %[1]v\x02Warpam - 未" +
+	"am 錯誤\x02無法等待 WarpAm 視窗開啓： %[1]v\x02WarpAm - 未" +
 	"連線\x02[狀態] 未知\x02[位址] 無\x02管理隧道 (&M)\x02從檔" +
-	"案匯入… (&I)\x02離開 (&X)\x02隧道(&T)\x02Warpam 已連線\x02" +
-	"已連線至隧道 - %[1]s\x02Warpam 已中斷連線\x02已中斷與隧" +
-	"道的連線 - %[1]s\x02Warpam 隧道錯誤\x02Warpam - %[1]s\x02[狀態" +
-	"] %[1]s\x02位址: %[1]s\x02更新\x02Warpam 更新\x02更新的 Warpam " +
-	"已經為您準備好了。\x0a強烈建議您立即更新 Warpam。\x02" +
+	"案匯入… (&I)\x02離開 (&X)\x02隧道(&T)\x02WarpAm 已連線\x02" +
+	"已連線至隧道 - %[1]s\x02WarpAm 已中斷連線\x02已中斷與隧" +
+	"道的連線 - %[1]s\x02WarpAm 隧道錯誤\x02WarpAm - %[1]s\x02[狀態" +
+	"] %[1]s\x02位址: %[1]s\x02更新\x02WarpAm 更新\x02更新的 WarpAm " +
+	"已經為您準備好了。\x0a強烈建議您立即更新 WarpAm。\x02" +
 	"隧道\x02編輯 (&E)\x02新增隧道精靈 (&E)\x02新增隧道\x02刪" +
 	"除選取隧道\x02匯出所有隧道（ZIP 格式）\x02切換連線狀" +
 	"態 (&T)\x02匯出所有隧道至 &ZIP 壓縮檔\x02編輯選取隧道 (" +
@@ -5546,9 +5546,9 @@ const zh_TWData string = "" + // Size: 4257 bytes
 	"法刪除 %[1]d 個隧道\x02隧道設定檔 (*.zip, *.conf)|*.zip;*.con" +
 	"f|所有檔案 (*.*)|*.*\x02從檔案中匯入隧道…\x02隧道設定" +
 	"檔 (*.zip)|*.zip\x02匯出隧道設定至…\x02%[1]s（未簽署發行" +
-	"版本，無法自動更新）\x02離開 Warpam 失敗\x02無法結束" +
+	"版本，無法自動更新）\x02離開 WarpAm 失敗\x02無法結束" +
 	"服務： %[1]v。\x0a您可能需要手動從服務管理中結束 Warp" +
-	"am 服務。\x02更新的 Warpam 已經為您準備好了。\x0a強烈" +
+	"am 服務。\x02更新的 WarpAm 已經為您準備好了。\x0a強烈" +
 	"建議您立即進行更新。\x02狀態：等待使用者\x02立即更" +
 	"新\x02狀態：等待更新服務\x02錯誤： %[1]v。請稍後再試" +
 	"。\x02狀態：已完成！\x02就是現在\x02系統時鐘倒退了！" +
@@ -5567,6 +5567,6 @@ const zh_TWData string = "" + // Size: 4257 bytes
 	"中有無效選項\x02[Peer] 中有無效選項\x02Interface 中必須" +
 	"要有一把私鑰\x02[未指定]\x02每個 Peer 都必須要有公鑰" +
 	"\x02讀取設定時發生錯誤\x02Interface 中的金鑰無效\x02協" +
-	"定版本必須為 1\x02Peer 中的金鑰無效\x02關於 Warpam (&A)"
+	"定版本必須為 1\x02Peer 中的金鑰無效\x02關於 WarpAm (&A)"
 
 	// Total table size 199600 bytes (194KiB); checksum: 99D565D6

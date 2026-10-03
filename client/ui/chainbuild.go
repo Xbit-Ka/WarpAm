@@ -31,7 +31,7 @@ const chainMenuText = "Собрать ц&епочку из двух конфиг
 var (
 	chainNL    = string([]byte{10})
 	chainNL2   = string([]byte{10, 10})
-	chainTitle = "AwgChain"
+	chainTitle = "WarpAm"
 )
 
 func (tp *TunnelsPage) onBuildChain() {

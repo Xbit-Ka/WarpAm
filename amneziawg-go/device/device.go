@@ -129,6 +129,18 @@ type Device struct {
 
 	randomTrailers atomic.Bool
 	disableCookies atomic.Bool
+
+	// WarpAm pack 94: set once the first packet was found whose size and
+	// header fit a handshake message and a live transport session at the
+	// same time, so the log says it one time per device and not per packet.
+	sizeCollisionLogged atomic.Bool
+
+	// WarpAm pack 95: transport packets whose wire length equals a
+	// handshake message get 16 more bytes of padding, see sizedodge.go.
+	// The flag is stored inverted so that a fresh device has it on.
+	sizeDodgeOff     atomic.Bool
+	sizeDodgeLogged  atomic.Bool
+	sizeDodgeSkipped atomic.Uint64
 }
 
 // deviceState represents the state of a Device.

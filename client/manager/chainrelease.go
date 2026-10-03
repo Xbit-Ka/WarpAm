@@ -70,7 +70,7 @@ type ChainReleaseResult struct {
 func chainReleaseTunnels() (deleted, left int) {
 	names, err := chainSecureNames()
 	if err != nil {
-		log.Printf("[AwgChain] The tunnels could not be listed while releasing the folder: %v", err)
+		log.Printf("[WarpAm] The tunnels could not be listed while releasing the folder: %v", err)
 		return 0, 0
 	}
 	for _, name := range names {
@@ -88,13 +88,13 @@ func chainReleaseTunnels() (deleted, left int) {
 			return removeErr
 		})
 		if stepErr != nil {
-			log.Printf("[AwgChain] The service of %s is still there: %v", tunnelName, stepErr)
+			log.Printf("[WarpAm] The service of %s is still there: %v", tunnelName, stepErr)
 			left++
 			continue
 		}
 		deleted++
 	}
-	log.Printf("[AwgChain] %d tunnel services were removed while releasing the folder, %d are still there", deleted, left)
+	log.Printf("[WarpAm] %d tunnel services were removed while releasing the folder, %d are still there", deleted, left)
 	return deleted, left
 }
 
@@ -124,7 +124,7 @@ func chainReleaseServiceExists(name string) (bool, error) {
 func chainReleaseAdapters() int {
 	left := chainOrphanAdapters(map[string]bool{})
 	for _, name := range left {
-		log.Printf("[AwgChain] The adapter %s is still in the network list, the driver removes it a moment after its service is gone", name)
+		log.Printf("[WarpAm] The adapter %s is still in the network list, the driver removes it a moment after its service is gone", name)
 	}
 	return len(left)
 }
@@ -142,7 +142,7 @@ func chainReleaseAutoStart() error {
 		return err
 	}
 	chainSetManagerStartType(false)
-	log.Printf("[AwgChain] The program will not start with Windows any more, so closing it deletes the manager service")
+	log.Printf("[WarpAm] The program will not start with Windows any more, so closing it deletes the manager service")
 	return nil
 }
 
@@ -164,7 +164,7 @@ func ChainReleaseFolder(unseal bool) (*ChainReleaseResult, error) {
 		done, failed, err := chainSecureUnsealAll()
 		result.Unsealed = done
 		if err != nil {
-			log.Printf("[AwgChain] The folder was not released: %d configurations were decrypted, %d were not: %v", done, failed, err)
+			log.Printf("[WarpAm] The folder was not released: %d configurations were decrypted, %d were not: %v", done, failed, err)
 			return result, err
 		}
 	}
@@ -192,6 +192,6 @@ func ChainReleaseFolder(unseal bool) (*ChainReleaseResult, error) {
 	}
 	result.AutoStartOff = true
 
-	log.Printf("[AwgChain] The folder is released for moving")
+	log.Printf("[WarpAm] The folder is released for moving")
 	return result, nil
 }

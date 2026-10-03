@@ -41,7 +41,7 @@ func InitGlobalLogger(tag string) error {
 	log.SetOutput(Global)
 	log.SetFlags(0)
 	if ensureErr != nil {
-		log.Printf("[AwgChain] The log file could not be given the rights of the data folder: %v", ensureErr)
+		log.Printf("[WarpAm] The log file could not be given the rights of the data folder: %v", ensureErr)
 	}
 	overrideWrite = globalWrite
 	return nil

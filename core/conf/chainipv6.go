@@ -78,9 +78,11 @@ func chainFilterDNS(servers []net.IP, allowV6 bool) []net.IP {
 }
 
 // ChainIPv6Note is what the interface shows about the chain and IPv6.
+// WarpAm pack 94: the text was stored twice encoded and read as mojibake;
+// it is plain UTF-8 again and no longer points at awgchain.bat.
 func ChainIPv6Note(inner *Config) string {
 	if ChainConfigHasIPv6(inner) {
-		return "IPv6 РёРґС‘С‚ С‡РµСЂРµР· С†РµРїРѕС‡РєСѓ (::/1 + 8000::/1)"
+		return "IPv6 идёт через цепочку (::/1 + 8000::/1)"
 	}
-	return "IPv6 Сѓ РІРЅСѓС‚СЂРµРЅРЅРµРіРѕ Р·РІРµРЅР° РЅРµС‚: v6 РЅСѓР¶РЅРѕ РІС‹РєР»СЋС‡РёС‚СЊ (awgchain.bat ipv6on)"
+	return "IPv6 у внутреннего звена нет: v6 нужно выключить в настройках туннеля"
 }

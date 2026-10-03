@@ -22,6 +22,7 @@ import (
 	"github.com/amnezia-vpn/amneziawg-windows-client/elevate"
 	"github.com/amnezia-vpn/amneziawg-windows-client/ringlogger"
 	"github.com/amnezia-vpn/amneziawg-windows-client/services"
+	"github.com/amnezia-vpn/amneziawg-windows/v3/brand"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/conf"
 )
 
@@ -67,6 +68,11 @@ func (service *managerService) Execute(args []string, r <-chan svc.ChangeRequest
 		serviceError = services.ErrorTrackTunnels
 		return
 	}
+
+	// WarpAm pack 94: the services of the old name are cleared away and the
+	// data of an AwgChain folder is carried over, before the first look at
+	// the configurations. See chainlegacy94.go.
+	ChainLegacyCarryOver()
 
 	// AwgChain pack 86: before anything is read or written, the manager says
 	// which folder it works in and repairs the rights of it, and the store is
@@ -382,7 +388,7 @@ loop:
 }
 
 func Run() error {
-	return svc.Run("AwgChainManager", &managerService{})
+	return svc.Run(brand.ManagerService, &managerService{})
 }
 
 func LogFile(createRoot bool) (string, error) {

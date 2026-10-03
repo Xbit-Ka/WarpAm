@@ -62,7 +62,7 @@ func init() {
 func UAPIListen(name string) (net.Listener, error) {
 	listener, err := (&namedpipe.ListenConfig{
 		SecurityDescriptor: UAPISecurityDescriptor,
-	}).Listen(`\\.\pipe\ProtectedPrefix\Administrators\AwgChain\` + name)
+	}).Listen(`\\.\pipe\ProtectedPrefix\Administrators\WarpAm\` + name) // WarpAm pack 94: same folder as brand.PipeFolder in core
 	if err != nil {
 		return nil, err
 	}

@@ -27,7 +27,10 @@ const (
 	chainSecureLineStrict  = " Права строгие, под ними папок: %d, файлов: %d."
 	chainSecureLineOpen    = " Права открыты группе «Пользователи», под ними папок: %d, файлов: %d."
 	chainSecureLineWrong   = " Права не легли на объектов: %d."
-	chainSecureLineSealed  = " Установка закрыта от изменений, снять можно только удалением через инсталлятор."
+	// Pack 96: the sentence about the sealed install starts a line of its
+	// own. Glued to the end of the line above it, it made the label so wide
+	// that the whole settings window grew past the screen.
+	chainSecureLineSealed  = "\r\nУстановка закрыта от изменений, снять можно только удалением через инсталлятор."
 	chainSecureNoService   = "Служба не отвечает, раздел недоступен"
 
 	chainSecureSealButton = "Зашифровать"

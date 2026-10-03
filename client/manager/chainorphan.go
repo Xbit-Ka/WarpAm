@@ -29,6 +29,7 @@ import (
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc"
 
+	"github.com/amnezia-vpn/amneziawg-windows/v3/brand"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/conf"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/services"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/tunnel/winipcfg"
@@ -36,7 +37,7 @@ import (
 
 // chainOrphanExeName is the name of our own executable, under which the
 // manager, the windows and the tunnel services all appear.
-const chainOrphanExeName = "amneziawg.exe"
+const chainOrphanExeName = brand.ExeName
 
 // chainOrphanCountProcesses counts the processes of our executable.
 func chainOrphanCountProcesses() int {
@@ -120,22 +121,22 @@ func chainOrphanSweepName(name string) (deleted bool) {
 		// No service behind it. The adapter is the only leftover, and it is
 		// not ours to remove: the driver deletes it when the tunnel that
 		// created it is started and stopped once more.
-		log.Printf("[AwgChain] The adapter %s has no configuration and no service any more, nothing was changed", name)
+		log.Printf("[WarpAm] The adapter %s has no configuration and no service any more, nothing was changed", name)
 		return false
 	}
 	defer service.Close()
 
 	status, err := service.Query()
 	if err == nil && status.State != svc.Stopped {
-		log.Printf("[AwgChain] The service of %s is still running while its configuration is gone, it was left alone", name)
+		log.Printf("[WarpAm] The service of %s is still running while its configuration is gone, it was left alone", name)
 		return false
 	}
 	err = service.Delete()
 	if err != nil {
-		log.Printf("[AwgChain] The leftover service of %s could not be deleted: %v", name, err)
+		log.Printf("[WarpAm] The leftover service of %s could not be deleted: %v", name, err)
 		return false
 	}
-	log.Printf("[AwgChain] The leftover service of %s was deleted, its configuration is gone", name)
+	log.Printf("[WarpAm] The leftover service of %s was deleted, its configuration is gone", name)
 	return true
 }
 
@@ -143,7 +144,7 @@ func chainOrphanSweepName(name string) (deleted bool) {
 func ChainOrphanSweep() {
 	known, err := chainOrphanConfigured()
 	if err != nil {
-		log.Printf("[AwgChain] The leftovers could not be looked for, the configurations are unreadable: %v", err)
+		log.Printf("[WarpAm] The leftovers could not be looked for, the configurations are unreadable: %v", err)
 		return
 	}
 	left := chainOrphanAdapters(known)
@@ -157,11 +158,11 @@ func ChainOrphanSweep() {
 		// One is this manager. Every window and every tunnel service adds
 		// one more, so a number well above the tunnels that are up is the
 		// sign of processes nobody is waiting for any more.
-		log.Printf("[AwgChain] %d processes of %s are running: this manager, the open windows and the tunnel services", count, chainOrphanExeName)
+		log.Printf("[WarpAm] %d processes of %s are running: this manager, the open windows and the tunnel services", count, chainOrphanExeName)
 	}
 	if len(left) == 0 {
-		log.Printf("[AwgChain] No leftovers of earlier runs were found")
+		log.Printf("[WarpAm] No leftovers of earlier runs were found")
 		return
 	}
-	log.Printf("[AwgChain] %d leftovers were found, %d services were deleted", len(left), deleted)
+	log.Printf("[WarpAm] %d leftovers were found, %d services were deleted", len(left), deleted)
 }

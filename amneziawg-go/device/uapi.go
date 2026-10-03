@@ -556,9 +556,15 @@ type ipcSetPeer struct {
 	dummy   bool // dummy reports whether this peer is a temporary, placeholder peer
 	created bool // new reports whether this is a newly created peer
 	pkaOn   bool // pkaOn reports whether the peer had the persistent keepalive turn on
+
+	// WarpAm pack 95: rehandshake asks for a fresh handshake with this
+	// peer once its lines are applied, see handlePostConfig.
+	rehandshake bool
 }
 
 func (peer *ipcSetPeer) handlePostConfig() {
+	rehandshake := peer.rehandshake
+	peer.rehandshake = false
 	if peer.Peer == nil || peer.dummy {
 		return
 	}
@@ -571,6 +577,20 @@ func (peer *ipcSetPeer) handlePostConfig() {
 			peer.SendKeepalive()
 		}
 		peer.SendStagedPackets()
+	}
+	// WarpAm pack 95: the chain guard of the manager sends this when a hop
+	// keeps sending but hears nothing back. The current keys are dropped,
+	// so nothing more is sent on a session the server may have lost, and a
+	// new handshake goes out at once. It is skipped for a peer created by
+	// this very operation, which starts its own handshake anyway. Expiring
+	// the keys also clears the rate limit of SendHandshakeInitiation, and
+	// the send runs in its own goroutine because it takes locks the IPC
+	// operation must not wait for.
+	if rehandshake && !peer.created && peer.isRunning.Load() {
+		peer.device.log.Verbosef("%v - UAPI: Rehandshake asked", peer.Peer)
+		peer.ExpireCurrentKeypairs()
+		p := peer.Peer
+		go p.SendHandshakeInitiation(false)
 	}
 }
 
@@ -708,6 +728,13 @@ func (device *Device) handlePeerLine(
 		} else {
 			device.allowedips.Remove(prefix, peer.Peer)
 		}
+
+	case "rehandshake":
+		// WarpAm pack 95: not part of the config and never printed by get.
+		if value != "true" {
+			return ipcErrorf(ipc.IpcErrorInvalid, "failed to set rehandshake, invalid value: %v", value)
+		}
+		peer.rehandshake = true
 
 	case "protocol_version":
 		if value != "1" {

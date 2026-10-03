@@ -68,6 +68,10 @@ const (
 	// no default route, no system DNS, the address of the machine does
 	// not change.
 	ChainProxyModeOnly = "only"
+	// Pack 98: the same two, when the proxy also listens on the local
+	// network. An older window does not know them and shows no mark.
+	ChainProxyModeWithLAN = "with-lan"
+	ChainProxyModeOnlyLAN = "only-lan"
 )
 
 // chainProxyModes reads the proxy setting of every tunnel there is.
@@ -85,6 +89,13 @@ func chainProxyModes() map[string]string {
 		mode := ChainProxyModeWith
 		if settings.ProxySplit {
 			mode = ChainProxyModeOnly
+		}
+		if settings.Bind() == ChainProxyBindLAN {
+			if mode == ChainProxyModeOnly {
+				mode = ChainProxyModeOnlyLAN
+			} else {
+				mode = ChainProxyModeWithLAN
+			}
 		}
 		modes[strings.ToLower(strings.TrimSpace(name))] = mode
 	}

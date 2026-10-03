@@ -5,9 +5,15 @@
 
 package conf
 
-import "golang.org/x/sys/windows/registry"
+import (
+	"golang.org/x/sys/windows/registry"
 
-const adminRegKey = `Software\AmneziaWG`
+	"github.com/amnezia-vpn/amneziawg-windows/v3/brand"
+)
+
+// WarpAm pack 94: the key of this program, not the one of the real
+// AmneziaWG client.
+const adminRegKey = brand.RegistryKey
 
 var adminKey registry.Key
 

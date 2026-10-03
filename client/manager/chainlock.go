@@ -31,7 +31,6 @@ import (
 	"log"
 	"net"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -83,13 +82,9 @@ func chainLockApps() []string {
 	if err != nil {
 		return apps
 	}
+	// WarpAm pack 94: only the program itself. The neighbour awgchain.exe
+	// this used to allow as well has not existed since the early packs.
 	apps = append(apps, self)
-	neighbour := filepath.Join(filepath.Dir(self), "awgchain.exe")
-	if !strings.EqualFold(neighbour, self) {
-		if _, err := os.Stat(neighbour); err == nil {
-			apps = append(apps, neighbour)
-		}
-	}
 	return apps
 }
 
@@ -124,8 +119,27 @@ func chainLockLANs(root string) []net.IPNet {
 // filters are up or because the settings say no kill switch is wanted,
 // and false when the chain is not ready to be locked yet.
 func chainArmLockInProc(leaf string) bool {
+	return chainArmLock(leaf, false)
+}
+
+// chainRearmLockInProc builds the rule set of leaf again even when nothing in
+// the holes has changed, as the repair after new adapters needs. WarpAm pack
+// 94: the old rules stand until the new ones are up.
+func chainRearmLockInProc(leaf string) bool {
+	return chainArmLock(leaf, true)
+}
+
+// chainArmLock is the one place where the lock is put up or rebuilt.
+//
+// WarpAm pack 94: a rebuild no longer lifts the lock first. The old way,
+// disarm and arm again, left the machine without rules for about eight
+// milliseconds every time a proxy tunnel was raised or stopped beside the
+// chain. Now the new rule set is installed while the old one still stands
+// (firewall.ReplaceChainFirewall), and a rebuild that cannot finish keeps the
+// old rules instead of leaving the machine open.
+func chainArmLock(leaf string, force bool) bool {
 	if !ChainSettingsFor(leaf).KillSwitch {
-		chainLogChanged("killswitch-off", "[AwgChain] The kill switch is switched off in the settings of %s", leaf)
+		chainLogChanged("killswitch-off", "[WarpAm] The kill switch is switched off in the settings of %s", leaf)
 		chainApplyIPv6For(leaf)
 		return true
 	}
@@ -141,64 +155,78 @@ func chainArmLockInProc(leaf string) bool {
 	holes := chainLockProxyTunnels(leaf)
 	holesSig := chainLockHolesSignature(holes)
 
+	replacing := false
 	if chainLockIsOn() {
 		chainLockMu.Lock()
 		sameChain := strings.EqualFold(chainLockLeaf, leaf)
 		sameHoles := chainLockHolesSig == holesSig
 		chainLockMu.Unlock()
-		if !sameChain || sameHoles {
+		if !sameChain || (sameHoles && !force) {
 			return true
 		}
 		// A proxy tunnel was raised or stopped while the chain was up. The
 		// watch comes here every five seconds, so this is where it is
 		// noticed, and rebuilding the filters takes a fraction of a second.
-		log.Printf("[AwgChain] The proxy tunnels beside the chain have changed (%s), so the kill switch is built again with the new holes", chainLockHolesLine(holes))
-		chainDisarmLockInProc()
+		if !sameHoles {
+			log.Printf("[WarpAm] The proxy tunnels beside the chain have changed (%s), so the kill switch is built again with the new holes while the old rules still stand", chainLockHolesLine(holes))
+		}
+		replacing = true
+	}
+	// notReady is the answer when the rule set cannot be built right now.
+	// During a rebuild the old rules are still up, so the machine is taken
+	// care of for the watch; the repair, which asked for the rebuild, is
+	// told the truth and tries again.
+	notReady := func() bool {
+		if replacing {
+			chainLogChanged("lock-rebuild-wait-"+leaf, "[WarpAm] The kill switch of %s cannot be rebuilt yet, so the old rules stay in place", leaf)
+			return !force
+		}
+		return false
 	}
 
 	hops := chainHopOrder(leaf)
 	if len(hops) < 2 {
-		return false
+		return notReady()
 	}
 	root := hops[0]
 	top := hops[len(hops)-1]
 
 	rootEndpointText, err := chainEndpointOf(root)
 	if err != nil {
-		log.Printf("[AwgChain] The kill switch cannot read the endpoint of %s: %v", root, err)
-		return false
+		log.Printf("[WarpAm] The kill switch cannot read the endpoint of %s: %v", root, err)
+		return notReady()
 	}
 	topEndpointText, err := chainEndpointOf(top)
 	if err != nil {
-		log.Printf("[AwgChain] The kill switch cannot read the endpoint of %s: %v", top, err)
-		return false
+		log.Printf("[WarpAm] The kill switch cannot read the endpoint of %s: %v", top, err)
+		return notReady()
 	}
 	rootIP, rootPort, ok := chainParseEndpoint(rootEndpointText)
 	if !ok {
-		log.Printf("[AwgChain] The kill switch does not understand the endpoint %q", rootEndpointText)
-		return false
+		log.Printf("[WarpAm] The kill switch does not understand the endpoint %q", rootEndpointText)
+		return notReady()
 	}
 	topIP, topPort, ok := chainParseEndpoint(topEndpointText)
 	if !ok {
-		log.Printf("[AwgChain] The kill switch does not understand the endpoint %q", topEndpointText)
-		return false
+		log.Printf("[WarpAm] The kill switch does not understand the endpoint %q", topEndpointText)
+		return notReady()
 	}
 
 	rootLUID, ok := chainAdapterLUID(root)
 	if !ok {
-		log.Printf("[AwgChain] The kill switch waits: the %s adapter is not here yet", root)
-		return false
+		log.Printf("[WarpAm] The kill switch waits: the %s adapter is not here yet", root)
+		return notReady()
 	}
 	topLUID, ok := chainAdapterLUID(top)
 	if !ok {
-		log.Printf("[AwgChain] The kill switch waits: the %s adapter is not here yet", top)
-		return false
+		log.Printf("[WarpAm] The kill switch waits: the %s adapter is not here yet", top)
+		return notReady()
 	}
 
 	apps := chainLockApps()
 	if len(apps) == 0 {
-		log.Printf("[AwgChain] The kill switch cannot tell which executable to allow")
-		return false
+		log.Printf("[WarpAm] The kill switch cannot tell which executable to allow")
+		return notReady()
 	}
 
 	cfg := &firewall.ChainFirewallConfig{
@@ -214,6 +242,22 @@ func chainArmLockInProc(leaf string) bool {
 		ProxyTunnels: holes,
 	}
 
+	if replacing {
+		err = firewall.ReplaceChainFirewall(cfg)
+		if err != nil {
+			chainLogChanged("lock-rebuild-fail-"+leaf, "[WarpAm] The new kill switch rules for %s could not be installed (%v), so the old ones stay in place. The watch tries again.", leaf, err)
+			return !force
+		}
+		chainLockMu.Lock()
+		chainLockHolesSig = holesSig
+		chainLockMu.Unlock()
+		log.Printf("[WarpAm] Kill switch rebuilt for %s -> %s without a gap: the new rules stood before the old ones were removed", root, top)
+		if len(holes) != 0 {
+			log.Printf("[WarpAm] The proxy tunnels %s keep their way out: their own packets to their own servers, and nothing else", chainLockHolesLine(holes))
+		}
+		return true
+	}
+
 	err = firewall.EnableChainFirewall(cfg)
 	if err != nil {
 		// A leftover session from an earlier raise is not a reason to start a
@@ -221,12 +265,12 @@ func chainArmLockInProc(leaf string) bool {
 		// Pack 70: the first failure is written down. Two failures in a row
 		// used to leave one line in the log, so a permanent problem read
 		// exactly like a leftover session being cleared.
-		log.Printf("[AwgChain] The kill switch could not be installed at the first attempt (%v), the leftover filters are cleared and it is tried once more", err)
+		log.Printf("[WarpAm] The kill switch could not be installed at the first attempt (%v), the leftover filters are cleared and it is tried once more", err)
 		firewall.DisableChainFirewall()
 		err = firewall.EnableChainFirewall(cfg)
 	}
 	if err != nil {
-		log.Printf("[AwgChain] The kill switch could not be installed (%v), so the chain runs without one. The watch tries again.", err)
+		log.Printf("[WarpAm] The kill switch could not be installed (%v), so the chain runs without one. The watch tries again.", err)
 		return false
 	}
 
@@ -238,9 +282,9 @@ func chainArmLockInProc(leaf string) bool {
 	chainLockHolesSig = holesSig
 	chainLockMu.Unlock()
 
-	log.Printf("[AwgChain] Kill switch armed inside the manager for %s -> %s, no separate guard process", root, top)
+	log.Printf("[WarpAm] Kill switch armed inside the manager for %s -> %s, no separate guard process", root, top)
 	if len(holes) != 0 {
-		log.Printf("[AwgChain] The proxy tunnels %s keep their way out: their own packets to their own servers, and nothing else", chainLockHolesLine(holes))
+		log.Printf("[WarpAm] The proxy tunnels %s keep their way out: their own packets to their own servers, and nothing else", chainLockHolesLine(holes))
 	}
 	// Pack 71: the real kill switch stands now, so the coarse lock of the
 	// paranoid start is taken down - in this order, so the machine is
@@ -287,7 +331,7 @@ func chainDisarmLockInProc() bool {
 		close(stop)
 	}
 	firewall.DisableChainFirewall()
-	log.Printf("[AwgChain] Kill switch lifted, the machine is open again")
+	log.Printf("[WarpAm] Kill switch lifted, the machine is open again")
 	chainDropIPv6Block()
 	// Pack 86: the machine is left exactly as it was found.
 	ChainRestoreRoutableIPv6()
@@ -304,7 +348,7 @@ func chainLockWatchStopEvent(stop chan struct{}) {
 	handle, err := windows.CreateEvent(chainStopEventSecurity(), 1, 0, name)
 	if handle == 0 {
 		if err != nil {
-			log.Printf("[AwgChain] The kill switch cannot listen for the stop signal: %v", err)
+			log.Printf("[WarpAm] The kill switch cannot listen for the stop signal: %v", err)
 		}
 		return
 	}
@@ -325,7 +369,7 @@ func chainLockWatchStopEvent(stop chan struct{}) {
 		}
 		if state == windows.WAIT_OBJECT_0 {
 			windows.ResetEvent(handle)
-			log.Printf("[AwgChain] The kill switch was asked to stand down")
+			log.Printf("[WarpAm] The kill switch was asked to stand down")
 			// Pack 70: the same "stay down" the button in the window sets.
 			// Without it the watch armed the lock again a few seconds
 			// later and "awgchain.bat ks off" looked like it did nothing.

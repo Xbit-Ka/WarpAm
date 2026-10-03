@@ -612,6 +612,9 @@ func (device *Device) RoutineEncryption(id int) {
 				// pad content to multiple of 16
 				paddingSize = calculatePaddingSize(len(elem.packet), mtu)
 			}
+			// WarpAm pack 95: whichever way the padding was chosen, keep the
+			// packet off the sizes of handshake messages, see sizedodge.go.
+			paddingSize = device.dodgeHandshakeSizes(int(elem.padding), len(elem.packet), paddingSize, mtu)
 
 			// append trailing zeroes
 			oldLen := len(elem.packet)

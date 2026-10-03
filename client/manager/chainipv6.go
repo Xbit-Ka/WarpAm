@@ -100,11 +100,11 @@ func ChainDropRoutableIPv6() {
 			}
 			err = adapter.LUID.DeleteIPAddress(entry.Address)
 			if err != nil {
-				log.Printf("[AwgChain] The routable IPv6 address %s on %s could not be removed while the lock is closed: %v", ip, name, err)
+				log.Printf("[WarpAm] The routable IPv6 address %s on %s could not be removed while the lock is closed: %v", ip, name, err)
 				continue
 			}
 			taken = append(taken, entry)
-			log.Printf("[AwgChain] The routable IPv6 address %s on %s was removed while the kill switch is armed, it is put back when the lock is lifted", ip, name)
+			log.Printf("[WarpAm] The routable IPv6 address %s on %s was removed while the kill switch is armed, it is put back when the lock is lifted", ip, name)
 		}
 	}
 	if len(taken) == 0 {
@@ -126,9 +126,9 @@ func ChainRestoreRoutableIPv6() {
 	for _, entry := range taken {
 		err := entry.LUID.AddIPAddress(entry.Address)
 		if err != nil {
-			log.Printf("[AwgChain] The IPv6 address %s could not be put back on %s: %v. It comes back by itself with the next router advertisement or a reconnect of that adapter", entry.Address.IP, entry.Adapter, err)
+			log.Printf("[WarpAm] The IPv6 address %s could not be put back on %s: %v. It comes back by itself with the next router advertisement or a reconnect of that adapter", entry.Address.IP, entry.Adapter, err)
 			continue
 		}
-		log.Printf("[AwgChain] The IPv6 address %s is back on %s", entry.Address.IP, entry.Adapter)
+		log.Printf("[WarpAm] The IPv6 address %s is back on %s", entry.Address.IP, entry.Adapter)
 	}
 }

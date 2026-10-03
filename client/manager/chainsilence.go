@@ -106,12 +106,12 @@ func chainSilenceStored(name string) *conf.Config {
 func chainSilenceSayConfig(name string) {
 	stored := chainSilenceStored(name)
 	if stored == nil {
-		log.Printf("[AwgChain] %s: its configuration cannot be read, so there is no fingerprint to report", name)
+		log.Printf("[WarpAm] %s: its configuration cannot be read, so there is no fingerprint to report", name)
 		return
 	}
-	log.Printf("[AwgChain] %s: %s, initiation packet %d bytes", name, stored.ChainFingerprintLine(), ChainFingerInitSize(stored))
+	log.Printf("[WarpAm] %s: %s, initiation packet %d bytes", name, stored.ChainFingerprintLine(), ChainFingerInitSize(stored))
 	for _, line := range ChainFingerCompareLines(name, stored) {
-		log.Printf("[AwgChain] %s: %s", name, line)
+		log.Printf("[WarpAm] %s: %s", name, line)
 	}
 }
 
@@ -164,13 +164,13 @@ func ChainSilenceFollow(name string) {
 			if handshook.IsZero() {
 				handshook = time.Now()
 				if !said.IsZero() {
-					log.Printf("[AwgChain] %s finally got a handshake after %d seconds of silence", name, int(time.Since(started).Seconds()))
+					log.Printf("[WarpAm] %s finally got a handshake after %d seconds of silence", name, int(time.Since(started).Seconds()))
 				} else {
-					log.Printf("[AwgChain] %s handshook %d seconds after it was started", name, int(time.Since(started).Seconds()-age.Seconds()))
+					log.Printf("[WarpAm] %s handshook %d seconds after it was started", name, int(time.Since(started).Seconds()-age.Seconds()))
 				}
 				if stored := chainSilenceStored(name); stored != nil {
 					ChainFingerRemember(name, stored)
-					log.Printf("[AwgChain] %s: the answered fingerprint %s is remembered for this server", name, stored.ChainFingerprint())
+					log.Printf("[WarpAm] %s: the answered fingerprint %s is remembered for this server", name, stored.ChainFingerprint())
 				}
 			}
 			// The third state: handshakes come and no byte ever does. Said
@@ -181,7 +181,7 @@ func ChainSilenceFollow(name string) {
 			}
 			if !saidRx && time.Since(handshook) >= chainSilenceRxWait {
 				saidRx = true
-				log.Printf("[AwgChain] %s handshakes with its server and has received nothing for %d seconds. The agreement holds, so this is not the configuration: the traffic is being dropped on the way, by a filter of this machine or by the server", name, int(time.Since(handshook).Seconds()))
+				log.Printf("[WarpAm] %s handshakes with its server and has received nothing for %d seconds. The agreement holds, so this is not the configuration: the traffic is being dropped on the way, by a filter of this machine or by the server", name, int(time.Since(handshook).Seconds()))
 				return
 			}
 			continue
@@ -201,9 +201,9 @@ func ChainSilenceFollow(name string) {
 		first := said.IsZero()
 		said = time.Now()
 		if endpoints := chainSilenceEndpoints(name); len(endpoints) != 0 {
-			log.Printf("[AwgChain] %s has been sending handshake initiations to %s for %d seconds and has had no answer. The adapter is up and the packets are leaving, so either they do not reach the server, or the server refuses them: a wrong port, a wrong key, or obfuscation parameters that do not match the ones on the server", name, endpoints, int(waited.Seconds()))
+			log.Printf("[WarpAm] %s has been sending handshake initiations to %s for %d seconds and has had no answer. The adapter is up and the packets are leaving, so either they do not reach the server, or the server refuses them: a wrong port, a wrong key, or obfuscation parameters that do not match the ones on the server", name, endpoints, int(waited.Seconds()))
 		} else {
-			log.Printf("[AwgChain] %s has been sending handshake initiations for %d seconds and has had no answer, and no endpoint is written in its runtime state", name, int(waited.Seconds()))
+			log.Printf("[WarpAm] %s has been sending handshake initiations for %d seconds and has had no answer, and no endpoint is written in its runtime state", name, int(waited.Seconds()))
 		}
 		// The fingerprint and the comparison are written once, with the
 		// first complaint. Repeating them every thirty seconds would bury

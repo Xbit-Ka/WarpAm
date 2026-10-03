@@ -139,7 +139,24 @@ func (service *tunnelService) Execute(args []string, r <-chan svc.ChangeRequest,
 	// spoke a different version of the protocol than the server, and no log
 	// of ours could have shown it. Secrets are not in the line: the private
 	// key enters the digest only as a hash.
-	log.Printf("[AwgChain] Configuration loaded: %s", config.ChainFingerprintLine())
+	log.Printf("[WarpAm] Configuration loaded: %s", config.ChainFingerprintLine())
+	// WarpAm pack 94: a size overlap between handshake and transport
+	// packets is named once at every start of the tunnel.
+	for _, overlap := range config.ChainSizeOverlaps() {
+		log.Printf("[WarpAm] Size overlap: %s. The engine tells them apart since pack 94; another S value on both sides avoids the overlap", overlap)
+	}
+	// WarpAm pack 96: the inner hop of a chain gets the MTU that fits into
+	// the outer one. Chains built before pack 96 carry a fixed 1360 in the
+	// file, which does not count S4, so the value is checked at every start
+	// and not only when a chain is built. A smaller MTU of the file is kept.
+	if conf.ChainIsHiddenHopName(config.Interface.PinEndpointVia) {
+		if want := conf.ChainInnerMTU(config); want != config.Interface.MTU {
+			log.Printf("[WarpAm] Chain MTU: %d in the file does not fit into the outer hop (MTU %d, S4 %d), using %d", config.Interface.MTU, conf.ChainHop1MTU, config.Interface.TransportPacketJunkSize, want)
+			config.Interface.MTU = want
+		} else {
+			log.Printf("[WarpAm] Chain MTU: %d fits into the outer hop (MTU %d, S4 %d)", want, conf.ChainHop1MTU, config.Interface.TransportPacketJunkSize)
+		}
+	}
 
 	if m, err := mgr.Connect(); err == nil {
 		if lockStatus, err := m.LockStatus(); err == nil && lockStatus.IsLocked {
@@ -231,6 +248,12 @@ func (service *tunnelService) Execute(args []string, r <-chan svc.ChangeRequest,
 		serviceError = services.ErrorDeviceSetConfig
 		return
 	}
+
+	// WarpAm pack 95: the size dodge of the engine, on unless the settings
+	// book says SizeDodgeOff, and the check of the config, which only logs.
+	sizeDodge := chainSizeDodgeOn()
+	dev.SetSizeDodge(sizeDodge)
+	chainSizeCheck(config, sizeDodge)
 
 	chainWaitForPinBeforeUp(config)
 

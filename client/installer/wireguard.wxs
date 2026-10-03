@@ -25,16 +25,16 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 	<Product
 		Id="*"
-		Name="AwgChain"
+		Name="WarpAm"
 		Language="1033"
 		Version="$(var.WIREGUARD_VERSION)"
-		Manufacturer="AwgChain Project"
+		Manufacturer="WarpAm Project"
 		UpgradeCode="$(var.UpgradeCode)">
 		<Package
 			InstallerVersion="500"
 			Compressed="yes"
 			InstallScope="perMachine"
-			Description="AwgChain: chained AmneziaWG VPN client"
+			Description="WarpAm: chained AmneziaWG VPN client"
 			ReadOnly="yes" />
 
 		<MediaTemplate EmbedCab="yes" CompressionLevel="high" />
@@ -65,31 +65,35 @@
 		-->
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="$(var.PlatformProgramFilesFolder)">
-				<Directory Id="WireGuardFolder" Name="AwgChain" />
+				<Directory Id="WireGuardFolder" Name="WarpAm" />
 			</Directory>
 			<Directory Id="ProgramMenuFolder" />
 		</Directory>
 
 		<!--
 			Components
+
+			WarpAm pack 94: the program moved from Program Files\AwgChain to
+			Program Files\WarpAm, so every component got a new GUID. A component
+			keeps its GUID only as long as its path stays the same.
 		-->
 		<ComponentGroup Id="WireGuardComponents">
-			<Component Directory="WireGuardFolder" Id="WireGuardExecutable" Guid="89265531-f056-464c-a3bd-4ccf0e753fbc">
-				<File Source="..\$(var.WIREGUARD_PLATFORM)\amneziawg.exe" KeyPath="yes">
-					<Shortcut Id="WireGuardStartMenuShortcut" Directory="ProgramMenuFolder" Name="AwgChain" Description="AwgChain: chained AmneziaWG VPN client" WorkingDirectory="WireGuardFolder" Advertise="yes" />
+			<Component Directory="WireGuardFolder" Id="WireGuardExecutable" Guid="e5293244-f047-4010-aeb3-7a17614e2ae1">
+				<File Source="..\$(var.WIREGUARD_PLATFORM)\WarpAm.exe" KeyPath="yes">
+					<Shortcut Id="WireGuardStartMenuShortcut" Directory="ProgramMenuFolder" Name="WarpAm" Description="WarpAm: chained AmneziaWG VPN client" WorkingDirectory="WireGuardFolder" Advertise="yes" />
 				</File>
 				<ServiceControl Id="DummyService.3AA0C492_29F4_4342_B608_DB95B2DECB13" Name="DummyService.3AA0C492_29F4_4342_B608_DB95B2DECB13" /><!-- A dummy to make WiX create ServiceControl table for us. -->
 			</Component>
-<?ifdef AWGCHAIN_GUARD?>
-			<Component Directory="WireGuardFolder" Id="AwgChainGuardExecutable" Guid="6b7bbb84-a29b-4af2-810c-d6d0bbbdc663">
+<?ifdef WARPAM_GUARD?>
+			<Component Directory="WireGuardFolder" Id="WarpAmGuardExecutable" Guid="76b5ae32-a8a7-43a9-a548-810bd834c3b2">
 				<File Source="..\$(var.WIREGUARD_PLATFORM)\awgchain-guard.exe" KeyPath="yes" />
 			</Component>
 <?endif?>
-			<Component Directory="WireGuardFolder" Id="WgExecutable" Guid="282e0562-5d80-43ce-a5d6-f96fd9426501">
+			<Component Directory="WireGuardFolder" Id="WgExecutable" Guid="7136f0ab-2c06-424b-86ab-19cc62d514a8">
 				<File Source="..\$(var.WIREGUARD_PLATFORM)\awg.exe" KeyPath="yes" />
 				<Environment Id="PATH" Name="PATH" System="yes" Action="set" Part="last" Permanent="no" Value="[WireGuardFolder]" />
 			</Component>
-			<Component Directory="WireGuardFolder" Id="WintunLibrary" Guid="a5d307db-6fac-49fd-b238-8044c3136e15">
+			<Component Directory="WireGuardFolder" Id="WintunLibrary" Guid="098cc7bc-e604-4be2-82b7-4dc7b7eafa01">
 				<File Source="..\$(var.WIREGUARD_PLATFORM)\wintun.dll" KeyPath="yes" />
 			</Component>
 			<!--
@@ -99,9 +103,11 @@
 				client\installer\wireguard.wxs with this template, so the value must
 				live here: it was lost once already, when pack 91 changed only the
 				copy inside the project. The component removes the key at uninstall.
+				WarpAm pack 94: the key is Software\WarpAm now. Software\AmneziaWG
+				belongs to AmneziaWG itself and is only read, by MigrateLegacyData.
 			-->
-			<Component Directory="WireGuardFolder" Id="AwgChainInstallPath" Guid="aa80931c-d30b-44fd-ad58-73937740aab3">
-				<RegistryKey Root="HKLM" Key="Software\AmneziaWG" ForceDeleteOnUninstall="yes">
+			<Component Directory="WireGuardFolder" Id="WarpAmInstallPath" Guid="ecf76c45-5502-4f10-a409-6d8b955b37b2">
+				<RegistryKey Root="HKLM" Key="Software\WarpAm" ForceDeleteOnUninstall="yes">
 					<RegistryValue Type="string" Name="InstallPath" Value="[WireGuardFolder]" KeyPath="yes" />
 				</RegistryKey>
 			</Component>
@@ -110,7 +116,7 @@
 		<!--
 			Features
 		-->
-		<Feature Id="WireGuardFeature" Title="AwgChain" Level="1">
+		<Feature Id="WireGuardFeature" Title="WarpAm" Level="1">
 			<ComponentGroupRef Id="WireGuardComponents" />
 		</Feature>
 
@@ -131,7 +137,7 @@
 		</InstallExecuteSequence>
 
 		<!--
-			Launch amneziawg.exe on product reconfiguration (starting same MSI again)
+			Launch WarpAm.exe on product reconfiguration (starting same MSI again)
 		-->
 		<CustomAction Id="LaunchApplicationAndAbort" BinaryKey="customactions.dll" DllEntry="LaunchApplicationAndAbort" />
 		<InstallExecuteSequence>
@@ -155,6 +161,21 @@
 		</InstallExecuteSequence>
 
 		<!--
+			WarpAm pack 94: carry the Data folder of AwgChain over
+
+			Runs as SYSTEM right after the new files are in place and before the
+			old product is removed (MajorUpgrade runs after InstallExecute). The
+			removal of the old product deletes its Data folder, so the tunnels are
+			copied first. A failed copy stops the installation.
+		-->
+		<CustomAction Id="SetMigrateLegacyData" Property="MigrateLegacyData" Value="[WireGuardFolder]" />
+		<CustomAction Id="MigrateLegacyData" BinaryKey="customactions.dll" DllEntry="MigrateLegacyData" Execute="deferred" Impersonate="no" />
+		<InstallExecuteSequence>
+			<Custom Action="SetMigrateLegacyData" Before="MigrateLegacyData">NOT REMOVE</Custom>
+			<Custom Action="MigrateLegacyData" After="InstallFiles">NOT REMOVE</Custom>
+		</InstallExecuteSequence>
+
+		<!--
 			Clear out our config folder on uninstall
 		-->
 		<CustomAction Id="RemoveConfigFolder" BinaryKey="customactions.dll" DllEntry="RemoveConfigFolder" Execute="deferred" Impersonate="no" />
@@ -171,9 +192,19 @@
 		</InstallExecuteSequence>
 
 		<!--
-			Launch amneziawg.exe after setup complete
+			Pack 97: take away the Windows Firewall rules the proxy of the
+			local network mode made. They all share one name. A failure is
+			ignored: there may be no rule at all.
 		-->
-		<CustomAction Id="LaunchApplication" HideTarget="yes" Impersonate="no" Execute="deferred" FileKey="amneziawg.exe" ExeCommand="" Return="asyncNoWait" />
+		<CustomAction Id="RemoveProxyFirewallRules" Directory="TARGETDIR" ExeCommand="&quot;[SystemFolder]netsh.exe&quot; advfirewall firewall delete rule name=&quot;WarpAm LAN proxy&quot;" Execute="deferred" Impersonate="no" Return="ignore" />
+		<InstallExecuteSequence>
+			<Custom Action="RemoveProxyFirewallRules" Before="RemoveFiles">REMOVE="ALL"</Custom>
+		</InstallExecuteSequence>
+
+		<!--
+			Launch WarpAm.exe after setup complete
+		-->
+		<CustomAction Id="LaunchApplication" HideTarget="yes" Impersonate="no" Execute="deferred" FileKey="WarpAm.exe" ExeCommand="" Return="asyncNoWait" />
 		<InstallExecuteSequence>
 			<Custom Action="LaunchApplication" Before="InstallFinalize">(&amp;WireGuardFeature = 3) AND NOT DO_NOT_LAUNCH</Custom>
 		</InstallExecuteSequence>

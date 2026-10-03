@@ -26,8 +26,41 @@ const (
 	ChainLegacyInner  = "hop2-amnezia"
 	ChainLegacyOuter  = "hop1-warp"
 	ChainHop1MTU      = 1420
-	ChainHop2MTU      = 1360
+	// ChainHop2MTU is the fixed MTU every inner hop got up to pack 95. It
+	// is kept only as a name for that old value: since pack 96 the inner hop
+	// gets ChainInnerMTU.
+	ChainHop2MTU = 1360
 )
+
+// ChainInnerMTU is the MTU of the inner hop of a chain.
+//
+// Pack 96: a full packet of the inner hop has to fit into the adapter of the
+// outer one. On the way it gets an IP header (20 bytes, 40 when the server of
+// the inner hop is an IPv6 address), a UDP header (8), the WireGuard data
+// header with its tag (32) and the S4 junk of AmneziaWG in front. The fixed
+// 1360 did not count S4: with S4 15 a full packet was 1435 bytes against
+// 1420 of WARP, and Windows cut every such packet in two inside WARP.
+//
+// An MTU the config asks for itself is kept when it is smaller. The floor is
+// the IPv4 minimum; below 1280 the adapter only loses IPv6, which
+// addressconfig.go already handles.
+func ChainInnerMTU(inner *Config) uint16 {
+	overhead := 60
+	for i := range inner.Peers {
+		host := strings.Trim(strings.TrimSpace(inner.Peers[i].Endpoint.Host), "[]")
+		if ip := net.ParseIP(host); ip != nil && ip.To4() == nil {
+			overhead = 80
+		}
+	}
+	mtu := ChainHop1MTU - overhead - int(inner.Interface.TransportPacketJunkSize)
+	if mtu < 576 {
+		mtu = 576
+	}
+	if own := int(inner.Interface.MTU); own > 0 && own < mtu {
+		mtu = own
+	}
+	return uint16(mtu)
+}
 
 // ChainHiddenHopName gives the name of the outer hop that belongs to a
 // visible tunnel name.
@@ -176,7 +209,7 @@ func ChainBuild(warp, inner *Config, outerAlias string, pairName string) (*Confi
 	hop2.Interface.Addresses = append([]IPCidr(nil), inner.Interface.Addresses...)
 	hop2.Interface.TableOff = false
 	hop2.Interface.PinEndpointVia = hiddenName
-	hop2.Interface.MTU = ChainHop2MTU
+	hop2.Interface.MTU = ChainInnerMTU(inner)
 	hop2.Interface.DNS = append([]net.IP(nil), inner.Interface.DNS...)
 	hop2.Interface.DNSSearch = append([]string(nil), inner.Interface.DNSSearch...)
 	hop2.Interface.DNS = chainFilterDNS(hop2.Interface.DNS, ChainConfigHasIPv6(&hop2))
@@ -254,9 +287,9 @@ func ChainSummary(hop1, hop2 *Config) string {
 	var b strings.Builder
 	b.WriteString("Туннель: " + hop2.Name + nl + nl)
 	b.WriteString("  1. WARP " + chainEndpointOfConfig(hop1) + nl)
-	b.WriteString("     через адаптер " + hop1.Interface.PinEndpointVia + ", MTU " + strconv.Itoa(ChainHop1MTU) + nl)
+	b.WriteString("     через адаптер " + hop1.Interface.PinEndpointVia + ", MTU " + strconv.Itoa(int(hop1.Interface.MTU)) + nl)
 	b.WriteString("  2. Amnezia " + chainEndpointOfConfig(hop2) + nl)
-	b.WriteString("     внутри WARP, MTU " + strconv.Itoa(ChainHop2MTU) + ", весь трафик" + nl)
+	b.WriteString("     внутри WARP, MTU " + strconv.Itoa(int(hop2.Interface.MTU)) + ", весь трафик" + nl)
 	return b.String()
 }
 

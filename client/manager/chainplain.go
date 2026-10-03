@@ -37,7 +37,7 @@ func chainPlainTunnelUp(name string) {
 	if !settings.BlockIPv6 {
 		return
 	}
-	log.Printf("[AwgChain] %s is a plain tunnel and asks for the IPv6 filter", name)
+	log.Printf("[WarpAm] %s is a plain tunnel and asks for the IPv6 filter", name)
 	chainApplyIPv6For(name)
 }
 

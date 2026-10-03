@@ -136,14 +136,14 @@ func chainBootTarget(global ChainGlobalSettings) string {
 		fallback = ""
 	}
 	if len(fallback) == 0 || strings.EqualFold(fallback, target) {
-		log.Printf("[AwgChain] The tunnel %s is chosen for the start but its config is gone, so nothing is raised", target)
+		log.Printf("[WarpAm] The tunnel %s is chosen for the start but its config is gone, so nothing is raised", target)
 		return ""
 	}
 	if _, err := conf.LoadFromName(fallback); err != nil {
-		log.Printf("[AwgChain] Neither %s nor %s can be read, so nothing is raised at start", target, fallback)
+		log.Printf("[WarpAm] Neither %s nor %s can be read, so nothing is raised at start", target, fallback)
 		return ""
 	}
-	log.Printf("[AwgChain] The tunnel %s is chosen for the start but its config is gone, falling back to %s", target, fallback)
+	log.Printf("[WarpAm] The tunnel %s is chosen for the start but its config is gone, falling back to %s", target, fallback)
 	return fallback
 }
 
@@ -159,7 +159,7 @@ func (s *ManagerService) chainApplyStartPolicy() {
 	// is already running is still adopted, so a chain never runs
 	// unwatched.
 	if !chainAutoStartWanted() {
-		log.Printf("[AwgChain] Nothing is raised at start: the program is set not to start with Windows")
+		log.Printf("[WarpAm] Nothing is raised at start: the program is set not to start with Windows")
 		s.chainAdoptWhateverRuns()
 		return
 	}
@@ -172,7 +172,7 @@ func (s *ManagerService) chainApplyStartPolicy() {
 	global := ChainGlobal()
 	mode := global.Mode()
 	if mode == ChainRaiseNone {
-		log.Printf("[AwgChain] Nothing is raised at start: the setting says so")
+		log.Printf("[WarpAm] Nothing is raised at start: the setting says so")
 		s.chainAdoptWhateverRuns()
 		return
 	}
@@ -188,16 +188,16 @@ func (s *ManagerService) chainApplyStartPolicy() {
 		// up". A leaf whose hops are gone reports TunnelStarted and
 		// used to send the whole policy home.
 		if err := s.chainChainReady(target); err == nil {
-			log.Printf("[AwgChain] %s is already up, the start-up raise stands down", target)
+			log.Printf("[WarpAm] %s is already up, the start-up raise stands down", target)
 			chainNoteBootTunnel(target)
 			s.chainRaiseRemembered(target)
 			return
 		} else {
-			log.Printf("[AwgChain] %s says it is started, but %v, so it is raised properly", target, err)
+			log.Printf("[WarpAm] %s says it is started, but %v, so it is raised properly", target, err)
 		}
 	}
 
-	log.Printf("[AwgChain] The start-up raise takes %s (%s mode)", target, mode)
+	log.Printf("[WarpAm] The start-up raise takes %s (%s mode)", target, mode)
 	// Pack 72: the lock before the start was built when no target was
 	// known yet. It is rebuilt here with the hops of the tunnel that is
 	// about to be raised, otherwise the very first handshake dies in the
@@ -231,14 +231,14 @@ func (s *ManagerService) chainRaiseRemembered(target string) {
 			continue
 		}
 		if !chainAutoStartWanted() {
-			log.Printf("[AwgChain] The rest of the start-up raise stands down: the program is set not to start with Windows")
+			log.Printf("[WarpAm] The rest of the start-up raise stands down: the program is set not to start with Windows")
 			return
 		}
 		if state, err := s.State(name); err == nil && state == TunnelStarted {
 			chainNoteBootTunnel(name)
 			continue
 		}
-		log.Printf("[AwgChain] The start-up raise also takes %s: it was up when the session ended", name)
+		log.Printf("[WarpAm] The start-up raise also takes %s: it was up when the session ended", name)
 		chainBootSetRaising(true)
 		err := s.Start(name)
 		if err != nil {
@@ -247,10 +247,10 @@ func (s *ManagerService) chainRaiseRemembered(target string) {
 		}
 		chainBootSetRaising(false)
 		if err != nil {
-			log.Printf("[AwgChain] %s did not come up at start: %v", name, err)
+			log.Printf("[WarpAm] %s did not come up at start: %v", name, err)
 			continue
 		}
-		log.Printf("[AwgChain] %s is raised at start", name)
+		log.Printf("[WarpAm] %s is raised at start", name)
 	}
 }
 
@@ -267,7 +267,7 @@ func (s *ManagerService) chainRaiseWithStages(target string) {
 		for try := 1; stage.tries == 0 || try <= stage.tries; try++ {
 			// The user may have changed the setting while we were waiting.
 			if current := ChainGlobal(); current.Mode() == ChainRaiseNone || !strings.EqualFold(strings.TrimSpace(current.Target()), target) {
-				log.Printf("[AwgChain] The start-up raise stands down: the setting changed")
+				log.Printf("[WarpAm] The start-up raise stands down: the setting changed")
 				return
 			}
 			// Pack 70: the last stage never ends (tries == 0), so the box
@@ -275,13 +275,13 @@ func (s *ManagerService) chainRaiseWithStages(target string) {
 			// read once, before the first try, and a user who cleared it
 			// during a long retry loop still got a tunnel raised hours later.
 			if !chainAutoStartWanted() {
-				log.Printf("[AwgChain] The start-up raise stands down: the program is set not to start with Windows")
+				log.Printf("[WarpAm] The start-up raise stands down: the program is set not to start with Windows")
 				return
 			}
 			// Pack 69 (J4): the same question as above, asked about the
 			// whole chain and not about one service.
 			if state, err := s.State(target); err == nil && state == TunnelStarted && s.chainChainReady(target) == nil {
-				log.Printf("[AwgChain] %s is already up, the start-up raise stands down", target)
+				log.Printf("[WarpAm] %s is already up, the start-up raise stands down", target)
 				return
 			}
 
@@ -289,10 +289,10 @@ func (s *ManagerService) chainRaiseWithStages(target string) {
 			started := time.Now()
 			err := s.chainRaiseOnce(target, stage.handshake)
 			if err == nil {
-				log.Printf("[AwgChain] The tunnel %s is raised at start (attempt %d)", target, attempt)
+				log.Printf("[WarpAm] The tunnel %s is raised at start (attempt %d)", target, attempt)
 				return
 			}
-			log.Printf("[AwgChain] The tunnel %s did not come up at start (attempt %d, waited %v): %v", target, attempt, time.Since(started).Truncate(time.Second), err)
+			log.Printf("[WarpAm] The tunnel %s did not come up at start (attempt %d, waited %v): %v", target, attempt, time.Since(started).Truncate(time.Second), err)
 
 			// A half-raised chain has to be cleared away, otherwise the next
 			// try is refused with "please allow the tunnel to finish
@@ -364,7 +364,7 @@ func chainSleepOrNetworkChange(gap time.Duration) {
 	case <-woken:
 		// Give the new route a moment to settle before trying again.
 		time.Sleep(2 * time.Second)
-		log.Printf("[AwgChain] The network changed, so the next start-up try comes early")
+		log.Printf("[WarpAm] The network changed, so the next start-up try comes early")
 	}
 }
 
@@ -415,16 +415,16 @@ func (s *ManagerService) chainWaitForBaseAdapter(target string, timeout time.Dur
 	if chainAdapterIsUp(adapter) {
 		return
 	}
-	log.Printf("[AwgChain] Waiting for the %s adapter before raising %s", adapter, target)
+	log.Printf("[WarpAm] Waiting for the %s adapter before raising %s", adapter, target)
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
 		time.Sleep(chainBaseAdapterPoll)
 		if chainAdapterIsUp(adapter) {
-			log.Printf("[AwgChain] The %s adapter is up, raising %s now", adapter, target)
+			log.Printf("[WarpAm] The %s adapter is up, raising %s now", adapter, target)
 			return
 		}
 	}
-	log.Printf("[AwgChain] The %s adapter is still not up after %v, trying to raise %s anyway", adapter, timeout, target)
+	log.Printf("[WarpAm] The %s adapter is still not up after %v, trying to raise %s anyway", adapter, timeout, target)
 }
 
 // --------------------------------------------------------------------------
@@ -461,7 +461,7 @@ func chainNoteBootTunnel(name string) {
 		return
 	}
 
-	log.Printf("[AwgChain] %s is already running, so the watch and the kill switch are taken over", name)
+	log.Printf("[WarpAm] %s is already running, so the watch and the kill switch are taken over", name)
 	// Pack 70: adopting is not a wish. ChainNoteLastTunnel also sets the
 	// "is up" flag, so a tunnel the user had switched off by hand came back
 	// at the next boot merely because the manager restarted while it was
@@ -521,9 +521,9 @@ func chainMigrateTunnelStartTypes() {
 		config.StartType = mgr.StartManual
 		err = service.UpdateConfig(config)
 		if err != nil {
-			log.Printf("[AwgChain] The service of %s could not be moved off automatic start (%v)", name, err)
+			log.Printf("[WarpAm] The service of %s could not be moved off automatic start (%v)", name, err)
 		} else {
-			log.Printf("[AwgChain] The service of %s no longer starts on its own: the manager decides what is raised", name)
+			log.Printf("[WarpAm] The service of %s no longer starts on its own: the manager decides what is raised", name)
 		}
 		service.Close()
 	}
@@ -558,7 +558,7 @@ func chainQuitMayStopTunnels() bool {
 	if !chainLockSurvivesStop(leaf) {
 		return true
 	}
-	log.Printf("[AwgChain] The window is closing but %s is in %s mode, so the chain is left running", leaf, ChainLockModeOf(leaf))
+	log.Printf("[WarpAm] The window is closing but %s is in %s mode, so the chain is left running", leaf, ChainLockModeOf(leaf))
 	return false
 }
 
@@ -571,11 +571,11 @@ func chainQuitLiftLock() {
 		return
 	}
 	if chainLockSurvivesStop(leaf) {
-		log.Printf("[AwgChain] The window is closing but the kill switch stays closed: %s is in %s mode", leaf, ChainLockModeOf(leaf))
+		log.Printf("[WarpAm] The window is closing but the kill switch stays closed: %s is in %s mode", leaf, ChainLockModeOf(leaf))
 		return
 	}
 	ChainLiftLockNow()
-	log.Printf("[AwgChain] The kill switch is lifted because the program is closing")
+	log.Printf("[WarpAm] The kill switch is lifted because the program is closing")
 }
 
 // chainKeepManagerInstalled answers whether Exit may delete the manager
@@ -585,6 +585,6 @@ func chainKeepManagerInstalled() bool {
 	if !chainAutoStartWanted() {
 		return false
 	}
-	log.Printf("[AwgChain] The manager service stays installed because the program is set to start with Windows")
+	log.Printf("[WarpAm] The manager service stays installed because the program is set to start with Windows")
 	return true
 }

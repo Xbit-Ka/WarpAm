@@ -37,8 +37,6 @@ package manager
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -86,6 +84,10 @@ type ChainProxyInfo struct {
 	Alive    bool
 	Conns    int
 	Note     string
+	// Pack 97: the address that keeps failing the login in the last five
+	// minutes, and how many times, for the line under the proxy.
+	LoginFrom  string
+	LoginFails int
 }
 
 // chainProxy is one running proxy, belonging to one tunnel.
@@ -118,15 +120,15 @@ var (
 	chainProxyLive = make(map[string]*chainProxy)
 )
 
-// ChainProxyPassHash is how the password of the local network mode is
-// written down. The password itself is never stored: the settings file
-// keeps this hash, and the proxy compares hashes.
-func ChainProxyPassHash(user, password string) string {
-	if len(strings.TrimSpace(user)) == 0 || len(password) == 0 {
-		return ""
-	}
-	sum := sha256.Sum256([]byte(strings.TrimSpace(user) + ":" + password))
-	return hex.EncodeToString(sum[:])
+// Pack 97: ChainProxyPassHash and the check of the password moved to
+// chainproxylan.go, with the salt and without the login inside.
+
+// chainProxySweepRules takes away the firewall rules of an earlier run once
+// per start of the manager. Pack 97.
+func chainProxySweepRules() {
+	chainProxyRuleMu.Lock()
+	chainProxySweepRulesLocked()
+	chainProxyRuleMu.Unlock()
 }
 
 // chainProxyWanted answers whether this tunnel asks for a proxy.
@@ -169,6 +171,8 @@ func chainProxyFollow(leaf string) {
 	if len(leaf) == 0 || ChainIsHiddenHop(leaf) {
 		return
 	}
+	// Pack 97: the rules a crashed run left behind go first, once.
+	go chainProxySweepRules()
 	if !chainProxyWanted(leaf) {
 		chainProxyStop(leaf, "the tunnel does not ask for a proxy any more")
 		return
@@ -200,11 +204,11 @@ func chainProxyFollow(leaf string) {
 	// answered until now, because nothing in the log said which port the
 	// manager had taken from the settings of this tunnel, which address it
 	// was about to bind, or whether the split mode was on.
-	log.Printf("[AwgChain] The proxy of %s is being started: port %d taken from %s, address %s, protocol %s, split %v, grace %d seconds, login %v",
+	log.Printf("[WarpAm] The proxy of %s is being started: port %d taken from %s, address %s, protocol %s, split %v, grace %d seconds, login %v",
 		leaf, settings.Port(), chainProxyPortSource(), p.address, p.protocol, p.split, settings.ProxyGrace, len(p.user) != 0)
 	if settings.Bind() == ChainProxyBindLAN && (len(p.user) == 0 || len(p.passHash) == 0) {
 		chainProxyMu.Unlock()
-		log.Printf("[AwgChain] The proxy of %s is NOT started: it is set to listen on the local network but no login and password are set", leaf)
+		log.Printf("[WarpAm] The proxy of %s is NOT started: it is set to listen on the local network but no login and password are set", leaf)
 		return
 	}
 	chainProxyLive[leaf] = p
@@ -219,9 +223,9 @@ func chainProxyFollow(leaf string) {
 		// no listener on 1081 for a whole evening and the log never named
 		// the other holder.
 		if holder := chainProxyHolderOf(p.address, leaf); len(holder) != 0 {
-			log.Printf("[AwgChain] The proxy of %s could not take %s (%v). That address is already held by the proxy of %s", leaf, p.address, err, holder)
+			log.Printf("[WarpAm] The proxy of %s could not take %s (%v). That address is already held by the proxy of %s", leaf, p.address, err, holder)
 		} else {
-			log.Printf("[AwgChain] The proxy of %s could not take %s (%v). No proxy of ours holds that address, so it belongs to another program", leaf, p.address, err)
+			log.Printf("[WarpAm] The proxy of %s could not take %s (%v). No proxy of ours holds that address, so it belongs to another program", leaf, p.address, err)
 		}
 		return
 	}
@@ -230,7 +234,14 @@ func chainProxyFollow(leaf string) {
 	if p.split {
 		kind = "separately: the address of the machine does not change, only the proxy goes through the tunnel"
 	}
-	log.Printf("[AwgChain] The proxy of %s is listening on %s (%s), %s", leaf, p.address, p.protocol, kind)
+	log.Printf("[WarpAm] The proxy of %s is listening on %s (%s), %s", leaf, p.address, p.protocol, kind)
+	// Pack 97: in the local network mode the manager names the address for
+	// the other machines and opens the port in Windows Firewall itself.
+	if settings.Bind() == ChainProxyBindLAN {
+		port := chainProxyPortOf(p.address)
+		chainProxyLogLANAddress(leaf, port)
+		go chainProxyFirewallOpen(leaf, port)
+	}
 	go p.watch()
 }
 
@@ -279,7 +290,10 @@ func chainProxyStop(leaf string, why string) {
 		return
 	}
 	p.shutdown()
-	log.Printf("[AwgChain] The proxy of %s is stopped: %s", leaf, why)
+	log.Printf("[WarpAm] The proxy of %s is stopped: %s", leaf, why)
+	// Pack 97: the rule of its port goes with it; nothing happens if the
+	// proxy listened on this machine only.
+	chainProxyFirewallClose(chainProxyPortOf(p.address))
 }
 
 // ChainProxyTunnelGone is called when the service of a tunnel has ended
@@ -303,7 +317,7 @@ func ChainProxyTunnelGone(tunnelName string) {
 			if !strings.EqualFold(hop, tunnelName) {
 				continue
 			}
-			log.Printf("[AwgChain] The service of %s ended on its own, so the proxy on %s has no tunnel behind it any more", tunnelName, info.Address)
+			log.Printf("[WarpAm] The service of %s ended on its own, so the proxy on %s has no tunnel behind it any more", tunnelName, info.Address)
 			chainProxyStop(info.Leaf, "the service of "+tunnelName+" ended on its own")
 			break
 		}
@@ -334,6 +348,7 @@ func ChainProxyState() []ChainProxyInfo {
 
 	out := make([]ChainProxyInfo, 0, len(running))
 	for _, p := range running {
+		from, fails := chainProxyLoginTrouble(p.leaf)
 		p.mu.Lock()
 		out = append(out, ChainProxyInfo{
 			Leaf:     p.leaf,
@@ -343,6 +358,8 @@ func ChainProxyState() []ChainProxyInfo {
 			Alive:    p.alive && p.listener != nil,
 			Conns:    len(p.conns),
 			Note:     p.note,
+			LoginFrom:  from,
+			LoginFails: fails,
 		})
 		p.mu.Unlock()
 	}
@@ -420,7 +437,7 @@ func (p *chainProxy) cutConnections(why string) {
 	for _, c := range open {
 		c.Close()
 	}
-	log.Printf("[AwgChain] The proxy of %s cut %d connections: %s", p.leaf, len(open), why)
+	log.Printf("[WarpAm] The proxy of %s cut %d connections: %s", p.leaf, len(open), why)
 }
 
 // alive answers whether traffic may be sent right now, and with which
@@ -436,6 +453,12 @@ func (p *chainProxy) accept(listener net.Listener) {
 		c, err := listener.Accept()
 		if err != nil {
 			return
+		}
+		// Pack 97: an address shut out after ten wrong logins is closed
+		// at once, without a line for every attempt.
+		if p.loginBlocked(c) {
+			c.Close()
+			continue
 		}
 		go p.serve(c)
 	}
@@ -462,7 +485,7 @@ func (p *chainProxy) checkDNSDoor(index uint32, servers []net.IP) {
 	}
 	if len(servers) == 0 {
 		p.setNote(chainProxyNoteNoDNS)
-		chainLogChanged("proxy-dns-"+p.leaf, "[AwgChain] The tunnel %s has no IPv4 DNS server of its own, so its proxy can open addresses but not names", p.leaf)
+		chainLogChanged("proxy-dns-"+p.leaf, "[WarpAm] The tunnel %s has no IPv4 DNS server of its own, so its proxy can open addresses but not names", p.leaf)
 		return
 	}
 	dialer := chainProxyDialer(index)
@@ -490,7 +513,7 @@ func (p *chainProxy) checkDNSDoor(index uint32, servers []net.IP) {
 		return
 	}
 	p.setNote(chainProxyNoteDNSBlocked)
-	chainLogChanged("proxy-dns-"+p.leaf, "[AwgChain] The packet filter refuses port 53 on the adapter of %s (%s), so the proxy of that tunnel can open addresses but not names. Restart the tunnel that holds the kill switch to have the door cut again", p.leaf, chainProxyDNSLine(servers))
+	chainLogChanged("proxy-dns-"+p.leaf, "[WarpAm] The packet filter refuses port 53 on the adapter of %s (%s), so the proxy of that tunnel can open addresses but not names. Restart the tunnel that holds the kill switch to have the door cut again", p.leaf, chainProxyDNSLine(servers))
 }
 
 // watch keeps the picture of the tunnel fresh and applies the rules of the
@@ -543,7 +566,7 @@ func (p *chainProxy) watch() {
 			p.cutConnections(fmt.Sprintf("the tunnel %s is gone", p.leaf))
 			if p.onDown == ChainProxyDownClose {
 				p.closeListener()
-				log.Printf("[AwgChain] The proxy port of %s is closed while the tunnel is down", p.leaf)
+				log.Printf("[WarpAm] The proxy port of %s is closed while the tunnel is down", p.leaf)
 			}
 		}
 
@@ -554,9 +577,9 @@ func (p *chainProxy) watch() {
 			p.mu.Unlock()
 			if !listening && !stopped {
 				if err := p.open(); err != nil {
-					log.Printf("[AwgChain] The proxy of %s could not take %s again (%v)", p.leaf, p.address, err)
+					log.Printf("[WarpAm] The proxy of %s could not take %s again (%v)", p.leaf, p.address, err)
 				} else {
-					log.Printf("[AwgChain] The proxy of %s is listening again on %s", p.leaf, p.address)
+					log.Printf("[WarpAm] The proxy of %s is listening again on %s", p.leaf, p.address)
 				}
 			}
 		}

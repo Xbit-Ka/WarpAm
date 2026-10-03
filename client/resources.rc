@@ -27,13 +27,13 @@ BEGIN \
   BEGIN \
     BLOCK block_id \
     BEGIN \
-      VALUE "CompanyName", "Amnezia" \
+      VALUE "CompanyName", "WarpAm Project" \
       VALUE "FileDescription", file_desc \
       VALUE "FileVersion", EXPAND(WIREGUARD_VERSION_STR) \
-      VALUE "InternalName", "amneziawg-windows-client" \
-      VALUE "LegalCopyright", "Copyright © 2015-2022 Jason A. Donenfeld. WireGuard is a trademark of Jason A. Donenfeld.\nCopyright © 2024 AmneziaVPN. Warpam is based on WireGuard, changes and modifications made by AmneziaVPN. All Rights Reserved." \
-      VALUE "OriginalFilename", "amneziawg.exe" \
-      VALUE "ProductName", "Warpam" \
+      VALUE "InternalName", "WarpAm" \
+      VALUE "LegalCopyright", "Copyright © 2015-2022 Jason A. Donenfeld. WireGuard is a trademark of Jason A. Donenfeld.\nCopyright © 2024 AmneziaVPN. WarpAm is based on WireGuard, changes and modifications made by AmneziaVPN. All Rights Reserved." \
+      VALUE "OriginalFilename", "WarpAm.exe" \
+      VALUE "ProductName", "WarpAm" \
       VALUE "ProductVersion", EXPAND(WIREGUARD_VERSION_STR) \
       VALUE "Comments", comments \
     END \
@@ -47,41 +47,41 @@ END
 LANGUAGE LANG_ENGLISH, SUBLANG_DEFAULT
 VERSIONINFO_TEMPLATE(
   "040904b0", 0x409, 0x4b0,
-  "Warpam: Fast, Modern, Secure VPN Tunnel",
+  "WarpAm: Fast, Modern, Secure VPN Tunnel",
   "https://amnezia.org/"
 )
 
 LANGUAGE LANG_FRENCH, SUBLANG_DEFAULT
 VERSIONINFO_TEMPLATE(
   "040c04b0", 0x40c, 0x4b0,
-  "Warpam: tunnel VPN rapide, moderne, sécurisé",
+  "WarpAm: tunnel VPN rapide, moderne, sécurisé",
   "https://amnezia.org/"
 )
 
 LANGUAGE LANG_ITALIAN, SUBLANG_DEFAULT
 VERSIONINFO_TEMPLATE(
   "041004b0", 0x410, 0x4b0,
-  "Warpam: Tunnel VPN veloce, moderno e sicuro",
+  "WarpAm: Tunnel VPN veloce, moderno e sicuro",
   "https://amnezia.org/"
 )
 
 LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
 VERSIONINFO_TEMPLATE(
   "041104b0", 0x411, 0x4b0,
-  "Warpam: 高速で、現代的で、セキュアな VPN トンネル",
+  "WarpAm: 高速で、現代的で、セキュアな VPN トンネル",
   "https://amnezia.org/"
 )
 
 LANGUAGE LANG_SLOVENIAN, SUBLANG_DEFAULT
 VERSIONINFO_TEMPLATE(
   "042404b0", 0x424, 0x4b0,
-  "Warpam: hiter, sodoben, varen tunel VPN",
+  "WarpAm: hiter, sodoben, varen tunel VPN",
   "https://amnezia.org/"
 )
 
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_TRADITIONAL
 VERSIONINFO_TEMPLATE(
   "040404b0", 0x404, 0x4b0,
-  "Warpam：快速、現代、安全的 VPN 隧道",
+  "WarpAm：快速、現代、安全的 VPN 隧道",
   "https://amnezia.org/"
 )

@@ -46,6 +46,7 @@ import (
 
 	"golang.org/x/sys/windows/registry"
 
+	"github.com/amnezia-vpn/amneziawg-windows/v3/brand"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/conf"
 )
 
@@ -78,14 +79,18 @@ const (
 	chainSecureWait  = time.Second
 )
 
+// WarpAm pack 94: the key is Software\WarpAm now. The old one, shared
+// with the real AmneziaWG client, named the AwgChain folder after the move
+// and would have said "not installed here".
+//
 // chainSecureInstallKey and chainSecureInstallValue are written by the
 // installer of this program, see client/installer/wireguard.wxs. They are
 // how the manager knows that the copy it belongs to was installed and not
 // unpacked into a folder somewhere: only an installed copy can be closed
 // from changes, because only an installed copy can be removed again.
 const (
-	chainSecureInstallKey   = "Software\\AmneziaWG"
-	chainSecureInstallValue = "InstallPath"
+	chainSecureInstallKey   = brand.RegistryKey
+	chainSecureInstallValue = brand.InstallPathValue
 )
 
 // chainSecureOpenSid is the account the open folder is opened for: the
@@ -191,9 +196,9 @@ func (s *ManagerService) ChainSecureSetEncrypt(on bool) error {
 		return err
 	}
 	if on {
-		log.Printf("[AwgChain] New configurations will be encrypted for this machine")
+		log.Printf("[WarpAm] New configurations will be encrypted for this machine")
 	} else {
-		log.Printf("[AwgChain] New configurations will be written in plain text, the folder can be carried to another machine")
+		log.Printf("[WarpAm] New configurations will be written in plain text, the folder can be carried to another machine")
 	}
 	return nil
 }
@@ -202,7 +207,7 @@ func (s *ManagerService) ChainSecureSetEncrypt(on bool) error {
 func chainSecureCount() (sealed, plain int) {
 	sealed, plain, err := conf.ChainCountConfigs()
 	if err != nil {
-		log.Printf("[AwgChain] The configurations could not be counted: %v", err)
+		log.Printf("[WarpAm] The configurations could not be counted: %v", err)
 		return 0, 0
 	}
 	return sealed, plain
@@ -220,7 +225,7 @@ func chainSecureStatus() *ChainSecureReply {
 	}
 	dirs, files, wrong, checkErr := conf.ChainCheckDataTree(chainSecureWantedSid(global))
 	if checkErr != nil {
-		log.Printf("[AwgChain] The rights of the data folder could not be read: %v", checkErr)
+		log.Printf("[WarpAm] The rights of the data folder could not be read: %v", checkErr)
 	}
 	return &ChainSecureReply{
 		Sealed:        sealed,
@@ -255,11 +260,11 @@ func chainSecureRetry(what string, step func() error) error {
 		err = step()
 		if err == nil {
 			if attempt > 1 {
-				log.Printf("[AwgChain] %s succeeded on attempt %d", what, attempt)
+				log.Printf("[WarpAm] %s succeeded on attempt %d", what, attempt)
 			}
 			return nil
 		}
-		log.Printf("[AwgChain] %s did not succeed on attempt %d of %d: %v", what, attempt, chainSecureTries, err)
+		log.Printf("[WarpAm] %s did not succeed on attempt %d of %d: %v", what, attempt, chainSecureTries, err)
 		if attempt < chainSecureTries {
 			time.Sleep(chainSecureWait)
 		}
@@ -344,14 +349,14 @@ func chainSecureSealAll() (done, failed int, err error) {
 		}
 		if changed {
 			done++
-			log.Printf("[AwgChain] The configuration of %s is now encrypted for this machine", name)
+			log.Printf("[WarpAm] The configuration of %s is now encrypted for this machine", name)
 		}
 	}
 	if done != 0 {
-		log.Printf("[AwgChain] %d configurations were encrypted, awgchain.bat cannot read them any more", done)
+		log.Printf("[WarpAm] %d configurations were encrypted, awgchain.bat cannot read them any more", done)
 	}
 	if failed != 0 {
-		log.Printf("[AwgChain] %d configurations were left in plain text, the last reason was: %v", failed, last)
+		log.Printf("[WarpAm] %d configurations were left in plain text, the last reason was: %v", failed, last)
 		return done, failed, last
 	}
 	return done, failed, nil
@@ -383,7 +388,7 @@ func chainSecureUnsealAll() (done, failed int, err error) {
 		}
 		if changed {
 			done++
-			log.Printf("[AwgChain] The configuration of %s is now in plain text", name)
+			log.Printf("[WarpAm] The configuration of %s is now in plain text", name)
 		}
 	}
 	saveErr := chainSecureSaveGlobal(func(global *ChainGlobalSettings) {
@@ -393,9 +398,9 @@ func chainSecureUnsealAll() (done, failed int, err error) {
 	if saveErr != nil {
 		return done, failed, saveErr
 	}
-	log.Printf("[AwgChain] %d configurations were decrypted, the folder can be carried to another machine", done)
+	log.Printf("[WarpAm] %d configurations were decrypted, the folder can be carried to another machine", done)
 	if failed != 0 {
-		log.Printf("[AwgChain] %d configurations are still encrypted, the last reason was: %v", failed, last)
+		log.Printf("[WarpAm] %d configurations are still encrypted, the last reason was: %v", failed, last)
 		return done, failed, last
 	}
 	return done, failed, nil
@@ -428,13 +433,13 @@ func ChainSecureApplyAcl(open bool) error {
 			return checkErr
 		}
 		if wrong != 0 {
-			log.Printf("[AwgChain] %d items under the data folder did not take the new rights", wrong)
+			log.Printf("[WarpAm] %d items under the data folder did not take the new rights", wrong)
 			return errors.New("some files under the data folder did not take the new rights")
 		}
 		if open {
-			log.Printf("[AwgChain] The rights of the data folder are open: every user of this machine can read the settings and the configurations, %d folders and %d files", dirs, files)
+			log.Printf("[WarpAm] The rights of the data folder are open: every user of this machine can read the settings and the configurations, %d folders and %d files", dirs, files)
 		} else {
-			log.Printf("[AwgChain] The rights of the data folder are strict: only the system and the administrators can read it, %d folders and %d files", dirs, files)
+			log.Printf("[WarpAm] The rights of the data folder are strict: only the system and the administrators can read it, %d folders and %d files", dirs, files)
 		}
 		return nil
 	})
@@ -484,7 +489,7 @@ func chainSecureSealInstall() (done, failed int, err error) {
 	if err != nil {
 		return done, failed, err
 	}
-	log.Printf("[AwgChain] The installation is sealed: %d configurations are encrypted, the rights of the whole data folder are strict, new configurations will be encrypted and none of it can be undone from inside the program", sealed)
+	log.Printf("[WarpAm] The installation is sealed: %d configurations are encrypted, the rights of the whole data folder are strict, new configurations will be encrypted and none of it can be undone from inside the program", sealed)
 	return done, failed, nil
 }
 
@@ -512,7 +517,7 @@ func (s *ManagerService) ChainSecure(request ChainSecureRequest) (*ChainSecureRe
 	// window asks: a request that arrives anyway is refused.
 	if chainSecureGlobal().InstallSealed &&
 		(action == ChainSecureActionUnseal || action == ChainSecureActionOpen) {
-		log.Printf("[AwgChain] The request %s was refused: the installation is sealed", action)
+		log.Printf("[WarpAm] The request %s was refused: the installation is sealed", action)
 		return chainSecureStatus(), errors.New("the installation is closed from changes, the only way back is to remove the program with its installer")
 	}
 
@@ -602,10 +607,10 @@ func ChainSecureInit() {
 
 	root, err := conf.ChainDataDir()
 	if err != nil {
-		log.Printf("[AwgChain] The data folder could not be opened (%v), %s", err, conf.ChainRootSource())
+		log.Printf("[WarpAm] The data folder could not be opened (%v), %s", err, conf.ChainRootSource())
 		return
 	}
-	log.Printf("[AwgChain] The data folder is %s, %s", root, conf.ChainRootSource())
+	log.Printf("[WarpAm] The data folder is %s, %s", root, conf.ChainRootSource())
 
 	global := chainSecureGlobal()
 
@@ -618,20 +623,20 @@ func ChainSecureInit() {
 			book.DpapiVerifier = ""
 		})
 		if wipeErr != nil {
-			log.Printf("[AwgChain] The stored password check could not be removed: %v", wipeErr)
+			log.Printf("[WarpAm] The stored password check could not be removed: %v", wipeErr)
 		} else {
-			log.Printf("[AwgChain] The stored password check is removed, the configurations are no longer held behind a question nobody could answer")
+			log.Printf("[WarpAm] The stored password check is removed, the configurations are no longer held behind a question nobody could answer")
 		}
 	}
 
 	err = ChainSecureApplyAcl(global.DataAclOpen)
 	if err != nil {
-		log.Printf("[AwgChain] The rights of the data folder could not be set: %v", err)
+		log.Printf("[WarpAm] The rights of the data folder could not be set: %v", err)
 	}
 	sealed, plain := chainSecureCount()
-	log.Printf("[AwgChain] Configurations: %d encrypted, %d in plain text, new ones will be %s", sealed, plain, chainSecureModeWord())
+	log.Printf("[WarpAm] Configurations: %d encrypted, %d in plain text, new ones will be %s", sealed, plain, chainSecureModeWord())
 	if global.InstallSealed {
-		log.Printf("[AwgChain] The installation is sealed, it can only be changed by removing the program with its installer")
+		log.Printf("[WarpAm] The installation is sealed, it can only be changed by removing the program with its installer")
 	}
 }
 

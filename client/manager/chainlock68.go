@@ -78,20 +78,20 @@ func chainLockSuppress(on bool) {
 	path := chainLockSuppressFile()
 	if on {
 		if err := os.WriteFile(path, []byte("lifted by hand\r\n"), 0o600); err != nil {
-			log.Printf("[AwgChain] The lifted lock could not be written down (%v), so a restart of the manager may arm it again", err)
+			log.Printf("[WarpAm] The lifted lock could not be written down (%v), so a restart of the manager may arm it again", err)
 		}
 	} else if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
-		log.Printf("[AwgChain] %s could not be deleted (%v), so the lock may stay down longer than asked", path, err)
+		log.Printf("[WarpAm] %s could not be deleted (%v), so the lock may stay down longer than asked", path, err)
 	}
 	if !changed {
 		return
 	}
 	if on {
-		log.Printf("[AwgChain] The lock was lifted by hand, so it stays down until a tunnel is raised on purpose")
+		log.Printf("[WarpAm] The lock was lifted by hand, so it stays down until a tunnel is raised on purpose")
 		return
 	}
 	chainLogForget("lock-suppressed")
-	log.Printf("[AwgChain] A tunnel is being raised on purpose, so the lock may arm again")
+	log.Printf("[WarpAm] A tunnel is being raised on purpose, so the lock may arm again")
 }
 
 // chainLockSuppressedNow answers whether the lock is being held down. Pack
@@ -104,7 +104,7 @@ func chainLockSuppressedNow() bool {
 		chainLockSuppressLoaded = true
 		if _, err := os.Stat(chainLockSuppressFile()); err == nil {
 			chainLockSuppressed = true
-			log.Printf("[AwgChain] The lock was lifted by hand before the manager restarted, so it stays down until a tunnel is raised on purpose")
+			log.Printf("[WarpAm] The lock was lifted by hand before the manager restarted, so it stays down until a tunnel is raised on purpose")
 		}
 	}
 	return chainLockSuppressed
@@ -137,13 +137,13 @@ func chainMigrateLockEngine() {
 	global := ChainGlobal()
 	global.LockEngine = engine
 	if err := ChainGlobalSave(global); err != nil {
-		log.Printf("[AwgChain] The old lock files %v were found, but the settings could not be written (%v), so they are left where they are and no longer read", found, err)
+		log.Printf("[WarpAm] The old lock files %v were found, but the settings could not be written (%v), so they are left where they are and no longer read", found, err)
 		return
 	}
 	for _, path := range found {
 		if err := os.Remove(path); err != nil {
-			log.Printf("[AwgChain] %s could not be deleted (%v); it is no longer read either way", path, err)
+			log.Printf("[WarpAm] %s could not be deleted (%v); it is no longer read either way", path, err)
 		}
 	}
-	log.Printf("[AwgChain] The old lock files %v are carried over: the lock engine is now %q in the settings, where it can be seen and changed", found, engine)
+	log.Printf("[WarpAm] The old lock files %v are carried over: the lock engine is now %q in the settings, where it can be seen and changed", found, engine)
 }

@@ -27,7 +27,11 @@ import (
 )
 
 // chainExportManifestName is the extra file the archive carries for a chain.
-const chainExportManifestName = "awgchain-chain.json"
+const chainExportManifestName = "warpam-chain.json"
+
+// chainExportLegacyManifestName is the same file in an archive written before
+// pack 94. It is still read, so an old export imports as it always did.
+const chainExportLegacyManifestName = "awgchain-chain.json"
 
 // chainExportSettings is the copy of the boxes of one chain leaf.
 type chainExportSettings struct {

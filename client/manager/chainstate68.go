@@ -29,7 +29,7 @@ func (s *ManagerService) chainFirstInTransition(names []string) string {
 		if err != nil {
 			// A tunnel whose state cannot be read is not a reason to refuse
 			// the raise: the stop below will deal with it.
-			log.Printf("[AwgChain] The state of %s could not be read (%v), so it is taken as settled", name, err)
+			log.Printf("[WarpAm] The state of %s could not be read (%v), so it is taken as settled", name, err)
 			continue
 		}
 		if state == TunnelStarting || state == TunnelStopping {

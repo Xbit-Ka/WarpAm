@@ -49,7 +49,7 @@ func chainNoteAdoptedTunnel(name string) {
 	chainSettingsMu.Unlock()
 
 	if stale {
-		log.Printf("[AwgChain] %s is adopted, but it was switched off by hand, so the start-up raise still leaves it alone", name)
+		log.Printf("[WarpAm] %s is adopted, but it was switched off by hand, so the start-up raise still leaves it alone", name)
 		return
 	}
 	ChainNoteLastTunnel(name)
@@ -103,8 +103,8 @@ func ChainNoteTunnelDown(name string) {
 		return
 	}
 	if err := chainSettingsStoreLocked(); err != nil {
-		log.Printf("[AwgChain] %s was switched off by hand, but that could not be remembered: %v", name, err)
+		log.Printf("[WarpAm] %s was switched off by hand, but that could not be remembered: %v", name, err)
 		return
 	}
-	log.Printf("[AwgChain] %s was switched off by hand, so the start-up raise leaves it alone until it is raised again (still wanted up: %v)", name, book.Global.UpTunnels)
+	log.Printf("[WarpAm] %s was switched off by hand, so the start-up raise leaves it alone until it is raised again (still wanted up: %v)", name, book.Global.UpTunnels)
 }

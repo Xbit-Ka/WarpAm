@@ -21,7 +21,6 @@ import (
 	"context"
 	"encoding/base64"
 	"io"
-	"log"
 	"net"
 	"net/http"
 	"strconv"
@@ -35,16 +34,20 @@ func (p *chainProxy) serveHTTP(c net.Conn, reader *bufio.Reader) {
 		return
 	}
 
-	if !p.httpLoginOk(request) {
-		c.Write([]byte("HTTP/1.1 407 Proxy Authentication Required\r\nProxy-Authenticate: Basic realm=\"AwgChain\"\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"))
-		log.Printf("[AwgChain] The proxy of %s refused a login from %s", p.leaf, c.RemoteAddr())
+	if ok, tried := p.httpLoginOk(request); !ok {
+		c.Write([]byte("HTTP/1.1 407 Proxy Authentication Required\r\nProxy-Authenticate: Basic realm=\"WarpAm\"\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"))
+		// Pack 97: a browser asks first without a login and only then
+		// with one, so a 407 without the header is not a failure.
+		if tried {
+			p.loginRefused(c, "wrong login or password (HTTP)")
+		}
 		return
 	}
 
 	index, dns, alive := p.current()
 	if !alive {
 		c.Write([]byte("HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"))
-		chainLogChanged("proxy-down-"+p.leaf, "[AwgChain] The proxy of %s refuses connections: the tunnel is not there", p.leaf)
+		chainLogChanged("proxy-down-"+p.leaf, "[WarpAm] The proxy of %s refuses connections: the tunnel is not there", p.leaf)
 		return
 	}
 
@@ -68,7 +71,7 @@ func (p *chainProxy) serveHTTP(c net.Conn, reader *bufio.Reader) {
 		} else {
 			c.Write([]byte("HTTP/1.1 502 Bad Gateway\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"))
 		}
-		chainLogChanged("proxy-resolve-"+p.leaf, "[AwgChain] The proxy of %s could not resolve %q: %v", p.leaf, host, err)
+		chainLogChanged("proxy-resolve-"+p.leaf, "[WarpAm] The proxy of %s could not resolve %q: %v", p.leaf, host, err)
 		return
 	}
 	remote, err := chainProxyDialTCP(ctx, index, address.String(), port)
@@ -104,26 +107,29 @@ func (p *chainProxy) serveHTTP(c net.Conn, reader *bufio.Reader) {
 	p.relay(c, remote)
 }
 
-// httpLoginOk checks Proxy-Authorization when a login is asked for.
-func (p *chainProxy) httpLoginOk(request *http.Request) bool {
+// httpLoginOk checks Proxy-Authorization when a login is asked for. The
+// second answer says whether a login was sent at all. Pack 97.
+func (p *chainProxy) httpLoginOk(request *http.Request) (bool, bool) {
 	if !p.needAuth() {
-		return true
+		return true, false
 	}
 	header := request.Header.Get("Proxy-Authorization")
+	if len(strings.TrimSpace(header)) == 0 {
+		return false, false
+	}
 	const prefix = "Basic "
 	if !strings.HasPrefix(header, prefix) {
-		return false
+		return false, true
 	}
 	raw, err := base64.StdEncoding.DecodeString(strings.TrimSpace(header[len(prefix):]))
 	if err != nil {
-		return false
+		return false, true
 	}
 	user, password, found := strings.Cut(string(raw), ":")
 	if !found {
-		return false
+		return false, true
 	}
-	return strings.EqualFold(strings.TrimSpace(user), p.user) &&
-		ChainProxyPassHash(p.user, password) == p.passHash
+	return p.loginOk(user, password), true
 }
 
 // chainHTTPTarget works out where the request wants to go.

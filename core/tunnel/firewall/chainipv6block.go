@@ -83,7 +83,7 @@ func blockIPv6(session uintptr, baseObjects *baseObjects, weight uint8) error {
 	// #1 Outbound IPv6.
 	//
 	{
-		displayData, err := createWtFwpmDisplayData0("AwgChain: block outbound IPv6", "")
+		displayData, err := createWtFwpmDisplayData0("WarpAm: block outbound IPv6", "")
 		if err != nil {
 			return wrapErr(err)
 		}
@@ -101,7 +101,7 @@ func blockIPv6(session uintptr, baseObjects *baseObjects, weight uint8) error {
 	// #2 Inbound IPv6.
 	//
 	{
-		displayData, err := createWtFwpmDisplayData0("AwgChain: block inbound IPv6", "")
+		displayData, err := createWtFwpmDisplayData0("WarpAm: block inbound IPv6", "")
 		if err != nil {
 			return wrapErr(err)
 		}

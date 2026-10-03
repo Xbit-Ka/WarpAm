@@ -25,6 +25,6 @@ replace (
 	github.com/lxn/win => golang.zx2c4.com/wireguard/windows v0.0.0-20210224134948-620c54ef6199
 )
 
-replace github.com/amnezia-vpn/amneziawg-windows/v3 => C:\dev\vpnchain\amneziawg-windows
+replace github.com/amnezia-vpn/amneziawg-windows/v3 => ../core
 
-replace github.com/amnezia-vpn/amneziawg-go/v3 => C:\dev\vpnchain\amneziawg-go
+replace github.com/amnezia-vpn/amneziawg-go/v3 => ../amneziawg-go

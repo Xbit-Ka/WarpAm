@@ -30,10 +30,14 @@
 package conf
 
 import (
+	"bytes"
 	"errors"
+	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/amnezia-vpn/amneziawg-windows/v3/conf/dpapi"
 )
@@ -194,12 +198,68 @@ func ChainCountConfigs() (sealed, plain int, err error) {
 			continue
 		}
 		name := file.Name()
+		named := ""
 		switch {
 		case strings.HasSuffix(name, configFileSuffix):
-			sealed++
+			named = "sealed"
 		case strings.HasSuffix(name, configFileUnencryptedSuffix):
+			named = "plain"
+		default:
+			continue
+		}
+		// WarpAm pack 94: the name is only a claim, the first bytes decide.
+		// The window said "5 encrypted, 0 plain" while the folder showed
+		// .conf files, and nothing in the old count could tell a sealed
+		// name with plain text inside from a real DPAPI blob.
+		found := chainConfigKind(filepath.Join(dir, name))
+		if found == "" {
+			found = named
+		}
+		if found != named {
+			chainCountMismatch(name, named, found)
+		}
+		if found == "sealed" {
+			sealed++
+		} else {
 			plain++
 		}
 	}
 	return sealed, plain, nil
+}
+
+// chainDPAPIMagic is how every DPAPI blob begins: version 1 and the provider
+// GUID df9d8cd0-1501-11d1-8c7a-00c04fc297eb.
+var chainDPAPIMagic = []byte{0x01, 0x00, 0x00, 0x00, 0xd0, 0x8c, 0x9d, 0xdf, 0x01, 0x15, 0xd1, 0x11, 0x8c, 0x7a, 0x00, 0xc0, 0x4f, 0xc2, 0x97, 0xeb}
+
+// chainConfigKind reads the head of a configuration file and says what is
+// really inside: "sealed" for a DPAPI blob, "plain" for text that opens with
+// a section, and "" when the file cannot be read or is neither.
+func chainConfigKind(path string) string {
+	file, err := os.Open(path)
+	if err != nil {
+		return ""
+	}
+	defer file.Close()
+	head := make([]byte, 64)
+	n, _ := io.ReadFull(file, head)
+	head = head[:n]
+	if bytes.HasPrefix(head, chainDPAPIMagic) {
+		return "sealed"
+	}
+	text := bytes.TrimLeft(bytes.TrimPrefix(head, []byte{0xef, 0xbb, 0xbf}), " \t\r\n")
+	if bytes.HasPrefix(text, []byte("[")) || bytes.HasPrefix(text, []byte("#")) {
+		return "plain"
+	}
+	return ""
+}
+
+// chainCountMismatches remembers which files were already reported, so the
+// window, which counts on every refresh, does not fill the log.
+var chainCountMismatches sync.Map
+
+func chainCountMismatch(name, named, found string) {
+	if _, seen := chainCountMismatches.LoadOrStore(name+"|"+found, true); seen {
+		return
+	}
+	log.Printf("[WarpAm] The configuration file %s is named %s but its content is %s, so it is counted as %s", name, named, found, found)
 }

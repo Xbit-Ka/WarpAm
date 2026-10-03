@@ -108,7 +108,7 @@ func RunUI() {
 			// Pack 85: this one message has to be shown even though the
 			// program is quitting, so it goes around the hub: the user is
 			// leaving a service behind that is still running.
-			walk.MsgBox(nil, l18n.Sprintf("Error Exiting Warpam"), l18n.Sprintf("Unable to exit service due to: %v. You may want to stop Warpam from the service manager.", err), walk.MsgBoxIconError)
+			walk.MsgBox(nil, l18n.Sprintf("Error Exiting WarpAm"), l18n.Sprintf("Unable to exit service due to: %v. You may want to stop WarpAm from the service manager.", err), walk.MsgBoxIconError)
 		}
 	}
 }

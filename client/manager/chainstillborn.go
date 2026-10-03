@@ -68,10 +68,10 @@ func ChainStillbornNote(name string) {
 	}
 	chainStillbornMu.Unlock()
 
-	log.Printf("[AwgChain] The service of %s ended without ever starting, %d time(s) in a row", name, count)
+	log.Printf("[WarpAm] The service of %s ended without ever starting, %d time(s) in a row", name, count)
 	if count < chainStillbornLimit {
 		return
 	}
-	log.Printf("[AwgChain] %s did not start %d times in a row, so it is taken out of the set that is raised at start-up", name, chainStillbornLimit)
+	log.Printf("[WarpAm] %s did not start %d times in a row, so it is taken out of the set that is raised at start-up", name, chainStillbornLimit)
 	ChainNoteTunnelDown(name)
 }

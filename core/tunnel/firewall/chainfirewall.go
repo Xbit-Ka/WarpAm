@@ -227,22 +227,57 @@ func EnableChainFirewall(cfg *ChainFirewallConfig) error {
 	if chainSession != 0 {
 		return errors.New("The chain firewall has already been enabled")
 	}
+	session, err := buildChainFirewall(cfg)
+	if err != nil {
+		return err
+	}
+	chainSession = session
+	return nil
+}
+
+// ReplaceChainFirewall puts up a new rule set while the old one still stands
+// and only then removes the old one.
+//
+// WarpAm pack 94. A change of the proxy tunnels beside the chain, and the
+// repair after new adapters, used to close the old session first and open
+// the new one after it: about eight milliseconds with no rules at all, in
+// which anything could leave the machine. Every session has its own random
+// provider and sublayer, so two sessions can stand at the same time. While
+// both stand, a packet has to be let through by both, which is stricter than
+// either of them alone, never looser. If the new set cannot be installed the
+// old one stays, and the error says so.
+func ReplaceChainFirewall(cfg *ChainFirewallConfig) error {
+	session, err := buildChainFirewall(cfg)
+	if err != nil {
+		return err
+	}
+	old := chainSession
+	chainSession = session
+	if old != 0 {
+		fwpmEngineClose0(old)
+	}
+	return nil
+}
+
+// buildChainFirewall opens a new dynamic session and installs the whole rule
+// set of cfg into it. The session is returned open; nothing is closed here.
+func buildChainFirewall(cfg *ChainFirewallConfig) (uintptr, error) {
 	if cfg == nil {
-		return errors.New("A chain firewall configuration is required")
+		return 0, errors.New("A chain firewall configuration is required")
 	}
 	if cfg.Hop1LUID == 0 || cfg.Hop2LUID == 0 {
-		return errors.New("Both hop interface LUIDs are required")
+		return 0, errors.New("Both hop interface LUIDs are required")
 	}
 	if cfg.Hop1Endpoint.To4() == nil || cfg.Hop2Endpoint.To4() == nil {
-		return errors.New("Both hop endpoints must be IPv4 addresses")
+		return 0, errors.New("Both hop endpoints must be IPv4 addresses")
 	}
 	if len(cfg.AllowedApps) == 0 {
-		return errors.New("At least one allowed executable is required")
+		return 0, errors.New("At least one allowed executable is required")
 	}
 
 	session, err := createChainWfpSession()
 	if err != nil {
-		return wrapErr(err)
+		return 0, wrapErr(err)
 	}
 
 	hop1LUID := cfg.Hop1LUID
@@ -338,11 +373,10 @@ func EnableChainFirewall(cfg *ChainFirewallConfig) error {
 	err = runTransaction(session, objectInstaller)
 	if err != nil {
 		fwpmEngineClose0(session)
-		return wrapErr(err)
+		return 0, wrapErr(err)
 	}
 
-	chainSession = session
-	return nil
+	return session, nil
 }
 
 // DisableChainFirewall removes every filter installed by EnableChainFirewall.
@@ -354,7 +388,7 @@ func DisableChainFirewall() {
 }
 
 func createChainWfpSession() (uintptr, error) {
-	sessionDisplayData, err := createWtFwpmDisplayData0("AwgChain", "AwgChain kill switch dynamic session")
+	sessionDisplayData, err := createWtFwpmDisplayData0("WarpAm", "WarpAm kill switch dynamic session")
 	if err != nil {
 		return 0, wrapErr(err)
 	}
@@ -388,7 +422,7 @@ func registerChainBaseObjects(session uintptr) (*baseObjects, error) {
 	}
 
 	{
-		displayData, err := createWtFwpmDisplayData0("AwgChain", "AwgChain kill switch provider")
+		displayData, err := createWtFwpmDisplayData0("WarpAm", "WarpAm kill switch provider")
 		if err != nil {
 			return nil, wrapErr(err)
 		}
@@ -403,7 +437,7 @@ func registerChainBaseObjects(session uintptr) (*baseObjects, error) {
 	}
 
 	{
-		displayData, err := createWtFwpmDisplayData0("AwgChain filters", "AwgChain kill switch filters")
+		displayData, err := createWtFwpmDisplayData0("WarpAm filters", "WarpAm kill switch filters")
 		if err != nil {
 			return nil, wrapErr(err)
 		}

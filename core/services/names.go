@@ -8,6 +8,7 @@ package services
 import (
 	"errors"
 
+	"github.com/amnezia-vpn/amneziawg-windows/v3/brand"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/conf"
 )
 
@@ -15,12 +16,12 @@ func ServiceNameOfTunnel(tunnelName string) (string, error) {
 	if !conf.TunnelNameIsValid(tunnelName) {
 		return "", errors.New("Tunnel name is not valid")
 	}
-	return "AwgChainTunnel$" + tunnelName, nil
+	return brand.TunnelServicePrefix + tunnelName, nil
 }
 
 func PipePathOfTunnel(tunnelName string) (string, error) {
 	if !conf.TunnelNameIsValid(tunnelName) {
 		return "", errors.New("Tunnel name is not valid")
 	}
-	return `\\.\pipe\ProtectedPrefix\Administrators\AwgChain\` + tunnelName, nil
+	return brand.PipeFolder + tunnelName, nil
 }

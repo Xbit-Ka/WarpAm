@@ -2,9 +2,13 @@ package services
 
 import (
 	"golang.org/x/sys/windows/registry"
+
+	"github.com/amnezia-vpn/amneziawg-windows/v3/brand"
 )
 
-const userRegKey = `Software\AmneziaWG`
+// WarpAm pack 94: the key of this program, not the one of the real
+// AmneziaWG client.
+const userRegKey = brand.RegistryKey
 
 var userKey registry.Key
 

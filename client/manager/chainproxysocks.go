@@ -21,8 +21,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
-	"log"
 	"net"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -83,9 +83,13 @@ func (p *chainProxy) serve(c net.Conn) {
 	case !socks && p.protocol != ChainProxyProtoSocks5:
 		p.serveHTTP(c, reader)
 	case socks:
+		// Pack 97: these two refusals used to leave no trace at all.
+		p.refused(c, "it spoke SOCKS5 to a proxy set to HTTP only")
 		p.socksReply(c, chainSocksNotAllowed, net.IPv4zero, 0)
 	default:
-		c.Write([]byte("HTTP/1.1 501 Not Implemented\r\nConnection: close\r\n\r\n"))
+		p.refused(c, "it spoke HTTP to a proxy set to SOCKS5 only")
+		const text = "WarpAm: this proxy speaks SOCKS5 only"
+		c.Write([]byte("HTTP/1.1 501 Not Implemented\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(len(text)) + "\r\nConnection: close\r\n\r\n" + text))
 	}
 }
 
@@ -125,6 +129,12 @@ func (p *chainProxy) serveSocks(c net.Conn, reader *bufio.Reader) {
 		}
 	}
 	if !offered {
+		// Pack 98: only a guess, a browser is the usual suspect.
+		if want == chainSocksUserPass {
+			p.refused(c, "the program offered no login, and this proxy asks for one (perhaps a browser: many of them do not send a SOCKS5 login, HTTP may help)")
+		} else {
+			p.refused(c, "the program offered only a login, and this proxy has none")
+		}
 		c.Write([]byte{chainSocksVersion, chainSocksNoneOk})
 		return
 	}
@@ -175,11 +185,9 @@ func (p *chainProxy) socksLogin(c net.Conn, reader *bufio.Reader) bool {
 		return false
 	}
 
-	ok := strings.EqualFold(strings.TrimSpace(string(user)), p.user) &&
-		ChainProxyPassHash(p.user, string(password)) == p.passHash
-	if !ok {
+	if !p.loginOk(string(user), string(password)) {
 		c.Write([]byte{chainSocksAuthVer, 0x01})
-		log.Printf("[AwgChain] The proxy of %s refused a login from %s", p.leaf, c.RemoteAddr())
+		p.loginRefused(c, "wrong login or password (SOCKS5)")
 		return false
 	}
 	_, err := c.Write([]byte{chainSocksAuthVer, 0x00})
@@ -239,7 +247,7 @@ func (p *chainProxy) socksConnect(c net.Conn, host string, port uint16) {
 	index, dns, alive := p.current()
 	if !alive {
 		p.socksReply(c, chainSocksHostUnreach, net.IPv4zero, 0)
-		chainLogChanged("proxy-down-"+p.leaf, "[AwgChain] The proxy of %s refuses connections: the tunnel is not there", p.leaf)
+		chainLogChanged("proxy-down-"+p.leaf, "[WarpAm] The proxy of %s refuses connections: the tunnel is not there", p.leaf)
 		return
 	}
 
@@ -254,7 +262,7 @@ func (p *chainProxy) socksConnect(c net.Conn, host string, port uint16) {
 		if chainSocksCodeFor(err) == chainSocksNotAllowed {
 			p.setNote(chainProxyNoteDNSBlocked)
 		}
-		chainLogChanged("proxy-resolve-"+p.leaf, "[AwgChain] The proxy of %s could not resolve %q: %v", p.leaf, host, err)
+		chainLogChanged("proxy-resolve-"+p.leaf, "[WarpAm] The proxy of %s could not resolve %q: %v", p.leaf, host, err)
 		p.socksReply(c, chainSocksCodeFor(err), net.IPv4zero, 0)
 		return
 	}
@@ -424,7 +432,7 @@ func (s *chainProxyUDP) fromClient() {
 			if chainSocksCodeFor(err) == chainSocksNotAllowed {
 				s.proxy.setNote(chainProxyNoteDNSBlocked)
 			}
-			chainLogChanged("proxy-resolve-udp-"+s.proxy.leaf, "[AwgChain] The proxy of %s could not resolve %q for a UDP datagram: %v", s.proxy.leaf, host, err)
+			chainLogChanged("proxy-resolve-udp-"+s.proxy.leaf, "[WarpAm] The proxy of %s could not resolve %q for a UDP datagram: %v", s.proxy.leaf, host, err)
 			continue
 		}
 		s.tunnelSide.WriteToUDP(payload, &net.UDPAddr{IP: address, Port: int(port)})
