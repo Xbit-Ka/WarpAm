@@ -32,6 +32,7 @@
 package manager
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"sync"
@@ -181,7 +182,7 @@ func ChainSilenceFollow(name string) {
 			}
 			if !saidRx && time.Since(handshook) >= chainSilenceRxWait {
 				saidRx = true
-				log.Printf("[WarpAm] %s handshakes with its server and has received nothing for %d seconds. The agreement holds, so this is not the configuration: the traffic is being dropped on the way, by a filter of this machine or by the server", name, int(time.Since(handshook).Seconds()))
+				log.Printf("[WarpAm] %s handshakes with its server and has received nothing for %d seconds. The agreement holds, so this is not the configuration: the traffic is being dropped on the way, by a filter of this machine or by the server.%s", name, int(time.Since(handshook).Seconds()), chainKeyElsewhereHint(name))
 				return
 			}
 			continue
@@ -212,4 +213,55 @@ func ChainSilenceFollow(name string) {
 			chainSilenceSayConfig(name)
 		}
 	}
+}
+
+// WarpAm pack 112: the same key on another device.
+//
+// WarpAm cannot see a device or a virtual machine that uses the same key.
+// The server keeps one address and port per key and answers wherever the
+// last packet came from, so two devices keep taking the answers from each
+// other. From here that looks like silence one way: handshakes, and
+// nothing received, as 100 had at 16:54:24 on 7 October. The hint goes
+// into the log only. One short silence proves little; repeats within half
+// an hour make it more likely, and the hint says so.
+
+const (
+	chainKeyElsewhereWindow = 30 * time.Minute
+	// chainKeyElsewhereGap keeps one silence that several watches report
+	// from being counted more than once.
+	chainKeyElsewhereGap = time.Minute
+)
+
+var chainKeyElsewhere = struct {
+	sync.Mutex
+	seen map[string][]time.Time
+}{seen: make(map[string][]time.Time)}
+
+// chainRxHinted remembers the hops the guard has given the hint for in
+// this silence. It is kept under chainRxMu (chainguard.go).
+var chainRxHinted = make(map[string]bool)
+
+// chainKeyElsewhereHint counts one more silence one way of name and gives
+// the hint for the log, starting with a space.
+func chainKeyElsewhereHint(name string) string {
+	shown := chainShownName(name)
+	key := strings.ToLower(shown)
+	now := time.Now()
+	chainKeyElsewhere.Lock()
+	var kept []time.Time
+	for _, at := range chainKeyElsewhere.seen[key] {
+		if now.Sub(at) < chainKeyElsewhereWindow {
+			kept = append(kept, at)
+		}
+	}
+	if len(kept) == 0 || now.Sub(kept[len(kept)-1]) >= chainKeyElsewhereGap {
+		kept = append(kept, now)
+	}
+	chainKeyElsewhere.seen[key] = kept
+	count := len(kept)
+	chainKeyElsewhere.Unlock()
+	if count < 2 {
+		return " Maybe the same key is working right now on another device or in a virtual machine: the server answers whoever wrote last. Give every device a key of its own."
+	}
+	return fmt.Sprintf(" %s has heard nothing back %d times in the last half hour, so it is likely that the same key is working right now on another device or in a virtual machine: the server answers whoever wrote last. Give every device a key of its own.", shown, count)
 }

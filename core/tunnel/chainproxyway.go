@@ -57,6 +57,14 @@ func chainProxyOwnWay(config *conf.Config) bool {
 	if len(strings.TrimSpace(config.Interface.PinEndpointVia)) != 0 {
 		return false
 	}
+	if chainViaIsParent(config.Name) {
+		// WarpAm pack 102: another tunnel rides on this one and may take
+		// the default route of the machine. Following the default route
+		// would then send this tunnel into the one riding on it, a loop
+		// with no way out. The network card is the right way instead.
+		log.Printf("[WarpAm] %s carries another tunnel, so it keeps to the network card", config.Name)
+		return true
+	}
 	return ChainTunnelIsSeparate(config.Name)
 }
 

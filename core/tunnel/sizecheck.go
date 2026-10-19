@@ -82,14 +82,22 @@ func chainSizeCheck(config *conf.Config, dodge bool) {
 		mtu = sizeCheckMTU
 	}
 	s4 := int(i.TransportPacketJunkSize)
+	// Pack 100: junk is the junk size of the kind, so d = junk - S4 tells
+	// where a receiver looks for the type of a transport packet that has
+	// the length of this kind. With d = 0 it reads the H4 of the transport
+	// packet itself, and the ranges of H never overlap (uapi.go), so the
+	// match of lengths is harmless. Up to pack 99 the check compared only
+	// lengths and warned about tunnel 100 (S3 = S4) for nothing.
 	handshakes := []struct {
 		kind string
 		wire int
+		junk int
 	}{
-		{"handshake initiation (S1+148)", int(i.InitPacketJunkSize) + sizeCheckInit},
-		{"handshake response (S2+92)", int(i.ResponsePacketJunkSize) + sizeCheckResponse},
-		{"cookie reply (S3+64)", int(i.CookieReplyPacketJunkSize) + sizeCheckCookie},
+		{"handshake initiation (S1+148)", int(i.InitPacketJunkSize) + sizeCheckInit, int(i.InitPacketJunkSize)},
+		{"handshake response (S2+92)", int(i.ResponsePacketJunkSize) + sizeCheckResponse, int(i.ResponsePacketJunkSize)},
+		{"cookie reply (S3+64)", int(i.CookieReplyPacketJunkSize) + sizeCheckCookie, int(i.CookieReplyPacketJunkSize)},
 	}
+	harmless := []string{}
 	found := false
 	for a := 0; a < len(handshakes); a++ {
 		for b := a + 1; b < len(handshakes); b++ {
@@ -107,6 +115,10 @@ func chainSizeCheck(config *conf.Config, dodge bool) {
 		if inner%sizeCheckStep != 0 && inner != mtu {
 			continue
 		}
+		if h.junk == s4 {
+			harmless = append(harmless, h.kind)
+			continue
+		}
 		found = true
 		switch {
 		case !dodge:
@@ -117,9 +129,22 @@ func chainSizeCheck(config *conf.Config, dodge bool) {
 			log.Printf("[WarpAm] Size check: a transport packet (S4+32+%d) is %d bytes, the same as a %s; the size dodge pads it away", inner, h.wire, h.kind)
 		}
 	}
+	if len(harmless) != 0 {
+		log.Printf("[WarpAm] Size check: a transport packet can have the length of a %s, the match of lengths is harmless: the junk is the same as S4 %d (d = 0), so the type read is H4", strings.Join(harmless, ", "), s4)
+	}
 	if sizeCheckFlag(i.RandomTrailers) {
-		found = true
-		log.Printf("[WarpAm] Size check: random trailers are on, every length above a handshake size can be read as a handshake and the size dodge does not work")
+		risky := []string{}
+		for _, h := range handshakes {
+			if h.junk != s4 {
+				risky = append(risky, h.kind)
+			}
+		}
+		if len(risky) == 0 {
+			log.Printf("[WarpAm] Size check: random trailers are on, the match of lengths is harmless: every handshake has the same junk as S4 %d (d = 0), so a longer packet still reads as transport", s4)
+		} else {
+			found = true
+			log.Printf("[WarpAm] Size check: random trailers are on, every length above the size of a %s can be read as a handshake (d is not 0) and the size dodge does not work", strings.Join(risky, ", "))
+		}
 	}
 	// Pack 96: the packets of the inner hop of a chain travel inside the
 	// adapter of the outer hop, so they have to fit into its MTU and not
@@ -133,7 +158,7 @@ func chainSizeCheck(config *conf.Config, dodge bool) {
 		found = true
 		log.Printf("[WarpAm] Size check: MTU %d + S4 %d + 32 + 28 is %d bytes, more than %d; full packets can be cut on the way", mtu, s4, total, wire)
 	}
-	if !found {
+	if !found && len(harmless) == 0 {
 		log.Printf("[WarpAm] Size check: no length matches")
 	}
 }

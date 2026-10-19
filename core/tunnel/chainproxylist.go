@@ -26,6 +26,7 @@ import (
 
 	"golang.org/x/sys/windows"
 
+	"github.com/amnezia-vpn/amneziawg-windows/v3/chainmtu"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/conf"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/tunnel/firewall"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/tunnel/winipcfg"
@@ -45,7 +46,13 @@ func chainProxyTunnelsUp(exclude string) []firewall.ChainProxyTunnel {
 		if len(name) == 0 || strings.EqualFold(name, strings.TrimSpace(exclude)) {
 			continue
 		}
-		if !ChainTunnelIsSeparate(name) {
+		// WarpAm pack 102: a tunnel that rides on the one asking gets the
+		// same door, whatever its mode. It carries the machine through us,
+		// and our wall would otherwise stop everything on its adapter.
+		// WarpAm pack 112: the hidden hop of a pair whose second proxy
+		// goes out through it carries that proxy, so it gets the door too.
+		second, _ := chainmtu.Proxy2Wanted(name)
+		if !ChainTunnelIsSeparate(name) && !chainViaRidesOn(name, exclude) && !second {
 			continue
 		}
 		iface, err := findInterfaceByName(name)
@@ -66,6 +73,11 @@ func chainProxyTunnelsUp(exclude string) []firewall.ChainProxyTunnel {
 				continue
 			}
 			hole.DNSServers = append(hole.DNSServers, server.To4())
+		}
+		// WarpAm pack 112: a hidden hop has no resolvers of its own, the
+		// second proxy asks Cloudflare through it (chainproxy2.go).
+		if second && len(hole.DNSServers) == 0 {
+			hole.DNSServers = []net.IP{net.IPv4(1, 1, 1, 1).To4(), net.IPv4(1, 0, 0, 1).To4()}
 		}
 		for i := range c.Peers {
 			endpoint := c.Peers[i].Endpoint
@@ -107,7 +119,11 @@ func chainProxyDoorsRefresh(exclude string) {
 		return
 	}
 	if err := firewall.ChainPermitProxyTunnelsNow(list); err != nil {
-		log.Printf("Firewall: could not make room for the proxy tunnels: %v", err)
+		// WarpAm pack 107: a tunnel without a firewall has no rules to
+		// make room in, so there is nothing to say about it.
+		if !strings.Contains(err.Error(), "is not enabled") {
+			log.Printf("Firewall: could not make room for the proxy tunnels: %v", err)
+		}
 	}
 }
 

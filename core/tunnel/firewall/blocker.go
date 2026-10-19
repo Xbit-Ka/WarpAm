@@ -181,6 +181,12 @@ func EnableFirewall(luid uint64, doNotRestrict bool, restrictToDNSServers []net.
 				return wrapErr(err)
 			}
 
+			// WarpAm pack 112: the ping of the MTU check (chainmtudoor.go).
+			err = permitChainMTUProbeSelf(session, baseObjects, 12)
+			if err != nil {
+				return wrapErr(err)
+			}
+
 			err = blockAll(session, baseObjects, 0)
 			if err != nil {
 				return wrapErr(err)

@@ -54,10 +54,14 @@ func chainLockProxyTunnels(leaf string) []firewall.ChainProxyTunnel {
 	out := make([]firewall.ChainProxyTunnel, 0, len(names))
 	for _, name := range names {
 		name = strings.TrimSpace(name)
-		if len(name) == 0 || chainInOwnBranch(branch, name) {
+		if len(name) == 0 {
 			continue
 		}
-		if !chainLeafIsSeparate(name) {
+		// WarpAm pack 112: the hidden hop that carries the second proxy of
+		// its pair is let through as well, even inside the chain that holds
+		// the lock (chainproxy2.go).
+		second, _ := chainProxy2Wanted(name)
+		if !second && (chainInOwnBranch(branch, name) || !chainLeafIsSeparate(name)) {
 			continue
 		}
 		luid, ok := chainAdapterLUID(name)
@@ -85,6 +89,9 @@ func chainLockProxyTunnels(leaf string) []firewall.ChainProxyTunnel {
 		// not resolve one single name. Its own resolvers, through its own
 		// adapter, are let through too.
 		dns := chainProxyDNSServers(name)
+		if second {
+			name += " (second proxy)"
+		}
 		if len(dns) == 0 {
 			log.Printf("[WarpAm] The proxy tunnel %s has no IPv4 DNS server of its own, so its proxy will only be able to open addresses, not names", name)
 		}

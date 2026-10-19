@@ -23,6 +23,7 @@ import (
 	"golang.org/x/sys/windows/svc/mgr"
 
 	"github.com/amnezia-vpn/amneziawg-windows/v3/conf"
+	"github.com/amnezia-vpn/amneziawg-windows/v3/debuglog"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/elevate"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/ringlogger"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/services"
@@ -129,6 +130,8 @@ func (service *tunnelService) Execute(args []string, r <-chan svc.ChangeRequest,
 	}
 
 	log.SetPrefix(fmt.Sprintf("[%s] ", config.Name))
+	// WarpAm pack 110: the debug file of this tunnel (core/debuglog).
+	debuglog.Start("TUN")
 
 	log.Println("Starting", version.UserAgent())
 
@@ -186,18 +189,33 @@ func (service *tunnelService) Execute(args []string, r <-chan svc.ChangeRequest,
 	}
 
 	log.Println("Creating Wintun interface")
+	// WarpAm pack 113: an adapter with the same GUID that Windows is still
+	// removing makes Wintun wait 15 seconds and fail, so it is waited for
+	// first (chainadapterwait.go).
+	chainWaitOldAdapter(config)
+	debuglog.Fire("adapter-create-begin", config.Name)
 	var wintun tun.Device
 	for i := 0; i < 5; i++ {
 		if i > 0 {
-			time.Sleep(time.Second)
-			log.Printf("Retrying Wintun creation after failure because system just booted (T+%v): %v", windows.DurationSinceBoot(), err)
+			if windows.DurationSinceBoot() > time.Minute*4 {
+				// WarpAm pack 107: Windows is often still removing the
+				// adapters of tunnels that were just switched off, so one
+				// more try after a pause is worth it.
+				log.Printf("[WarpAm] Windows did not make the adapter in time (try %d of %d), trying again in %v: %v", i, chainWintunTries, chainWintunPause, err)
+				time.Sleep(chainWintunPause)
+			} else {
+				time.Sleep(time.Second)
+				log.Printf("Retrying Wintun creation after failure because system just booted (T+%v): %v", windows.DurationSinceBoot(), err)
+			}
 		}
 		wintun, err = tun.CreateTUNWithRequestedGUID(config.Name, deterministicGUID(config), 0)
-		if err == nil || windows.DurationSinceBoot() > time.Minute*4 {
+		if err == nil || (windows.DurationSinceBoot() > time.Minute*4 && i+1 >= chainWintunTries) {
 			break
 		}
 	}
+	debuglog.Fire("adapter-create-end", config.Name, err)
 	if err != nil {
+		log.Printf("[WarpAm] Windows did not make the network adapter of %s: %v. This happens when a tunnel is switched on right after others were switched off and Windows is still removing their adapters. Wait 30 seconds and switch it on again", config.Name, err)
 		serviceError = services.ErrorCreateWintun
 		return
 	}
@@ -215,10 +233,24 @@ func (service *tunnelService) Execute(args []string, r <-chan svc.ChangeRequest,
 		return
 	}
 
+	// WarpAm pack 100: a proxy tunnel may ride over another tunnel of the
+	// program. This only fills PinEndpointVia and MTU in memory, so it has
+	// to come before the pinned routes below.
+	chainProxyViaApply(config)
+
+	// WarpAm pack 112: the own maximum of the MTU tab, when one is known
+	// in this network, counts the stack anew (chainmtuuse.go).
+	chainMTUFromBook(config)
+
 	// AwgChain: IP_UNICAST_IF alone does not survive the routes that the hop
 	// above installs, so give the endpoint of this hop a host route on the
 	// adapter it is pinned to. No PinEndpointVia, nothing happens.
 	chainPinRoutes(config, true)
+
+	// WarpAm pack 100: the address swap is planned before the adapter gets
+	// its address and before the engine gets the adapter. The firewall and
+	// the watcher keep nativeTun, only the engine sees the wrapper.
+	chainAddrSwapPlan(config)
 
 	err = enableFirewall(config, nativeTun)
 	if err != nil {
@@ -235,7 +267,7 @@ func (service *tunnelService) Execute(args []string, r <-chan svc.ChangeRequest,
 
 	log.Println("Creating interface instance")
 	bind := conn.NewDefaultBind()
-	dev = device.NewDevice(wintun, bind, &device.Logger{log.Printf, log.Printf})
+	dev = device.NewDevice(chainAddrSwapWrap(wintun), bind, &device.Logger{log.Printf, log.Printf})
 
 	log.Println("Setting interface configuration")
 	uapi, err = ipc.UAPIListen(config.Name)
@@ -255,12 +287,21 @@ func (service *tunnelService) Execute(args []string, r <-chan svc.ChangeRequest,
 	dev.SetSizeDodge(sizeDodge)
 	chainSizeCheck(config, sizeDodge)
 
-	chainWaitForPinBeforeUp(config)
+	// Pack 101: no way out past the hop underneath. When its adapter never
+	// came, the service stops with an error instead of going direct.
+	if !chainWaitForPinBeforeUp(config) {
+		err = fmt.Errorf("the tunnel underneath (%s) is not up, so this tunnel is not brought up", config.Interface.PinEndpointVia)
+		serviceError = services.ErrorBindSocketsToDefaultRoutes
+		return
+	}
 
 	log.Println("Bringing peers up")
 	dev.Up()
 
 	watcher.Configure(bind.(conn.BindSocketToInterface), config, nativeTun)
+	// WarpAm pack 107: the first handshake went out before the socket was
+	// pinned and was lost, which cost 5 seconds. It is sent again now.
+	chainHandshakeAfterPin(dev, config)
 
 	log.Println("Listening for UAPI requests")
 	go func() {
@@ -281,6 +322,7 @@ func (service *tunnelService) Execute(args []string, r <-chan svc.ChangeRequest,
 
 	changes <- svc.Status{State: svc.Running, Accepts: svc.AcceptStop | svc.AcceptShutdown}
 	log.Println("Startup complete")
+	debuglog.Fire("tunnel-ready", config.Name, dev.IpcGet)
 
 	for {
 		select {

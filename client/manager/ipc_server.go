@@ -103,9 +103,41 @@ func (s *ManagerService) Start(tunnelName string) error {
 		return err
 	}
 
+	// WarpAm pack 112: a chain is not longer than 4 tunnels
+	// (chainlength.go). Old settings and raises without a window are
+	// caught here; the tab asks before the box is ticked.
+	if err := chainLengthStartProblem(tunnelName); err != nil {
+		return chainFinal(err)
+	}
+	chainIPv6ServerNote(tunnelName)
+
+	// WarpAm pack 112: the MTU of the tunnels this raise brings up is
+	// checked outside once per network, before anything is installed
+	// (chainmtu.go). A tunnel with a number already checked costs nothing.
+	s.chainMTUBeforeRaise(tunnelName)
+
 	if err := s.chainStartParents(tunnelName, 0); err != nil {
 		// AwgChain: a hop is useless without the hop it rides on, so bring the
 		// lower ones up first and wait for each handshake.
+		return err
+	}
+
+	// WarpAm pack 103: only one tunnel of a via stack may carry the machine.
+	if err := s.chainViaClashError(tunnelName); err != nil {
+		return err
+	}
+
+	// WarpAm pack 104: the port is asked about before the tunnel this one
+	// goes through is raised. Asked only after, the tunnel below came up
+	// and stayed up for nothing when the port was taken.
+	if err := ChainProxyPortConflict(tunnelName); err != nil {
+		log.Printf("[WarpAm] %s is not raised: %v", tunnelName, err)
+		return err
+	}
+
+	// Pack 101: the tunnel this one is set to go through is raised first,
+	// in the background, so the stop button stays usable meanwhile.
+	if raising, err := s.chainViaRaiseFirst(tunnelName); err != nil || raising {
 		return err
 	}
 
@@ -132,59 +164,18 @@ func (s *ManagerService) Start(tunnelName string) error {
 	// tunnel. The config of such a tunnel still says AllowedIPs
 	// 0.0.0.0/0 - the routes are simply never installed - so the
 	// intersection test below would otherwise stop every one of them.
-	raisingSeparate := chainLeafIsSeparate(tunnelName)
+	// WarpAm pack 110: chainTunnelIsSeparate, so that a hidden hop counts
+	// as what its pair is (chainguard.go).
+	raisingSeparate := chainTunnelIsSeparate(tunnelName)
 
 	// Figure out which tunnels have intersecting addresses/routes and stop those.
-	trackedTunnelsLock.Lock()
-	tt := make([]string, 0, len(trackedTunnels))
-	maybeBusy := make([]string, 0, len(trackedTunnels))
-	// Pack 81: everything that is up right now, whether it intersects with
-	// this config or not. Two tunnels of one account do not have to
-	// intersect to be impossible together, so the question below is asked
-	// of all of them.
-	running := make([]string, 0, len(trackedTunnels))
-	for t, state := range trackedTunnels {
-		if state != TunnelStopped {
-			running = append(running, t)
-		}
-		c2, err := conf.LoadFromName(t)
-		if err != nil || !c.IntersectsWith(c2) {
-			// If we can't get the config, assume it doesn't intersect.
-			continue
-		}
-		if chainInOwnBranch(own, t) {
-			log.Printf("[%s] Keeping \u2018%s\u2019 running: it is a hop of this very chain", c.Name, t)
-			continue
-		}
-		if chainSiblings(c, c2) {
-			// AwgChain: hops of one chain are meant to run together. The inner hop
-			// pins its endpoint through the outer one, so the overlap is by design.
-			log.Printf("[%s] Keeping chain sibling \u2018%s\u2019 running", c.Name, t)
-			continue
-		}
-		if raisingSeparate {
-			// Pack 80: the tunnel being raised only carries its own
-			// proxy, so it has no claim on anything that is already up.
-			log.Printf("[%s] Keeping \u2018%s\u2019 running: the tunnel being raised carries only its proxy", c.Name, t)
-			continue
-		}
-		if chainLeafIsSeparate(t) {
-			// Pack 80: and the other way round - a tunnel that carries
-			// only its proxy holds no default route, so an ordinary
-			// tunnel coming up does not have to push it out of the way.
-			log.Printf("[%s] Keeping \u2018%s\u2019 running: it carries only its proxy", c.Name, t)
-			continue
-		}
-		tt = append(tt, t)
-		// Pack 68 (F1): the tracker is only a hint. Unknown means "not
-		// seen yet", which is the normal state right after the service
-		// starts, so it is checked with the service manager below
-		// instead of refusing the raise on the spot.
-		if len(t) > 0 && (state == TunnelStarting || state == TunnelStopping || state == TunnelUnknown) {
-			maybeBusy = append(maybeBusy, t)
-		}
-	}
-	trackedTunnelsLock.Unlock()
+	// WarpAm pack 111: the loop is chainStartScan (chainstartask.go), the
+	// same code that tells the window beforehand what this raise stops.
+	tt, maybeBusy, running := s.chainStartScan(c, tunnelName, own, raisingSeparate, false)
+	// WarpAm pack 112: a tunnel with the same key the window said yes to
+	// is stopped with the others instead of refusing the raise
+	// (chainkeyclash.go).
+	tt = append(tt, s.chainKeyClashStops(c, tunnelName, running, tt, own)...)
 	if inTransition := s.chainFirstInTransition(maybeBusy); len(inTransition) != 0 {
 		// Pack 68 (F1): the refusal is written down. It used to leave no
 		// trace at all, so "the tunnel does not come up and the log says
@@ -201,13 +192,27 @@ func (s *ManagerService) Start(tunnelName string) error {
 	// tunnels in tt are about to go down and are not in the way.
 	if err := ChainDuplicateConflict(c, running, tt, own); err != nil {
 		log.Printf("[WarpAm] %s is not raised: %v", tunnelName, err)
-		return err
+		// WarpAm pack 111: the same key stays the same key, so the
+		// retry of a hop does not ask five times (chainrefuse.go).
+		return chainFinal(err)
 	}
 
 	// Stop those intersecting tunnels asynchronously.
 	go func() {
 		for _, t := range tt {
+			// WarpAm pack 104: what goes through t goes down with it.
+			s.chainViaStopRiders(t, tunnelName, false)
+			// WarpAm pack 111: and what goes through the tunnels that ride
+			// on t. Stopping warpam-hop1 takes warpam down (Stop stops the
+			// children), and whatever went through warpam was left up
+			// with no way out.
+			for _, kid := range chainChildNames(t) {
+				s.chainViaStopRiders(kid, tunnelName, false)
+			}
 			s.Stop(t)
+			// WarpAm pack 113: the next one goes only when Windows has
+			// taken this adapter away (chainadaptergone.go).
+			ChainWaitAdapterGone(t)
 		}
 		for _, t := range tt {
 			state, err := s.State(t)
@@ -226,6 +231,9 @@ func (s *ManagerService) Start(tunnelName string) error {
 	if err := s.chainInstallAndArm(tunnelName, path); err != nil {
 		return err
 	}
+	// WarpAm pack 112: a ping inside the new tunnel tells whether its
+	// server takes packets as big as the MTU (chainmtu.go).
+	s.chainMTUInnerLater(tunnelName)
 
 	// Pack 68 (F2): now that the tunnel is really installed, it is worth
 	// remembering. The start-up raise is left out on purpose: it raises
@@ -246,7 +254,12 @@ func (s *ManagerService) Stop(tunnelName string) error {
 	// Pack 64: a plain tunnel lets its IPv6 filter go when it stops.
 	chainPlainTunnelStopped(tunnelName)
 	s.chainStopChildren(tunnelName, 0)
+	// Pack 101: a raise still waiting for its parent is called off, and a
+	// service stuck in StartPending is ended if it ignores the Stop.
+	chainViaCancel(tunnelName)
+	startingPid := chainStartingPid(tunnelName)
 	err := UninstallTunnel(tunnelName)
+	chainKillStarting(tunnelName, startingPid)
 
 	// AwgChain patch 16: a hidden hop is of no use once the tunnel that rode on
 	// it is gone, so it stands down as well.
@@ -482,6 +495,14 @@ func (s *ManagerService) ServeConn(reader io.Reader, writer io.Writer) {
 			// the stop worked. A refused stop used to leave the tunnel
 			// running and marked as "switched off by hand", so the
 			// start-up raise then ignored the tunnel that was up.
+			// WarpAm pack 107: whatever goes through this tunnel, directly
+			// or further up, goes down first, the farthest first. The
+			// window asks before; this catches a stop without the window.
+			// It is only here, in the stop asked for by the user, so a
+			// repair of one tunnel never takes the tunnels above with it.
+			// WarpAm pack 110: true, the riders are switched off by the
+			// user too and must not come back at the next boot.
+			s.chainViaStopRiders(tunnelName, "", true)
 			retErr := s.Stop(tunnelName)
 			if retErr == nil {
 				ChainNoteTunnelDown(tunnelName)
@@ -636,6 +657,38 @@ func (s *ManagerService) ServeConn(reader io.Reader, writer io.Writer) {
 		// folder.
 		case ChainSecureMethodType:
 			if chainErr := s.chainServeSecure(decoder, encoder); chainErr != nil {
+				return
+			}
+		// WarpAm pack 110: the lines of the window (chainguilog.go).
+		case ChainGuiLogMethodType:
+			if chainErr := s.chainServeGuiLog(decoder); chainErr != nil {
+				return
+			}
+		// WarpAm pack 111: what a raise would switch off (chainstartask.go).
+		case ChainStartVictimsMethodType:
+			if chainErr := s.chainServeStartVictims(decoder, encoder); chainErr != nil {
+				return
+			}
+		// WarpAm pack 112: the same key (chainkeyclash.go), the length of
+		// a chain (chainlength.go) and the MTU tab (chainmtu.go).
+		case ChainKeyClashesMethodType:
+			if chainErr := s.chainServeKeyClashes(decoder, encoder); chainErr != nil {
+				return
+			}
+		case ChainKeyClashAcceptMethodType:
+			if chainErr := s.chainServeKeyClashAccept(decoder, encoder); chainErr != nil {
+				return
+			}
+		case ChainLengthCheckMethodType:
+			if chainErr := s.chainServeLengthCheck(decoder, encoder); chainErr != nil {
+				return
+			}
+		case ChainMTUTableMethodType:
+			if chainErr := s.chainServeMTUTable(decoder, encoder); chainErr != nil {
+				return
+			}
+		case ChainMTUActionMethodType:
+			if chainErr := s.chainServeMTUAction(decoder, encoder); chainErr != nil {
 				return
 			}
 		default:

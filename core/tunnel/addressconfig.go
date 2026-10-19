@@ -10,11 +10,13 @@ import (
 	"log"
 	"net"
 	"sort"
+	"strings"
 
 	"github.com/amnezia-vpn/amneziawg-go/v3/tun"
 	"golang.org/x/sys/windows"
 
 	"github.com/amnezia-vpn/amneziawg-windows/v3/conf"
+	"github.com/amnezia-vpn/amneziawg-windows/v3/debuglog"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/tunnel/firewall"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/tunnel/winipcfg"
 )
@@ -68,7 +70,9 @@ func configureInterface(family winipcfg.AddressFamily, conf *conf.Config, tun *t
 	addresses := make([]net.IPNet, len(conf.Interface.Addresses))
 	var haveV4Address, haveV6Address bool
 	for i, addr := range conf.Interface.Addresses {
-		addresses[i] = addr.IPNet()
+		// WarpAm pack 100: with the address swap Windows gets its own
+		// address in place of the real one (chainaddrswap.go).
+		addresses[i] = chainAddrSwapAddress(addr.IPNet())
 		if addr.Bits() == 32 {
 			haveV4Address = true
 		} else if addr.Bits() == 128 {
@@ -103,6 +107,9 @@ func configureInterface(family winipcfg.AddressFamily, conf *conf.Config, tun *t
 		}
 	}
 
+	// WarpAm pack 110: before the address, not after it (chainfaststart.go).
+	chainNoDadBeforeAddress(family, luid)
+
 	err := luid.SetIPAddressesForFamily(family, addresses)
 	if err == windows.ERROR_OBJECT_ALREADY_EXISTS {
 		cleanupAddressesOnDisconnectedInterfaces(family, addresses)
@@ -111,6 +118,7 @@ func configureInterface(family winipcfg.AddressFamily, conf *conf.Config, tun *t
 	if err != nil {
 		return err
 	}
+	debuglog.Fire("addresses-set", family, luid, conf.Name)
 
 	deduplicatedRoutes := make([]*winipcfg.RouteData, 0, len(routes))
 	sort.Slice(routes, func(i, j int) bool {
@@ -225,6 +233,10 @@ func configureInterface(family winipcfg.AddressFamily, conf *conf.Config, tun *t
 		ipif.DadTransmits = 0
 		ipif.RouterDiscoveryBehavior = winipcfg.RouterDiscoveryDisabled
 	}
+	// WarpAm pack 110: for IPv4 the row read above already carries the zero
+	// that chainNoDadBeforeAddress put in, so this Set keeps it. It is not
+	// forced here: if Windows refused it there, forcing it here would fail
+	// the whole start instead of costing a few seconds.
 	err = ipif.Set()
 	if err != nil {
 		return err
@@ -267,7 +279,14 @@ func enableFirewall(conf *conf.Config, tun *tun.NativeTun) error {
 		log.Printf("WarpAm: %s carries the local proxy only, so the traffic of the machine is left alone", conf.Name)
 		return firewall.EnableFirewall(tun.LUID(), true, nil, nil)
 	}
-	if conf.Interface.PinEndpointVia != "" {
+	// WarpAm pack 103: a tunnel that goes through another one and carries
+	// the machine gets the usual kill switch below. Its own packets to the
+	// server leave through the lower tunnel from the service process, which
+	// the rules always let out. Only a hop of a chain leaves it to the chain.
+	viaParent := chainViaParentIn(chainViaBook(), conf.Name)
+	if conf.Interface.PinEndpointVia != "" && len(viaParent) != 0 && strings.EqualFold(conf.Interface.PinEndpointVia, viaParent) {
+		log.Printf("[WarpAm] %s goes through %s and carries the machine, so it gets the usual kill switch", conf.Name, viaParent)
+	} else if conf.Interface.PinEndpointVia != "" {
 		// AwgChain: this tunnel is a hop of a chain. The chain-wide rule set owns
 		// the kill switch; a per-tunnel block-all here would land in a permanent
 		// WFP session that the chain guard cannot remove.

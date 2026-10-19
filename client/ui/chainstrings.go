@@ -126,6 +126,11 @@ const (
 	chainProxySplitLabel = "Только через прокси: адрес машины в интернете не меняется"
 	chainProxySplitHint  = "Туннель не забирает маршрут по умолчанию и не меняет системный DNS. Обычные программы ходят напрямую, через туннель идёт только то, что обращается к прокси. Замок в этом режиме не ставится: защищает привязка соединений к туннелю и разрыв связи, если туннель пропал."
 
+	chainProxyViaGroup = "Через туннель"
+	chainProxyViaLabel = "Пускать этот туннель через:"
+	chainProxyViaHint  = "Пакеты этого туннеля идут не прямо в сеть, а внутри другого туннеля WarpAm. Работает в любом режиме: туннель, туннель с прокси, только прокси. Пока тот не поднят, этот ждёт и напрямую не ходит. MTU при нуле в конфиге считается сам."
+	chainProxyViaNone  = "нет других туннелей WarpAm"
+
 	chainProxyDownLabel = "Если туннель пропал:"
 	chainProxyDownHint  = "Отвечать ошибкой: порт остаётся открытым, но каждое соединение получает честный отказ. Закрывать порт: программа увидит «соединение отклонено»."
 	chainProxyDownError = "Отвечать ошибкой"
@@ -192,4 +197,20 @@ const (
 	// removed: the controls are still built and keep their saved values.
 	// To bring the strips back set it to false and rebuild.
 	chainSettingsHideLockUI = true
+)
+
+// WarpAm pack 112: the strings of the proxy tab that came with this pack.
+const (
+	// The second proxy of a double tunnel goes out through the first link.
+	chainProxy2Label      = "Второй прокси через первое звено"
+	chainProxy2PortLabel  = "Порт:"
+	chainProxy2Hint       = "Есть только у двойного туннеля. Второй прокси выходит в интернет через первое звено, мимо второго, и работает вместе с первым прокси. Слушает только этот компьютер, SOCKS5 и HTTP на одном порту."
+	chainProxy2StateTitle = "Второй прокси"
+	chainProxy2StateOff   = "Второй прокси выключен."
+	chainProxy2StateWait  = "Второй прокси включён, но не запущен: туннель не поднят."
+
+	// The memo under the list of the group "through", two lines of up
+	// to 85 letters, broken by hand.
+	chainProxyViaMemo = "Цепочка не длиннее 4 туннелей: каждый туннель в ней отнимает от 72 байт MTU,\r\nи пятому почти не остаётся места для данных. Связь стала бы очень медленной."
+	chainProxyLengthAskError = "Не удалось спросить службу о длине цепочки: "
 )

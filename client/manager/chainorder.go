@@ -34,7 +34,11 @@ import (
 const (
 	chainMaxDepth     = 4
 	chainHopUpTimeout = 45 * time.Second
-	chainPollInterval = time.Second
+	// WarpAm pack 110: a fifth of a second. Every hop of a chain waited
+	// for the hop below it up to a whole second longer than needed, so a
+	// chain of four lost up to four seconds on the polls alone. Each look
+	// is one question over UAPI, which costs nothing next to that.
+	chainPollInterval = 200 * time.Millisecond
 )
 
 // chainParentOfConfig returns the name of the tunnel this config rides on, or

@@ -55,6 +55,13 @@ func (s *ManagerService) chainStartHopWithRetry(name string) error {
 		if try == tries {
 			break
 		}
+		// WarpAm pack 111: a refusal that cannot change, such as the same
+		// private key as a tunnel that is up, is not tried again. Five
+		// tries of it only cost eight seconds and five lines of the log.
+		if chainIsFinal(err) {
+			log.Printf("[%s] Chain: the hop is refused for good, it is not tried again: %v", name, err)
+			break
+		}
 		log.Printf("[%s] Chain: the hop service is not ready yet (try %d of %d): %v", name, try, tries, err)
 		s.chainWaitStopped(name)
 		time.Sleep(chainHopStartRetryGap)

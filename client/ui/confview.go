@@ -738,6 +738,12 @@ func (cv *ConfView) onToggleActiveClicked() {
 		return
 	}
 
+	// Pack 101: the tunnels that go through this one are asked about first.
+	kids, ok := chainViaStopAsk(cv.Form(), cv.tunnel)
+	if !ok {
+		return
+	}
+
 	button.SetEnabled(false)
 	// Pack 85: grey for a few seconds only, so that a raise which never
 	// finishes can still be called off by hand.
@@ -751,6 +757,7 @@ func (cv *ConfView) onToggleActiveClicked() {
 		})
 	}()
 	go func() {
+		chainViaStopKids(kids)
 		oldState, err := cv.tunnel.Toggle()
 		if err != nil {
 			globalState, stateErr := manager.IPCClientGlobalState()

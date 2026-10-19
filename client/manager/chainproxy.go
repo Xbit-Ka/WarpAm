@@ -173,6 +173,9 @@ func chainProxyFollow(leaf string) {
 	}
 	// Pack 97: the rules a crashed run left behind go first, once.
 	go chainProxySweepRules()
+	// WarpAm pack 112: the second proxy of a double tunnel does not
+	// depend on the first one (chainproxy2.go).
+	chainProxy2Follow(leaf)
 	if !chainProxyWanted(leaf) {
 		chainProxyStop(leaf, "the tunnel does not ask for a proxy any more")
 		return

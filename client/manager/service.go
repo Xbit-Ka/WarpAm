@@ -24,6 +24,7 @@ import (
 	"github.com/amnezia-vpn/amneziawg-windows-client/services"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/brand"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/conf"
+	"github.com/amnezia-vpn/amneziawg-windows/v3/debuglog"
 )
 
 type managerService struct{}
@@ -54,6 +55,8 @@ func (service *managerService) Execute(args []string, r <-chan svc.ChangeRequest
 		serviceError = services.ErrorRingloggerOpen
 		return
 	}
+	// WarpAm pack 110: the debug file of the manager (core/debuglog).
+	debuglog.Start("MGR")
 
 	services.PrintStarting()
 
@@ -370,6 +373,10 @@ loop:
 	}
 
 	changes <- svc.Status{State: svc.StopPending}
+	// Pack 100: the proxies stop with the manager. Each stop closes its
+	// rule of Windows Firewall, so a port opened to the local network does
+	// not stay open until the next start sweeps it away.
+	chainProxyStopAll("the manager is going away")
 	procsLock.Lock()
 	stoppingManager = true
 	IPCServerNotifyManagerStopping()

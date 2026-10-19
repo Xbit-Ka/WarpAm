@@ -6,6 +6,7 @@
 package ui
 
 import (
+	"net"
 	"sort"
 	"strings"
 	"time"
@@ -13,8 +14,10 @@ import (
 	"github.com/amnezia-vpn/amneziawg-windows-client/l18n"
 	"github.com/amnezia-vpn/amneziawg-windows-client/manager"
 	"github.com/amnezia-vpn/amneziawg-windows/v3/conf"
+	"github.com/amnezia-vpn/amneziawg-windows/v3/tunnel/winipcfg"
 
 	"github.com/lxn/walk"
+	"golang.org/x/sys/windows"
 )
 
 // Status + active CIDRs + separator
@@ -205,8 +208,19 @@ func (tray *Tray) addTunnelAction(tunnel *manager.Tunnel) {
 	tunnelAction.SetCheckable(true)
 	tclosure := *tunnel
 	tunnelAction.Triggered().Attach(func() {
+		// Pack 101: the tunnels that go through this one are asked about
+		// first. The menu flips the tick by itself, so a No puts it back.
+		kids, ok := chainViaStopAsk(tray.mtw, &tclosure)
+		if !ok {
+			// WarpAm pack 103: a refused raise is a No too, so the tick
+			// follows the real state instead of always going on.
+			state, stateErr := tclosure.State()
+			tunnelAction.SetChecked(stateErr == nil && (state == manager.TunnelStarted || state == manager.TunnelStarting))
+			return
+		}
 		tunnelAction.SetChecked(!tunnelAction.Checked())
 		go func() {
+			chainViaStopKids(kids)
 			oldState, err := tclosure.Toggle()
 			if err != nil {
 				// AwgChain pack 83: the tick was flipped before the
@@ -368,7 +382,7 @@ func (tray *Tray) updateGlobalState(globalState manager.TunnelState) {
 					config, err := tunnels[i].RuntimeConfig()
 					if err == nil {
 						for _, addr := range config.Interface.Addresses {
-							addrs = append(addrs, addr.String())
+							addrs = append(addrs, trayChainAddress(tunnels[i].Name, addr))
 						}
 					}
 				}
@@ -384,6 +398,42 @@ func (tray *Tray) updateGlobalState(globalState manager.TunnelState) {
 	for _, action := range tray.tunnels {
 		action.SetEnabled(globalState == manager.TunnelStarted || globalState == manager.TunnelStopped)
 	}
+}
+
+// trayChainAddress is one address of a running tunnel for the menu. WarpAm
+// pack 100: with the address swap the adapter holds another IPv4 address
+// than the config, and the menu shows both, "172.16.0.2/32 (Windows
+// 172.16.0.3)".
+func trayChainAddress(name string, addr conf.IPCidr) string {
+	text := addr.String()
+	if addr.Bits() != 32 {
+		return text
+	}
+	shown := trayWindowsAddress(name)
+	if shown == nil || shown.Equal(addr.IP) {
+		return text
+	}
+	return text + " (Windows " + shown.String() + ")"
+}
+
+// trayWindowsAddress is the first IPv4 address on the adapter of the
+// tunnel, or nil when it cannot be read.
+func trayWindowsAddress(name string) net.IP {
+	ifaces, err := winipcfg.GetAdaptersAddresses(windows.AF_INET, winipcfg.GAAFlagDefault)
+	if err != nil {
+		return nil
+	}
+	for _, iface := range ifaces {
+		if !strings.EqualFold(iface.FriendlyName(), name) {
+			continue
+		}
+		for address := iface.FirstUnicastAddress; address != nil; address = address.Next {
+			if ip := address.Address.IP().To4(); ip != nil {
+				return ip
+			}
+		}
+	}
+	return nil
 }
 
 func (tray *Tray) setTunnelState(tunnel *manager.Tunnel, state manager.TunnelState) {

@@ -30,6 +30,7 @@ func resolveHostname(name string) (resolvedIPString string, err error) {
 		}
 		resolvedIPString, err = resolveHostnameOnce(name)
 		if err == nil {
+			chainDNSRemember(name, resolvedIPString)
 			return
 		}
 		if err == windows.WSATRY_AGAIN {
@@ -41,7 +42,20 @@ func resolveHostname(name string) (resolvedIPString string, err error) {
 			log.Printf("Host not found when resolving %s, but no Internet connection available, sleeping for 4 seconds", name)
 			continue
 		}
-		return
+		// WarpAm pack 103: "not found" is often only "not yet": the DNS of
+		// the machine may point into a tunnel that is still coming up. The
+		// name is asked again for about twenty seconds before giving up.
+		if err == windows.WSAHOST_NOT_FOUND && i < chainDNSNotFoundTries-1 {
+			log.Printf("[WarpAm] Host not found when resolving %s, the network or a tunnel may still be coming up, sleeping for 4 seconds", name)
+			continue
+		}
+		break
+	}
+	// WarpAm pack 103: the address found the last time is better than no
+	// tunnel at all.
+	if ip := chainDNSRecall(name); len(ip) != 0 {
+		log.Printf("[WarpAm] %s could not be resolved (%v), the address %s found last time is used", name, err, ip)
+		return ip, nil
 	}
 	return
 }

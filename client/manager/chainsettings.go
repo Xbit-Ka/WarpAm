@@ -110,6 +110,18 @@ type ChainTunnelSettings struct {
 	// internet does not change. False means the tunnel works as usual and
 	// the proxy is only a local door into it.
 	ProxySplit bool
+	// ProxyVia (WarpAm pack 100) sends the packets of this tunnel through
+	// another tunnel of the program, ProxyViaTunnel names it. Pack 102: it
+	// counts in every mode, with or without the proxy.
+	ProxyVia       bool
+	ProxyViaTunnel string
+	// Proxy2 (WarpAm pack 112) is the second proxy of a double tunnel: it
+	// goes out through the first hop, warpam-hop1, and not through the
+	// tunnel itself. Proxy2Port is its own port. It listens on this
+	// machine only and speaks SOCKS5 and HTTP on the one port. It lives
+	// beside the first proxy and needs nothing of it.
+	Proxy2     bool
+	Proxy2Port int
 }
 
 // Protocol returns the proxy protocol of this tunnel, filling in the
@@ -159,6 +171,25 @@ func (s ChainTunnelSettings) Port() int {
 // as "separate" and installed no routes at all.
 func (s ChainTunnelSettings) Normalised() ChainTunnelSettings {
 	s.LockMode = s.Mode()
+	// WarpAm pack 102: the box "through a tunnel" belongs to no mode, so it
+	// is settled before the proxy part and survives Proxy being off.
+	s.ProxyViaTunnel = strings.TrimSpace(s.ProxyViaTunnel)
+	if len(s.ProxyViaTunnel) == 0 {
+		s.ProxyVia = false
+	}
+	if !s.ProxyVia {
+		s.ProxyViaTunnel = ""
+	}
+	// WarpAm pack 112: the second proxy is settled before the first one,
+	// so that it survives Proxy being off.
+	if s.Proxy2Port <= 0 || s.Proxy2Port > 65535 {
+		s.Proxy2Port = 0
+	}
+	if !s.Proxy2 {
+		s.Proxy2Port = 0
+	} else if s.Proxy2Port == 0 {
+		s.Proxy2Port = ChainProxyDefaultPort + 1
+	}
 	if !s.Proxy {
 		s.ProxyProtocol = ""
 		s.ProxyPort = 0
@@ -485,6 +516,16 @@ func chainSettingsStoreLocked() error {
 		return err
 	}
 	err = os.Rename(temp, path)
+	// WarpAm pack 109: Windows refuses the rename while someone holds
+	// settings.json open for a moment, a second save, the window or an
+	// antivirus. So it is tried again a few times before giving up.
+	for try := 2; err != nil && try <= 5; try++ {
+		time.Sleep(100 * time.Millisecond)
+		err = os.Rename(temp, path)
+		if err == nil {
+			log.Printf("[WarpAm] The settings were put in place on try %d: the file was busy for a moment", try)
+		}
+	}
 	if err != nil {
 		log.Printf("[WarpAm] The settings could not be put in place (%v)", err)
 		os.Remove(temp)

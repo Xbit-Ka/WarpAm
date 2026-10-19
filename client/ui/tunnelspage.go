@@ -522,11 +522,17 @@ func (tp *TunnelsPage) addTunnel(config *conf.Config) {
 // Handlers
 
 func (tp *TunnelsPage) onTunnelsViewItemActivated() {
+	// Pack 101: the tunnels that go through this one are asked about first.
+	kids, ok := chainViaStopAsk(tp.Form(), tp.listView.CurrentTunnel())
+	if !ok {
+		return
+	}
 	go func() {
 		globalState, err := manager.IPCClientGlobalState()
 		if err != nil || (globalState != manager.TunnelStarted && globalState != manager.TunnelStopped) {
 			return
 		}
+		chainViaStopKids(kids)
 		oldState, err := tp.listView.CurrentTunnel().Toggle()
 		if err != nil {
 			// Pack 84: the same three branches stood here, in the card

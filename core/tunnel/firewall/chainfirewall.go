@@ -345,6 +345,12 @@ func buildChainFirewall(cfg *ChainFirewallConfig) (uintptr, error) {
 			return wrapErr(err)
 		}
 
+		// WarpAm pack 112: the ping of the MTU check (chainmtudoor.go).
+		err = permitChainMTUProbe(session, baseObjects, 12, appIDs)
+		if err != nil {
+			return wrapErr(err)
+		}
+
 		err = permitTunInterface(session, baseObjects, 12, hop2LUID)
 		if err != nil {
 			return wrapErr(err)

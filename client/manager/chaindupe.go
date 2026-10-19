@@ -62,19 +62,10 @@ func chainDupeKey(c *conf.Config) string {
 	return c.Interface.PrivateKey.String()
 }
 
-// chainDupeAddress finds the first interface address these two configs have
-// in common.
-func chainDupeAddress(a, b *conf.Config) string {
-	for i := range a.Interface.Addresses {
-		mine := strings.ToLower(a.Interface.Addresses[i].String())
-		for j := range b.Interface.Addresses {
-			if mine == strings.ToLower(b.Interface.Addresses[j].String()) {
-				return a.Interface.Addresses[i].String()
-			}
-		}
-	}
-	return ""
-}
+// Pack 101: the same interface address no longer stops a tunnel at all.
+// Pack 100 swapped IPv4 and kept the refusal for IPv6; now the service
+// swaps IPv6 too (core/tunnel/chainaddrswap.go), so only the check of the
+// key below is left.
 
 // chainDupeHint is the second half of every refusal below. It is the whole
 // point of the message: the user wanted a proxy on that account and does
@@ -95,6 +86,20 @@ func ChainDuplicateConflict(c *conf.Config, running, stopping, own []string) err
 	if c == nil {
 		return nil
 	}
+	if clash := chainDupeConflicts(c, running, stopping, own); len(clash) != 0 {
+		return chainDupeText(c.Name, clash[0])
+	}
+	return nil
+}
+
+// chainDupeConflicts lists the running tunnels with the same private key
+// as c. WarpAm pack 112: the window of the raise asks about all of them
+// (chainkeyclash.go), so the list is no longer cut at the first one.
+func chainDupeConflicts(c *conf.Config, running, stopping, own []string) []string {
+	if c == nil {
+		return nil
+	}
+	var out []string
 	key := chainDupeKey(c)
 	for _, name := range running {
 		if len(name) == 0 || strings.EqualFold(name, c.Name) {
@@ -107,14 +112,32 @@ func ChainDuplicateConflict(c *conf.Config, running, stopping, own []string) err
 		if err != nil {
 			continue
 		}
-		if address := chainDupeAddress(c, other); len(address) != 0 {
-			return fmt.Errorf("\u0422\u0443\u043d\u043d\u0435\u043b\u044c %s \u043d\u0435\u043b\u044c\u0437\u044f \u043f\u043e\u0434\u043d\u044f\u0442\u044c: \u0435\u0433\u043e \u0430\u0434\u0440\u0435\u0441 %s \u0441\u043e\u0432\u043f\u0430\u0434\u0430\u0435\u0442 \u0441 \u0430\u0434\u0440\u0435\u0441\u043e\u043c \u0443\u0436\u0435 \u043f\u043e\u0434\u043d\u044f\u0442\u043e\u0433\u043e \u0442\u0443\u043d\u043d\u0435\u043b\u044f %s. %s",
-				c.Name, address, name, chainDupeHint(name))
-		}
 		if len(key) != 0 && key == chainDupeKey(other) {
-			return fmt.Errorf("\u0422\u0443\u043d\u043d\u0435\u043b\u044c %s \u043d\u0435\u043b\u044c\u0437\u044f \u043f\u043e\u0434\u043d\u044f\u0442\u044c: \u0443 \u043d\u0435\u0433\u043e \u0442\u043e\u0442 \u0436\u0435 \u0437\u0430\u043a\u0440\u044b\u0442\u044b\u0439 \u043a\u043b\u044e\u0447, \u0447\u0442\u043e \u0438 \u0443 \u0443\u0436\u0435 \u043f\u043e\u0434\u043d\u044f\u0442\u043e\u0433\u043e \u0442\u0443\u043d\u043d\u0435\u043b\u044f %s. \u041e\u0434\u043d\u0430 \u0443\u0447\u0451\u0442\u043d\u0430\u044f \u0437\u0430\u043f\u0438\u0441\u044c \u043d\u0435 \u043c\u043e\u0436\u0435\u0442 \u0432\u0435\u0441\u0442\u0438 \u0434\u0432\u0430 \u0442\u0443\u043d\u043d\u0435\u043b\u044f \u0441\u0440\u0430\u0437\u0443. %s",
-				c.Name, name, chainDupeHint(name))
+			out = append(out, name)
 		}
 	}
-	return nil
+	return out
+}
+
+// chainDupeText is the refusal for a raise without a window.
+//
+// WarpAm pack 112: the advice about the proxy fits only two single
+// tunnels. When the key belongs to the first step of a double tunnel, the
+// proxy in the settings of that tunnel goes through its second step, which
+// is another account, so the advice did not help at all.
+func chainDupeText(raising, other string) error {
+	shownRaising, shownOther := chainShownName(raising), chainShownName(other)
+	switch {
+	case conf.ChainIsHiddenHopName(raising):
+		return fmt.Errorf("\u0422\u0443\u043d\u043d\u0435\u043b\u044c %s \u043d\u0435\u043b\u044c\u0437\u044f \u0432\u043a\u043b\u044e\u0447\u0438\u0442\u044c: \u0435\u0433\u043e \u043f\u0435\u0440\u0432\u044b\u0439 \u0448\u0430\u0433 \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0435\u0442 \u0442\u043e\u0442 \u0436\u0435 \u0437\u0430\u043a\u0440\u044b\u0442\u044b\u0439 \u043a\u043b\u044e\u0447, \u0447\u0442\u043e \u0438 \u0440\u0430\u0431\u043e\u0442\u0430\u044e\u0449\u0438\u0439 %s. \u0412\u044b\u043a\u043b\u044e\u0447\u0438\u0442\u0435 %s, \u0447\u0442\u043e\u0431\u044b \u0432\u043a\u043b\u044e\u0447\u0438\u0442\u044c %s.",
+			shownRaising, shownOther, shownOther, shownRaising)
+	case conf.ChainIsHiddenHopName(other):
+		return fmt.Errorf("\u0422\u0443\u043d\u043d\u0435\u043b\u044c %s \u043d\u0435\u043b\u044c\u0437\u044f \u0432\u043a\u043b\u044e\u0447\u0438\u0442\u044c: \u0443 \u043d\u0435\u0433\u043e \u0442\u043e\u0442 \u0436\u0435 \u0437\u0430\u043a\u0440\u044b\u0442\u044b\u0439 \u043a\u043b\u044e\u0447, \u0447\u0442\u043e \u0438 \u0443 \u043f\u0435\u0440\u0432\u043e\u0433\u043e \u0448\u0430\u0433\u0430 \u0434\u0432\u043e\u0439\u043d\u043e\u0433\u043e \u0442\u0443\u043d\u043d\u0435\u043b\u044f %s. \u041e\u0434\u043d\u0430 \u0443\u0447\u0451\u0442\u043d\u0430\u044f \u0437\u0430\u043f\u0438\u0441\u044c \u043d\u0435 \u043c\u043e\u0436\u0435\u0442 \u0432\u0435\u0441\u0442\u0438 \u0434\u0432\u0430 \u0442\u0443\u043d\u043d\u0435\u043b\u044f \u0441\u0440\u0430\u0437\u0443. \u0412\u044b\u043a\u043b\u044e\u0447\u0438\u0442\u0435 %s, \u0447\u0442\u043e\u0431\u044b \u0432\u043a\u043b\u044e\u0447\u0438\u0442\u044c %s.",
+			shownRaising, shownOther, shownOther, shownRaising)
+	}
+	// WarpAm pack 111: the window names the tunnels the user
+	// knows. A hidden hop is named by its pair, warpam instead of
+	// warpam-hop1, which is not in the list at all.
+	return fmt.Errorf("\u0422\u0443\u043d\u043d\u0435\u043b\u044c %s \u043d\u0435\u043b\u044c\u0437\u044f \u043f\u043e\u0434\u043d\u044f\u0442\u044c: \u0443 \u043d\u0435\u0433\u043e \u0442\u043e\u0442 \u0436\u0435 \u0437\u0430\u043a\u0440\u044b\u0442\u044b\u0439 \u043a\u043b\u044e\u0447, \u0447\u0442\u043e \u0438 \u0443 \u0443\u0436\u0435 \u043f\u043e\u0434\u043d\u044f\u0442\u043e\u0433\u043e \u0442\u0443\u043d\u043d\u0435\u043b\u044f %s. \u041e\u0434\u043d\u0430 \u0443\u0447\u0451\u0442\u043d\u0430\u044f \u0437\u0430\u043f\u0438\u0441\u044c \u043d\u0435 \u043c\u043e\u0436\u0435\u0442 \u0432\u0435\u0441\u0442\u0438 \u0434\u0432\u0430 \u0442\u0443\u043d\u043d\u0435\u043b\u044f \u0441\u0440\u0430\u0437\u0443. %s",
+		shownRaising, shownOther, chainDupeHint(shownOther))
 }

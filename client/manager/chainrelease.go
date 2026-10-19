@@ -146,6 +146,22 @@ func chainReleaseAutoStart() error {
 	return nil
 }
 
+// chainReleaseFirewall deletes every rule named chainProxyRuleName, the TCP
+// rules of the ports and the UDP rule of the program. netsh answers with an
+// error when no rule has the name, which here only means there was nothing.
+func chainReleaseFirewall() {
+	chainProxyRuleMu.Lock()
+	defer chainProxyRuleMu.Unlock()
+	for port := range chainProxyRulePorts {
+		delete(chainProxyRulePorts, port)
+	}
+	if _, err := chainProxyNetsh("advfirewall", "firewall", "delete", "rule", "name="+chainProxyRuleName); err != nil {
+		log.Printf("[WarpAm] No firewall rules %q were there to remove while releasing the folder", chainProxyRuleName)
+		return
+	}
+	log.Printf("[WarpAm] Firewall rules %q were removed while releasing the folder", chainProxyRuleName)
+}
+
 // ChainReleaseFolder is the whole button. It is called by the manager on
 // the request of the window and it returns when every step it could do is
 // done: the window closes the program only when the answer carries no
@@ -175,6 +191,11 @@ func ChainReleaseFolder(unseal bool) (*ChainReleaseResult, error) {
 	}
 
 	result.Adapters = chainReleaseAdapters()
+
+	// Pack 100: the rules of Windows Firewall go with the services. They
+	// opened the proxy ports to the local network, and on a machine the
+	// folder has left nothing would ever take them away.
+	chainReleaseFirewall()
 
 	// The rights come after the services. A tunnel service reads its
 	// configuration as the system account, so opening the folder while the

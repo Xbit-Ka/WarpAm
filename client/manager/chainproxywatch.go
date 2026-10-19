@@ -34,7 +34,6 @@
 package manager
 
 import (
-	"fmt"
 	"log"
 	"strings"
 	"sync"
@@ -133,11 +132,16 @@ func ChainProxyWatchFollow(name string) {
 
 		if !said && deaf >= chainProxyWatchDeaf {
 			said = true
-			age := "never"
+			// Pack 100: the agreement holds only when there was a
+			// handshake. The log of 100p at 13:55 said it holds after 98
+			// initiations and not one answer, which sent the reader the
+			// wrong way: such packets never reach the server, or the server
+			// turns them down.
 			if a, ok := chainHandshakeAge(runtime); ok {
-				age = fmt.Sprintf("%d seconds old", int(a.Seconds()))
+				log.Printf("[WarpAm] %s has received nothing for %d seconds while it sent %d bytes, and its handshake is %d seconds old. The agreement with the server holds and the packets are being dropped on the way back, so every connection of the proxy on this tunnel will time out.%s", name, int(deaf.Seconds()), asked, int(a.Seconds()), chainKeyElsewhereHint(name))
+			} else {
+				log.Printf("[WarpAm] %s has received nothing for %d seconds while it sent %d bytes, and it has never made a handshake. The packets do not reach the server, or the server turns them down: check the port, the key and the obfuscation parameters", name, int(deaf.Seconds()), asked)
 			}
-			log.Printf("[WarpAm] %s has received nothing for %d seconds while it sent %d bytes, and its handshake is %s. The agreement with the server holds and the packets are being dropped on the way back, so every connection of the proxy on this tunnel will time out", name, int(deaf.Seconds()), asked, age)
 		}
 
 		if deaf >= chainProxyWatchFix && (fixed.IsZero() || time.Since(fixed) >= chainProxyWatchGap) {
@@ -206,6 +210,11 @@ func ChainProxyDialFailed(leaf, address string, port uint16, why string) {
 	count := run.count
 	run.told = now
 	chainProxyFailMu.Unlock()
+	// Pack 100: one silent address is that address. Several in one run
+	// are the way, and only then the loss on the way is named.
+	if why == chainProxyWhySilent && count > 1 {
+		why += ", and so did the others: when several addresses are silent, the packets are being dropped on the way"
+	}
 	log.Printf("[WarpAm] The proxy of %s could not reach %d addresses in the last %d seconds, the last of them %s:%d: %s", leaf, count, since, address, port, why)
 }
 

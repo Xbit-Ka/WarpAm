@@ -27,6 +27,8 @@ type ManageTunnelsWindow struct {
 	// proxyPage is the "Proxy" tab of pack 79. It follows the tunnel the
 	// list on the "Tunnels" tab is standing on.
 	proxyPage   *ProxyPage
+	// mtuPage (WarpAm pack 112) stands between the proxy tab and the log.
+	mtuPage *MTUPage
 	logPage     *LogPage
 	updatePage  *UpdatePage
 	settingsPage *SettingsPage
@@ -118,6 +120,13 @@ func NewManageTunnelsWindow() (*ManageTunnelsWindow, error) {
 		mtw.proxyPage = proxyPage
 		mtw.tabs.Pages().Add(proxyPage.TabPage)
 		mtw.tunnelsPage.SetProxyPage(proxyPage)
+	}
+
+	// WarpAm pack 112: the MTU tab. If it cannot be built the rest of the
+	// window still comes up.
+	if mtuPage, mtuErr := NewMTUPage(); mtuErr == nil {
+		mtw.mtuPage = mtuPage
+		mtw.tabs.Pages().Add(mtuPage.TabPage)
 	}
 
 	if mtw.logPage, err = NewLogPage(); err != nil {

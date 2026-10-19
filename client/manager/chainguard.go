@@ -520,6 +520,7 @@ func chainRxTrouble(name string, runtime *conf.Config) string {
 
 	if chainHopReceived(runtime) != 0 {
 		delete(chainRxSilentSince, key)
+		delete(chainRxHinted, key)
 		return ""
 	}
 	since, seen := chainRxSilentSince[key]
@@ -530,6 +531,13 @@ func chainRxTrouble(name string, runtime *conf.Config) string {
 	silent := now.Sub(since)
 	if silent < chainRxSilence {
 		return ""
+	}
+	// WarpAm pack 112: once per silence, and in the log only, the hint
+	// about the same key on another device (chainsilence.go). The reason
+	// itself stays short, because it goes into other lines.
+	if !chainRxHinted[key] {
+		chainRxHinted[key] = true
+		log.Printf("[WarpAm] %s handshakes but has received nothing for %d seconds.%s", name, int(silent.Seconds()), chainKeyElsewhereHint(name))
 	}
 	return fmt.Sprintf("%s handshakes but has received nothing for %d seconds", name, int(silent.Seconds()))
 }
@@ -814,6 +822,36 @@ func chainWatchedHop(name string) bool {
 func chainLeafIsSeparate(leaf string) bool {
 	settings := ChainSettingsFor(leaf)
 	return settings.Proxy && settings.ProxySplit
+}
+
+// chainTunnelIsSeparate is the same question asked by the intersection
+// rule of Start, which also meets hidden hops.
+//
+// WarpAm pack 110: a hidden hop has no settings of its own, so
+// chainLeafIsSeparate always called it an ordinary tunnel that takes the
+// whole internet. Raising warpam raised warpam-hop1 first, and the rule
+// stopped WARPv2_84 for it without a question, and with it 100, Elena and
+// ru-central, which go through WARPv2_84 (log of 6.10, 20:39:29). Raising
+// WARPv2_84 stopped the pair the same way. The hop serves the tunnel that
+// rides on it and nothing else, so it is separate when that tunnel is, the
+// way core has decided it since pack 77 (ChainTunnelIsSeparate).
+func chainTunnelIsSeparate(name string) bool {
+	if chainLeafIsSeparate(name) {
+		return true
+	}
+	if !ChainIsHiddenHop(name) {
+		return false
+	}
+	riders := chainChildNames(name)
+	if len(riders) == 0 {
+		return false
+	}
+	for _, rider := range riders {
+		if !chainLeafIsSeparate(rider) {
+			return false
+		}
+	}
+	return true
 }
 
 // chainInstallAndArm replaces the plain InstallTunnel call at the end of

@@ -247,6 +247,11 @@ func trackTunnelService(tunnelName string, service *mgr.Service) {
 					if maybeErr != services.ErrorSuccess {
 						tunnelError = maybeErr
 					}
+					// WarpAm pack 103: the window gets words instead of
+					// "see the log". The log keeps the English line.
+					if maybeErr == services.ErrorDNSLookup {
+						tunnelError = errors.New(chainDNSLookupText)
+					}
 				} else {
 					switch serviceStatus.Win32ExitCode {
 					case uint32(windows.NO_ERROR), uint32(windows.ERROR_SERVICE_NEVER_STARTED):
@@ -257,6 +262,14 @@ func trackTunnelService(tunnelName string, service *mgr.Service) {
 			}
 			if tunnelError != nil {
 				service.Delete()
+			}
+			// WarpAm pack 111: the manager ended this process itself,
+			// because the service ignored Stop while starting (pack 101).
+			// "The process terminated unexpectedly" is then no error of the
+			// tunnel: the user asked for it to stop, and it has.
+			if tunnelError != nil && chainWasKilled(tunnelName) {
+				log.Printf("[%s] The error of the ended process is not shown, the manager ended it after Stop: %v", tunnelName, tunnelError)
+				tunnelError = nil
 			}
 		}
 		if state != lastState {

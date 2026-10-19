@@ -12,9 +12,14 @@
  * This file closes that window. Before the peers are brought up, the service
  * waits for the pinned adapter, starting the hop underneath in the meantime.
  * The wait is short on purpose (20 seconds) so Windows never marks the
- * service start as failed; if the hop is still missing after that, the old
- * behaviour takes over: the tunnel comes up and chainRetrySetup keeps
- * retrying the binding in the background.
+ * service start as failed.
+ *
+ * Pack 101: if the hop is still missing after that, the service stops with
+ * an error. Before, the peers were brought up anyway, and the first
+ * handshake went out through the physical adapter, past the hop: the leak
+ * of the log of 5 October. The manager now raises the hop underneath
+ * before the service of this one is started at all, so this wait is the
+ * last guard, not the normal path.
  */
 
 package tunnel
@@ -31,16 +36,18 @@ const chainUpWaitTries = 10
 
 // chainWaitForPinBeforeUp blocks until the adapter named in PinEndpointVia is
 // up, so that no packet of this hop can leave through the physical adapter.
-func chainWaitForPinBeforeUp(config *conf.Config) {
+// Pack 101: it answers false when the adapter never came, and the caller
+// must then not bring the peers up.
+func chainWaitForPinBeforeUp(config *conf.Config) bool {
 	if config == nil {
-		return
+		return true
 	}
 	via := strings.TrimSpace(config.Interface.PinEndpointVia)
 	if via == "" {
-		return
+		return true
 	}
 	if chainPinnedInterfaceReady(via) {
-		return
+		return true
 	}
 
 	log.Printf("Chain: holding the first handshake until the hop underneath (%s) is here", via)
@@ -53,9 +60,10 @@ func chainWaitForPinBeforeUp(config *conf.Config) {
 		if chainPinnedInterfaceReady(via) {
 			log.Printf("Chain: the hop underneath (%s) is here, the handshake may go out", via)
 			chainPinRoutes(config, true)
-			return
+			return true
 		}
 	}
 
-	log.Printf("Chain: the hop underneath (%s) is still missing, bringing peers up and retrying the binding in the background", via)
+	log.Printf("Chain: the hop underneath (%s) is still missing, the peers are not brought up so nothing goes out past it", via)
+	return false
 }

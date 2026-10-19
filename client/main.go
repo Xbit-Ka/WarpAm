@@ -276,6 +276,10 @@ func main() {
 			fatal(err)
 		}
 		manager.InitializeIPCClient(readPipe, writePipe, eventPipe)
+		// WarpAm pack 110: the ring is read only here, so the lines of the
+		// window go through the manager (manager/chainguilog.go).
+		log.SetOutput(manager.ChainGuiLogWriter())
+		log.SetFlags(0)
 		ui.IsAdmin = isAdmin
 		ui.RunUI()
 		return

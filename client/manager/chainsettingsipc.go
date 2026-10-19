@@ -93,6 +93,13 @@ func (s *ManagerService) chainServeSettingsSet(decoder *gob.Decoder, encoder *go
 		return encoder.Encode(errToString(windows.ERROR_ACCESS_DENIED))
 	}
 
+	// WarpAm pack 112: a new "through" may not make a chain longer than
+	// 4 tunnels (chainlength.go). The tab asks first; this is for the
+	// callers that do not.
+	if problem := chainLengthSaveProblem(name, ChainSettingsFor(name), settings); len(problem) != 0 {
+		return encoder.Encode(problem)
+	}
+
 	saveErr := ChainSettingsSave(name, settings)
 	if saveErr == nil {
 		s.chainSettingsApplyNow(name)

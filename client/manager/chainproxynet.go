@@ -73,6 +73,14 @@ const (
 	chainProxyErrAccess = syscall.Errno(10013)
 )
 
+// chainProxyWhySilent is the reason of a timeout. Pack 100: up to pack 99
+// it said that the packets were being dropped on the way, while most of
+// the time it is the address itself that does not answer, for example
+// 8.6.112.0:443 of ru-central while the tunnel worked. The loss on the way
+// is named by ChainProxyDialFailed, and only when several addresses are
+// silent in one run.
+const chainProxyWhySilent = "the address did not answer in time"
+
 // chainProxyWhy says in plain words why a socket failed, so that the log
 // and the SOCKS answer carry the reason instead of a bare code.
 func chainProxyWhy(err error) string {
@@ -84,11 +92,11 @@ func chainProxyWhy(err error) string {
 		return "the packet filter refused the socket (WSAEACCES 10013), so the kill switch has no door for it"
 	}
 	if errors.Is(err, context.DeadlineExceeded) {
-		return "nothing answered in time, so the packets are being dropped on the way"
+		return chainProxyWhySilent
 	}
 	var netErr net.Error
 	if errors.As(err, &netErr) && netErr.Timeout() {
-		return "nothing answered in time, so the packets are being dropped on the way"
+		return chainProxyWhySilent
 	}
 	// Pack 87: a DNS error of the standard library carries the resolver it
 	// read from the settings of the machine, not the one the packets went
@@ -104,7 +112,7 @@ func chainProxyWhy(err error) string {
 			return "the resolvers of the tunnel answered that the name has no address of the kind that was asked for"
 		}
 		if dnsErr.IsTimeout {
-			return "nothing answered in time, so the packets are being dropped on the way"
+			return chainProxyWhySilent
 		}
 		if len(dnsErr.Err) != 0 {
 			return dnsErr.Err
@@ -211,6 +219,11 @@ func chainProxyDNSServers(leaf string) []net.IP {
 		if server.To4() != nil {
 			servers = append(servers, server)
 		}
+	}
+	// WarpAm pack 112: a hidden hop has no resolvers of its own; the second
+	// proxy that goes out through it asks Cloudflare through it.
+	if len(servers) == 0 && ChainIsHiddenHop(leaf) {
+		servers = append(servers, net.IPv4(1, 1, 1, 1).To4(), net.IPv4(1, 0, 0, 1).To4())
 	}
 	return servers
 }
